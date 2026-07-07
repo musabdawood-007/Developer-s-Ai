@@ -58,15 +58,21 @@ export function PostLoginWelcome({ open, username, onOpenChange }: PostLoginWelc
 
     const particles: Particle[] = [];
     const colors = ["#10b981", "#14b8a6", "#8b5cf6", "#ec4899", "#f59e0b", "#06b6d4", "#a855f7"];
+    const MAX_PARTICLES = 400; // Cap to prevent slowdown
 
     const launchFirework = () => {
-      const x = canvas.width * (0.2 + Math.random() * 0.6);
-      const y = canvas.height * (0.2 + Math.random() * 0.4);
+      // Don't launch if too many particles (prevents lag)
+      if (particles.length > MAX_PARTICLES) return;
+
+      const x = canvas.width * (0.15 + Math.random() * 0.7);
+      const y = canvas.height * (0.15 + Math.random() * 0.5);
       const color = colors[Math.floor(Math.random() * colors.length)];
-      const count = 40 + Math.floor(Math.random() * 20);
+      // Fewer particles per burst on mobile (smaller screens)
+      const isMobile = window.innerWidth < 640;
+      const count = isMobile ? 25 : 40 + Math.floor(Math.random() * 15);
       for (let i = 0; i < count; i++) {
         const angle = (Math.PI * 2 * i) / count;
-        const speed = 2 + Math.random() * 4;
+        const speed = (isMobile ? 1.5 : 2) + Math.random() * 3;
         particles.push({
           x,
           y,
@@ -74,47 +80,52 @@ export function PostLoginWelcome({ open, username, onOpenChange }: PostLoginWelc
           vy: Math.sin(angle) * speed,
           life: 1,
           color,
-          size: 2 + Math.random() * 2,
+          size: (isMobile ? 1.5 : 2) + Math.random() * 1.5,
         });
       }
     };
 
-    // Launch initial burst, then keep launching
+    // Launch initial burst, then keep launching at slower interval
     launchFirework();
-    const burstInterval = setInterval(launchFirework, 600);
+    const burstInterval = setInterval(launchFirework, 800);
 
     let animationId: number;
-    const animate = () => {
-      ctx.fillStyle = "rgba(10, 10, 26, 0.15)";
+    let lastTime = performance.now();
+
+    const animate = (now: number) => {
+      const delta = Math.min((now - lastTime) / 16.67, 2); // normalize to 60fps, cap at 2x
+      lastTime = now;
+
+      // Clear with semi-transparent rect for trail effect
+      ctx.fillStyle = "rgba(10, 10, 26, 0.2)";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+      // Render all particles (no per-particle save/restore = faster)
       for (let i = particles.length - 1; i >= 0; i--) {
         const p = particles[i];
-        p.x += p.vx;
-        p.y += p.vy;
-        p.vy += 0.05; // gravity
-        p.vx *= 0.99;
-        p.life -= 0.015;
+        p.x += p.vx * delta;
+        p.y += p.vy * delta;
+        p.vy += 0.05 * delta; // gravity
+        p.vx *= Math.pow(0.99, delta);
+        p.life -= 0.012 * delta;
 
         if (p.life <= 0) {
           particles.splice(i, 1);
           continue;
         }
 
+        // Use simple alpha + fillStyle (no shadowBlur — too expensive)
         ctx.globalAlpha = p.life;
         ctx.fillStyle = p.color;
-        ctx.shadowBlur = 8;
-        ctx.shadowColor = p.color;
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
         ctx.fill();
       }
       ctx.globalAlpha = 1;
-      ctx.shadowBlur = 0;
 
       animationId = requestAnimationFrame(animate);
     };
-    animate();
+    animationId = requestAnimationFrame(animate);
 
     return () => {
       cancelAnimationFrame(animationId);
