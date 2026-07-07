@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a0a0a"/>
+      <stop offset="100%" style="stop-color:#0d0505"/>
+    </linearGradient>
+    <linearGradient id="logo" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#e0245e"/>
+      <stop offset="50%" style="stop-color:#c41e3a"/>
+      <stop offset="100%" style="stop-color:#9b1c2e"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <!-- Background -->
+  <rect width="512" height="512" rx="100" fill="url(#bg)"/>
+  <!-- Ruby glow circle behind logo -->
+  <circle cx="256" cy="256" r="140" fill="url(#logo)" opacity="0.15" filter="url(#glow)"/>
+  <!-- DA Logo badge -->
+  <rect x="146" y="146" width="220" height="220" rx="48" fill="url(#logo)" filter="url(#glow)"/>
+  <!-- DA text -->
+  <text x="256" y="290" font-family="Arial, sans-serif" font-size="120" font-weight="bold" fill="white" text-anchor="middle">DA</text>
+</svg>

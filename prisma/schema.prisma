@@ -1,0 +1,78 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+// --- Developer's Ai: visitor + chat logging ---
+
+model Visitor {
+  id              String    @id @map("_id") @default(cuid())
+  email           String    @unique
+  name            String
+  password        String?
+  profilePicture  String?
+  sessionId       String    @unique
+  isPro           Boolean   @default(false)
+  proExpiresAt    DateTime?
+  createdAt       DateTime  @default(now())
+  lastSeen        DateTime  @updatedAt
+  chats           ChatLog[]
+  sessions        ChatSession[]
+  modelUsages     ModelUsage[]
+
+  @@map("visitors")
+}
+
+model ChatSession {
+  id          String    @id @map("_id") @default(cuid())
+  visitorId   String
+  visitor     Visitor   @relation(fields: [visitorId], references: [id], onDelete: Cascade)
+  title       String    @default("New Chat")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  chats       ChatLog[]
+
+  @@map("chat_sessions")
+}
+
+model ChatLog {
+  id            String    @id @map("_id") @default(cuid())
+  visitorId     String
+  visitor       Visitor  @relation(fields: [visitorId], references: [id], onDelete: Cascade)
+  sessionId     String?
+  session       ChatSession? @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  role          String
+  content       String
+  modelId       String?
+  createdAt     DateTime  @default(now())
+  deletedAt     DateTime?
+  userHiddenAt  DateTime?
+
+  @@index([visitorId])
+  @@index([sessionId])
+  @@map("chat_logs")
+}
+
+// Tracks daily message usage per visitor per model.
+// One row per (visitor, model, day). Reset daily by checking `date`.
+model ModelUsage {
+  id          String   @id @map("_id") @default(cuid())
+  visitorId   String
+  visitor     Visitor  @relation(fields: [visitorId], references: [id], onDelete: Cascade)
+  modelId     String   // e.g. "v1", "v2", "pro"
+  date        String   // YYYY-MM-DD (UTC) — daily bucket
+  count       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([visitorId, modelId, date])
+  @@index([visitorId, date])
+  @@map("model_usages")
+}
