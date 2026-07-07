@@ -487,3 +487,137 @@ textarea {
     scroll-behavior: auto !important;
   }
 }
+
+/* ============================================
+   HARDWARE-ACCELERATED ANIMATIONS (v2.5)
+   All use transform/opacity for GPU acceleration
+   ============================================ */
+
+/* Fade in (for modals & overlays) */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.animate-fade-in {
+  animation: fade-in 0.2s ease-out;
+}
+
+/* Slide up from bottom (for composer elements) */
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-slide-up {
+  animation: slide-up 0.3s cubic-bezier(0.16, 1, 0.3, 1) will-change-transform;
+}
+
+/* Slide in from right (for sidebar) */
+@keyframes slide-in-right {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+.animate-slide-in-right {
+  animation: slide-in-right 0.3s cubic-bezier(0.16, 1, 0.3, 1) will-change-transform;
+}
+
+/* Pop in (for buttons appearing) */
+@keyframes pop-in {
+  0% { opacity: 0; transform: scale(0.8); }
+  60% { opacity: 1; transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+.animate-pop-in {
+  animation: pop-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) will-change-transform;
+}
+
+/* Token stream (for chat messages appearing one-by-one) */
+@keyframes token-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 4px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+.animate-token-in {
+  animation: token-in 0.15s ease-out will-change-transform;
+}
+
+/* Hover lift (for cards, buttons) */
+.hover-lift {
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease;
+  will-change: transform;
+}
+.hover-lift:hover {
+  transform: translateY(-2px) translateZ(0);
+  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.15);
+}
+
+/* Glow pulse (for selected items) */
+@keyframes glow-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(16, 185, 129, 0);
+  }
+}
+.animate-glow-pulse {
+  animation: glow-pulse 2s ease-in-out infinite;
+}
+
+/* Shimmer line (loading effect) */
+@keyframes shimmer-line {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.shimmer-line {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(16, 185, 129, 0.2) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer-line 1.5s linear infinite;
+}
+
+/* Smooth scroll behavior */
+html {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Better backdrop-filter performance */
+.backdrop-blur {
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  transform: translateZ(0);
+}
+
+/* GPU layer promotion for animated elements */
+.will-change-transform {
+  will-change: transform;
+}
+.will-change-opacity {
+  will-change: opacity;
+}
+
+/* Smooth button presses */
+button:active:not(:disabled) {
+  transform: scale(0.97) translateZ(0);
+  transition: transform 0.1s ease;
+}
+
+/* Smooth focus rings */
+*:focus-visible {
+  transition: outline 0.15s ease, box-shadow 0.15s ease;
+}

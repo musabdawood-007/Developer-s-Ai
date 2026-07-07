@@ -30,7 +30,6 @@ import {
   ChevronDown,
   Lock,
   Zap,
-  Folder,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -47,7 +46,7 @@ import { AdminPortal } from "@/components/chat/admin-portal";
 import { PrivacyTerms } from "@/components/chat/privacy-terms";
 import { AccountPortal } from "@/components/chat/account-portal";
 import { WelcomeScreen } from "@/components/chat/welcome-screen";
-import { ProjectsPortal } from "@/components/chat/projects-portal";
+import { PatchNotesModal } from "@/components/chat/patch-notes-modal";
 import {
   BOT_NAME,
   DEVELOPER_INFO,
@@ -202,11 +201,7 @@ export default function Home() {
   const [isPro, setIsPro] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [showWelcome, setShowWelcome] = useState(true);
-  const [projectsOpen, setProjectsOpen] = useState(false);
-  const [pendingProjectContent, setPendingProjectContent] = useState<{
-    filename: string;
-    content: string;
-  } | null>(null);
+  const [showPatchNotes, setShowPatchNotes] = useState(false);
 
   // Show welcome screen on every fresh page load (not on route changes within SPA)
   useEffect(() => {
@@ -259,6 +254,19 @@ export default function Home() {
   useEffect(() => {
     refreshUsage();
   }, [refreshUsage]);
+
+  // Show patch notes once after login if user hasn't seen the latest version
+  useEffect(() => {
+    if (!visitor) return;
+    try {
+      const seenVersion = localStorage.getItem("devai:patch-version");
+      const currentVersion = "v2.5"; // bump this when shipping new patch
+      if (seenVersion !== currentVersion) {
+        setShowPatchNotes(true);
+        localStorage.setItem("devai:patch-version", currentVersion);
+      }
+    } catch {}
+  }, [visitor]);
 
   // Try to restore a returning visitor from localStorage so they skip the gate.
   useEffect(() => {
@@ -1101,89 +1109,10 @@ export default function Home() {
                 Hi, {visitor.name}!
               </p>
             </div>
-
-            {/* ===== Model selector dropdown ===== */}
-            <div className="relative">
-              <button
-                type="button"
-                onClick={() => setModelDropdownOpen((v) => !v)}
-                className="ml-2 flex items-center gap-1 rounded-md border border-emerald-500/30 bg-emerald-500/5 px-2 py-1 text-[11px] font-medium text-emerald-300 hover:bg-emerald-500/10 transition-colors"
-                title="Switch model"
-              >
-                <span>{getModel(selectedModelId)?.badge}</span>
-                <span className="hidden sm:inline">{getModel(selectedModelId)?.label}</span>
-                <span className="sm:hidden">{getModel(selectedModelId)?.label.replace("Developer's ", "")}</span>
-                <ChevronDown className="h-3 w-3" />
-              </button>
-              {modelDropdownOpen && (
-                <>
-                  {/* Click-away overlay */}
-                  <div
-                    className="fixed inset-0 z-40"
-                    onClick={() => setModelDropdownOpen(false)}
-                  />
-                  <div className="absolute left-0 top-full z-50 mt-1 w-72 rounded-lg border border-border bg-popover shadow-xl overflow-hidden">
-                    {MODELS.map((m) => {
-                      const u = usage[m.id] || { used: 0, remaining: m.dailyLimit, dailyLimit: m.dailyLimit, locked: m.tier === "pro" && !isPro };
-                      const isSelected = m.id === selectedModelId;
-                      const remainingText = u.locked
-                        ? "🔒 Locked"
-                        : isPro || m.dailyLimit === 0
-                        ? "∞ Unlimited"
-                        : `${u.remaining} / ${m.dailyLimit} left today`;
-                      return (
-                        <button
-                          key={m.id}
-                          type="button"
-                          disabled={u.locked}
-                          onClick={() => {
-                            if (u.locked) {
-                              setShowUpgradeModal(true);
-                              return;
-                            }
-                            setSelectedModelId(m.id);
-                            setModelDropdownOpen(false);
-                          }}
-                          className={cn(
-                            "w-full px-3 py-2.5 text-left flex items-start gap-2 transition-colors",
-                            u.locked ? "opacity-60 cursor-not-allowed" : "hover:bg-muted",
-                            isSelected && "bg-emerald-500/10"
-                          )}
-                        >
-                          <span className="text-base mt-0.5">{m.badge}</span>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-1.5">
-                              <span className="text-xs font-semibold">{m.label}</span>
-                              {u.locked && <Lock className="h-3 w-3 text-amber-400" />}
-                              {isSelected && !u.locked && (
-                                <span className="ml-auto text-[10px] text-emerald-400">●</span>
-                              )}
-                            </div>
-                            <p className="text-[10px] text-muted-foreground truncate">{m.tagline}</p>
-                            <p className="text-[10px] text-emerald-400/80 mt-0.5">{remainingText}</p>
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </>
-              )}
-            </div>
           </div>
 
-          {/* Right: Projects + New chat + Account button */}
+          {/* Right: New chat + Account button */}
           <div className="flex shrink-0 items-center gap-1">
-            {/* Projects button */}
-            <button
-              type="button"
-              onClick={() => setProjectsOpen(true)}
-              className="flex h-10 w-10 items-center justify-center rounded-lg text-muted-foreground transition-all hover:bg-emerald-500/10 hover:text-emerald-400 active:scale-95"
-              aria-label="My Projects"
-              title="Open Projects — save & manage code files"
-            >
-              <Folder className="h-4 w-4" />
-            </button>
-
             {/* New chat */}
             <button
               type="button"
@@ -1281,6 +1210,75 @@ export default function Home() {
       {/* --------------------------- Composer (fixed) --------------------------- */}
       <div className="shrink-0 border-t border-border bg-background/85 backdrop-blur">
         <div className="mx-auto max-w-3xl px-3 sm:px-4 py-3">
+          {/* ===== Model selector AIO (above composer) ===== */}
+          <div className="mb-2 flex items-center justify-between gap-2">
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setModelDropdownOpen((v) => !v)}
+                className="flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/5 px-3 py-1.5 text-[11px] font-medium text-emerald-300 transition-all hover:bg-emerald-500/10 hover:border-emerald-500/50 active:scale-95 will-change-transform"
+                title="Switch model"
+              >
+                <span className="text-sm">{getModel(selectedModelId)?.badge}</span>
+                <span>{getModel(selectedModelId)?.label}</span>
+                <ChevronDown className={cn("h-3 w-3 transition-transform duration-200 will-change-transform", modelDropdownOpen && "rotate-180")} />
+              </button>
+              {modelDropdownOpen && (
+                <>
+                  <div
+                    className="fixed inset-0 z-40"
+                    onClick={() => setModelDropdownOpen(false)}
+                  />
+                  <div className="absolute left-0 bottom-full z-50 mb-1 w-72 rounded-lg border border-border bg-popover shadow-2xl overflow-hidden animate-scale-in will-change-transform">
+                    {MODELS.map((m) => {
+                      const isSelected = m.id === selectedModelId;
+                      return (
+                        <button
+                          key={m.id}
+                          type="button"
+                          onClick={() => {
+                            setSelectedModelId(m.id);
+                            setModelDropdownOpen(false);
+                          }}
+                          className={cn(
+                            "w-full px-3 py-2.5 text-left flex items-start gap-2 transition-colors",
+                            "hover:bg-muted",
+                            isSelected && "bg-emerald-500/10"
+                          )}
+                        >
+                          <span className="text-base mt-0.5">{m.badge}</span>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-xs font-semibold">{m.label}</span>
+                              {isSelected && (
+                                <span className="ml-auto text-[10px] text-emerald-400">●</span>
+                              )}
+                            </div>
+                            <p className="text-[10px] text-muted-foreground truncate">{m.tagline}</p>
+                            <p className="text-[10px] text-emerald-400/80 mt-0.5">∞ Unlimited</p>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* Right side: quick actions */}
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                onClick={() => setShowPatchNotes(true)}
+                className="flex items-center gap-1 rounded-full px-2.5 py-1.5 text-[10px] text-muted-foreground transition-colors hover:bg-muted hover:text-emerald-400 will-change-transform"
+                title="View patch notes"
+              >
+                <Sparkles className="h-3 w-3" />
+                <span className="hidden sm:inline">What's New</span>
+              </button>
+            </div>
+          </div>
+
           {/* Image generation panel */}
           {imageGenOpen && (
             <div className="mb-2 rounded-lg border border-fuchsia-500/30 bg-fuchsia-500/5 p-3">
@@ -1416,7 +1414,7 @@ export default function Home() {
               placeholder={
                 pendingImages.length > 0
                   ? "Describe what you want to know about the image…"
-                  : `Hi ${visitor.name}! Ask for coding tips, casual chat, or say 'generate a markdown file…'`
+                  : "wanna taste me? Ask Anything....."
               }
               rows={1}
               className="min-h-[40px] resize-none border-0 bg-transparent px-2 py-2 text-sm shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
@@ -1466,13 +1464,8 @@ export default function Home() {
       {/* --------------------------- Admin Portal (hidden, opened via title) --------------------------- */}
       <AdminPortal open={adminOpen} onOpenChange={setAdminOpen} />
 
-      {/* --------------------------- Projects Portal (file manager) --------------------------- */}
-      <ProjectsPortal
-        open={projectsOpen}
-        onOpenChange={setProjectsOpen}
-        pendingContent={pendingProjectContent}
-        onContentSaved={() => setPendingProjectContent(null)}
-      />
+      {/* --------------------------- Patch Notes Modal (shown on first visit after update) --------------------------- */}
+      <PatchNotesModal open={showPatchNotes} onOpenChange={setShowPatchNotes} />
 
       {/* --------------------------- Upgrade Modal (limit reached / pro clicked) --------------------------- */}
       {showUpgradeModal && (
