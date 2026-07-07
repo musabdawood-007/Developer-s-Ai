@@ -76,6 +76,7 @@ export function AuthGate({ onReady }: AuthGateProps) {
         const data = await res.json();
         if (!res.ok) throw new Error(data?.error || "Verification failed.");
         localStorage.setItem(STORAGE_KEY, JSON.stringify({ name: data.name, visitorId: data.visitorId }));
+        try { sessionStorage.setItem("devai:just-logged-in", "1"); } catch {}
         onReady({ name: data.name, visitorId: data.visitorId });
       }
       // ===== SIGNIN =====
@@ -88,6 +89,7 @@ export function AuthGate({ onReady }: AuthGateProps) {
         const data = await res.json();
         if (!res.ok) throw new Error(data?.error || "Sign in failed.");
         localStorage.setItem(STORAGE_KEY, JSON.stringify({ name: data.name, visitorId: data.visitorId }));
+        try { sessionStorage.setItem("devai:just-logged-in", "1"); } catch {}
         onReady({ name: data.name, visitorId: data.visitorId });
       }
       // ===== FORGOT: SEND OTP =====

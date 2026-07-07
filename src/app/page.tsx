@@ -47,6 +47,7 @@ import { PrivacyTerms } from "@/components/chat/privacy-terms";
 import { AccountPortal } from "@/components/chat/account-portal";
 import { WelcomeScreen } from "@/components/chat/welcome-screen";
 import { PatchNotesModal } from "@/components/chat/patch-notes-modal";
+import { PostLoginWelcome } from "@/components/chat/post-login-welcome";
 import {
   BOT_NAME,
   DEVELOPER_INFO,
@@ -202,6 +203,7 @@ export default function Home() {
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [showWelcome, setShowWelcome] = useState(true);
   const [showPatchNotes, setShowPatchNotes] = useState(false);
+  const [showPostLoginWelcome, setShowPostLoginWelcome] = useState(false);
 
   // Show welcome screen on every fresh page load (not on route changes within SPA)
   useEffect(() => {
@@ -963,7 +965,22 @@ export default function Home() {
 
   // Show the auth gate first; chat only opens once the visitor signs in.
   if (!visitor) {
-    return <AuthGate onReady={(info) => setVisitor(info)} />;
+    return (
+      <AuthGate
+        onReady={(info) => {
+          setVisitor(info);
+          // Trigger post-login welcome animation for fresh logins
+          // (not for cached restoration — that's handled separately)
+          try {
+            const justLoggedIn = sessionStorage.getItem("devai:just-logged-in");
+            if (justLoggedIn === "1") {
+              sessionStorage.removeItem("devai:just-logged-in");
+              setTimeout(() => setShowPostLoginWelcome(true), 300);
+            }
+          } catch {}
+        }}
+      />
+    );
   }
 
   return (
@@ -1466,6 +1483,13 @@ export default function Home() {
 
       {/* --------------------------- Patch Notes Modal (shown on first visit after update) --------------------------- */}
       <PatchNotesModal open={showPatchNotes} onOpenChange={setShowPatchNotes} />
+
+      {/* --------------------------- Post-Login Welcome Animation (colorful username + fireworks) --------------------------- */}
+      <PostLoginWelcome
+        open={showPostLoginWelcome}
+        username={visitor?.name || "Friend"}
+        onOpenChange={setShowPostLoginWelcome}
+      />
 
       {/* --------------------------- Upgrade Modal (limit reached / pro clicked) --------------------------- */}
       {showUpgradeModal && (

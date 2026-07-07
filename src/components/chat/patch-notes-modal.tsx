@@ -35,8 +35,8 @@ const PATCH_NOTES = [
   },
   {
     icon: "🤖",
-    title: "Model Fallback System",
-    desc: "If V2 (Claude) fails, auto-falls back to V1 (Mistral) and vice versa. No more 'sorry can't reply'.",
+    title: "Smart Model Switching",
+    desc: "If your selected model is busy, Developer's Ai auto-switches to the best alternative instantly.",
   },
   {
     icon: "💭",
@@ -49,9 +49,9 @@ const PATCH_NOTES = [
     desc: "All UI animations now use transform/opacity with will-change for butter-smooth 60fps.",
   },
   {
-    icon: "🔒",
-    title: "Hidden Real Model Names",
-    desc: "UI no longer exposes Mistral/Claude/Anthropic — users only see 'Developer's V1/V2/Pro'.",
+    icon: "🎆",
+    title: "Welcome Celebration",
+    desc: "After login, enjoy a colorful username animation with fireworks bursting on your screen!",
   },
 ];
 
