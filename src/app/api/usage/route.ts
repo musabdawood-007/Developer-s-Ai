@@ -60,18 +60,8 @@ export async function GET(req: NextRequest) {
 
     const models = MODELS.map((m) => {
       const used = usageMap.get(m.id) || 0;
-      const isProModel = m.tier === "pro";
-
-      let remaining: number;
-      if (isProActive) {
-        remaining = -1;
-      } else if (isProModel) {
-        remaining = 0;
-      } else if (m.dailyLimit === 0) {
-        remaining = -1;
-      } else {
-        remaining = Math.max(0, m.dailyLimit - used);
-      }
+      // All models are unlimited — Pro is unlocked for everyone
+      const remaining = -1; // unlimited
 
       return {
         id: m.id,
@@ -83,7 +73,7 @@ export async function GET(req: NextRequest) {
         dailyLimit: m.dailyLimit,
         used,
         remaining,
-        locked: isProModel && !isProActive,
+        locked: false, // Pro is unlocked
       };
     });
 

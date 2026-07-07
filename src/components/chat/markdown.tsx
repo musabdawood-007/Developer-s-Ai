@@ -187,10 +187,11 @@ function CodeBlock(props: any) {
           {isMarkdownFile && (
             <FormatDownloadMenu content={rawCode} variant="compact" />
           )}
+          {/* Download button for ALL code blocks (.html, .css, .js, etc.) */}
+          <CodeDownloadButton code={rawCode} language={language} />
           <CopyButton text={rawCode} />
         </div>
       </div>
-      {/* Code block — wraps long lines on mobile so no horizontal scroll is needed */}
       <SyntaxHighlighter
         language={language}
         style={oneDark}
@@ -200,7 +201,6 @@ function CodeBlock(props: any) {
           background: "transparent",
           fontSize: "0.78rem",
           padding: "0.85rem",
-          // Allow vertical scroll for very long blocks but never horizontal page scroll
           overflowX: "auto",
           overflowY: "auto",
           maxHeight: "28rem",
@@ -216,6 +216,85 @@ function CodeBlock(props: any) {
         {rawCode}
       </SyntaxHighlighter>
     </div>
+  );
+}
+
+/* ------------------------ Code Download Button ------------------------ */
+
+/** Maps a language string to a file extension */
+const LANG_TO_EXT: Record<string, string> = {
+  html: "html",
+  htm: "html",
+  css: "css",
+  scss: "scss",
+  sass: "sass",
+  less: "less",
+  javascript: "js",
+  js: "js",
+  jsx: "jsx",
+  typescript: "ts",
+  ts: "ts",
+  tsx: "tsx",
+  json: "json",
+  python: "py",
+  py: "py",
+  bash: "sh",
+  sh: "sh",
+  shell: "sh",
+  sql: "sql",
+  java: "java",
+  c: "c",
+  cpp: "cpp",
+  "c++": "cpp",
+  csharp: "cs",
+  cs: "cs",
+  go: "go",
+  golang: "go",
+  rust: "rs",
+  rs: "rs",
+  php: "php",
+  ruby: "rb",
+  rb: "rb",
+  yaml: "yml",
+  yml: "yml",
+  xml: "xml",
+  svg: "svg",
+  md: "md",
+  markdown: "md",
+  text: "txt",
+  txt: "txt",
+  dotenv: "env",
+  ini: "ini",
+  toml: "toml",
+  graphql: "graphql",
+  dockerfile: "dockerfile",
+  makefile: "mk",
+};
+
+function CodeDownloadButton({ code, language }: { code: string; language: string }) {
+  const handleDownload = () => {
+    const ext = LANG_TO_EXT[language.toLowerCase()] || "txt";
+    const filename = `developers-ai-code.${ext}`;
+    const blob = new Blob([code], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  return (
+    <button
+      onClick={handleDownload}
+      className="flex items-center gap-1 rounded px-2 py-1 text-[10px] font-medium text-zinc-400 transition-colors hover:bg-emerald-500/10 hover:text-emerald-400"
+      title={`Download as .${LANG_TO_EXT[language.toLowerCase()] || "txt"}`}
+    >
+      <Download className="h-3 w-3" />
+      <span className="hidden sm:inline">Download</span>
+    </button>
   );
 }
 

@@ -1,11 +1,14 @@
 /**
  * Available AI models for Developer's Ai.
  *
- * Each model has a user-facing name (V1, V2, etc.) and an underlying
- * API model name. All free models currently have unlimited usage.
+ * All models currently have unlimited usage.
+ * Pro is now unlocked and accessible to all users.
  *
  * The chat API will automatically FALL BACK to the next model in the
  * `fallbacks` array if the primary model fails (timeout, rate limit, etc).
+ *
+ * NOTE: Real model names (Mistral, Claude) are kept INTERNAL only —
+ * users only see "Developer's V1", "Developer's V2", "Developer's Pro".
  */
 
 export type ModelTier = "free" | "pro";
@@ -15,11 +18,11 @@ export interface ModelInfo {
   id: string;
   /** User-facing name shown in UI */
   label: string;
-  /** Short tagline */
+  /** Short tagline — NO real model names exposed */
   tagline: string;
-  /** Underlying model name on the LLM API */
+  /** Underlying model name on the LLM API (internal only) */
   apiModel: string;
-  /** Provider name shown in UI */
+  /** Provider name (internal only — not shown in UI) */
   provider: string;
   /** Daily message limit (0 = unlimited) */
   dailyLimit: number;
@@ -39,7 +42,7 @@ export const MODELS: ModelInfo[] = [
   {
     id: "v1",
     label: "Developer's V1",
-    tagline: "Fast & reliable — Mistral Medium 3.5",
+    tagline: "Fast & reliable — great for casual chat",
     apiModel: "mistral-medium-3-5",
     provider: "Mistral AI",
     dailyLimit: 0,
@@ -47,13 +50,12 @@ export const MODELS: ModelInfo[] = [
     vision: true,
     badge: "⚡",
     order: 1,
-    // If Mistral fails, fall back to Claude Sonnet
     fallbacks: ["claude-sonnet-4.5"],
   },
   {
     id: "v2",
     label: "Developer's V2",
-    tagline: "Smarter responses — Claude Sonnet 4.5",
+    tagline: "Smarter responses — better for coding help",
     apiModel: "claude-sonnet-4.5",
     provider: "Anthropic",
     dailyLimit: 0,
@@ -61,13 +63,12 @@ export const MODELS: ModelInfo[] = [
     vision: true,
     badge: "🧠",
     order: 2,
-    // If Claude Sonnet fails (rate limit / timeout), fall back to Mistral
     fallbacks: ["mistral-medium-3-5"],
   },
   {
     id: "pro",
     label: "Developer's Pro",
-    tagline: "Premium tier — coming soon",
+    tagline: "Premium experience — best quality",
     apiModel: "claude-sonnet-4.5",
     provider: "Anthropic",
     dailyLimit: 0,
@@ -75,6 +76,7 @@ export const MODELS: ModelInfo[] = [
     vision: true,
     badge: "👑",
     order: 3,
+    fallbacks: ["mistral-medium-3-5"],
   },
 ];
 
@@ -95,7 +97,6 @@ export function getDefaultModel(): ModelInfo {
 /**
  * Build a list of API model names to try, in order:
  * [primary, ...fallbacks]
- * Used by the chat API to retry with a different model if the primary fails.
  */
 export function getModelChain(modelId: string): string[] {
   const model = getModel(modelId);

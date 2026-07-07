@@ -68,32 +68,8 @@ async function checkModelAccess(
     };
   }
 
-  // If pro model — check visitor's pro status
+  // Pro model is now UNLOCKED for all users — no payment required
   if (model.tier === "pro") {
-    if (!visitorId) {
-      return {
-        allowed: false,
-        reason: "Please sign in to access Pro.",
-        apiModel: model.apiModel,
-        modelId: id,
-      };
-    }
-    const visitor = await db.visitor.findUnique({
-      where: { id: visitorId },
-      select: { isPro: true, proExpiresAt: true },
-    });
-    const isProActive =
-      visitor?.isPro &&
-      (!visitor.proExpiresAt || visitor.proExpiresAt > new Date());
-    if (!isProActive) {
-      return {
-        allowed: false,
-        reason:
-          "👑 Developer's Pro is a premium tier. Upgrade to unlock unlimited messages.",
-        apiModel: model.apiModel,
-        modelId: id,
-      };
-    }
     return { allowed: true, apiModel: model.apiModel, modelId: id };
   }
 
