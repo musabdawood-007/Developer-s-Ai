@@ -994,8 +994,8 @@ export default function Home() {
             onClick={() => setSidebarOpen(false)}
             aria-hidden
           />
-          {/* Sidebar panel */}
-          <div className="relative flex h-full w-80 max-w-[85vw] flex-col border-r border-border bg-card shadow-2xl animate-float-up">
+          {/* Sidebar panel — glass morphism */}
+          <div className="relative flex h-full w-80 max-w-[85vw] flex-col border-r border-emerald-500/20 glass-card shadow-2xl animate-slide-in-right">
             {/* Sidebar header */}
             <div className="flex items-center justify-between border-b border-border px-4 py-3">
               <h2 className="text-sm font-bold text-foreground">Chat History</h2>
@@ -1095,7 +1095,7 @@ export default function Home() {
       )}
 
       {/* ------------------------------ Header ------------------------------ */}
-      <header className="shrink-0 border-b border-border bg-background/85 backdrop-blur">
+      <header className="shrink-0 border-b border-emerald-500/20 glass">
         <div className="mx-auto flex max-w-3xl items-center justify-between gap-2 px-3 py-2.5 sm:px-4 sm:py-3 sm:gap-3">
           {/* Left: Menu + Logo + Title */}
           <div className="flex min-w-0 items-center gap-2 sm:gap-2.5">
@@ -1224,8 +1224,8 @@ export default function Home() {
         </div>
       </main>
 
-      {/* --------------------------- Composer (fixed) --------------------------- */}
-      <div className="shrink-0 border-t border-border bg-background/85 backdrop-blur">
+      {/* --------------------------- Composer (fixed) — glass morphism --------------------------- */}
+      <div className="shrink-0 border-t border-emerald-500/20 glass">
         <div className="mx-auto max-w-3xl px-3 sm:px-4 py-3">
           {/* ===== Model selector AIO (above composer) ===== */}
           <div className="mb-2 flex items-center justify-between gap-2">
@@ -1365,7 +1365,7 @@ export default function Home() {
             </div>
           )}
 
-          <div className="flex items-end gap-1.5 rounded-2xl border border-border bg-card p-2 shadow-sm focus-within:border-rose-500/50 focus-within:ring-1 focus-within:ring-rose-500/30 transition-colors sm:gap-2">
+          <div className="flex items-end gap-1.5 rounded-2xl border border-emerald-500/20 glass-card p-2 shadow-lg focus-within:border-emerald-500/50 focus-within:ring-1 focus-within:ring-emerald-500/30 transition-all sm:gap-2">
             {/* Hidden file input */}
             <input
               ref={fileInputRef}
