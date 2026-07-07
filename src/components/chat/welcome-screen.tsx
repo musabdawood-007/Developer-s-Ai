@@ -51,47 +51,48 @@ export function WelcomeScreen({ onEnter }: WelcomeScreenProps) {
 
       {/* Main content */}
       <div className="relative z-10 flex flex-col items-center text-center w-full max-w-md">
-        {/* ===== CINEMATIC LOGO SEQUENCE — properly centered ===== */}
-        <div className="relative mb-6 flex h-32 w-32 items-center justify-center sm:h-40 sm:w-40 sm:mb-8">
+        {/* ===== CINEMATIC LOGO SEQUENCE — properly centered, BIG logo ===== */}
+        <div className="relative mb-6 flex h-44 w-44 items-center justify-center sm:h-52 sm:w-52 sm:mb-8">
           {/* Phase 1: Glowing orb — CENTERED */}
           <div
-            className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-emerald-400 blur-2xl transition-all duration-500 ease-out ${
-              phaseIndex >= 0 ? "h-20 w-20 opacity-80 sm:h-24 sm:w-24" : "h-0 w-0 opacity-0"
+            className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-emerald-400 blur-3xl transition-all duration-500 ease-out ${
+              phaseIndex >= 0 ? "h-32 w-32 opacity-80 sm:h-40 sm:w-40" : "h-0 w-0 opacity-0"
             }`}
-            style={{ boxShadow: "0 0 50px 15px rgba(16, 185, 129, 0.6)" }}
+            style={{ boxShadow: "0 0 80px 20px rgba(16, 185, 129, 0.7)" }}
           />
 
           {/* Phase 2: Expanding ring — CENTERED */}
           <div
             className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-emerald-400/50 transition-all duration-500 ease-out ${
               phaseIndex >= 1
-                ? "h-28 w-28 opacity-100 scale-100 sm:h-36 sm:w-36"
-                : "h-20 w-20 opacity-0 scale-50 sm:h-24 sm:w-24"
+                ? "h-40 w-40 opacity-100 scale-100 sm:h-48 sm:w-48"
+                : "h-32 w-32 opacity-0 scale-50 sm:h-40 sm:w-40"
             }`}
           />
 
-          {/* Phase 3: Logo appears — CENTERED with fixed size container */}
+          {/* Phase 3: Logo appears — BIGGER + CENTERED */}
           <div
             className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 transition-all duration-500 ease-out ${
               phaseIndex >= 2 ? "opacity-100 scale-100 rotate-0" : "opacity-0 scale-50 rotate-180"
             }`}
           >
             <div className="relative">
-              <div className="absolute inset-0 -m-2 animate-ping-slow rounded-3xl bg-emerald-500/30 blur-lg sm:-m-3 sm:blur-xl" />
+              <div className="absolute inset-0 -m-3 animate-ping-slow rounded-3xl bg-emerald-500/30 blur-xl sm:-m-4 sm:blur-2xl" />
               <img
                 src="/custom-logo.png"
                 alt="Developer's Ai Logo"
-                className="relative h-24 w-24 rounded-2xl shadow-2xl object-contain aurora-glow animate-logo-float sm:h-28 sm:w-28"
+                className="relative h-36 w-36 rounded-2xl shadow-2xl object-contain aurora-glow animate-logo-float sm:h-44 sm:w-44"
               />
             </div>
           </div>
 
-          {/* Sparkle particles */}
+          {/* Sparkle particles — positioned around big logo */}
           {phaseIndex >= 2 && (
             <>
-              <Sparkles className="absolute right-2 top-2 h-4 w-4 text-emerald-400 animate-pulse sm:right-0 sm:top-0 sm:h-5 sm:w-5" />
-              <Sparkles className="absolute bottom-2 left-2 h-3 w-3 text-teal-400 animate-pulse [animation-delay:0.5s] sm:bottom-0 sm:left-0 sm:h-4 sm:w-4" />
-              <Sparkles className="absolute top-1/2 right-0 hidden h-3 w-3 text-purple-400 animate-pulse [animation-delay:1s] sm:block" />
+              <Sparkles className="absolute right-0 top-4 h-5 w-5 text-emerald-400 animate-pulse sm:right-2 sm:top-6 sm:h-6 sm:w-6" />
+              <Sparkles className="absolute bottom-4 left-0 h-4 w-4 text-teal-400 animate-pulse [animation-delay:0.5s] sm:bottom-6 sm:left-2 sm:h-5 sm:w-5" />
+              <Sparkles className="absolute top-1/2 right-2 hidden h-4 w-4 text-purple-400 animate-pulse [animation-delay:1s] sm:block" />
+              <Sparkles className="absolute top-8 left-2 hidden h-3 w-3 text-pink-400 animate-pulse [animation-delay:1.5s] sm:block" />
             </>
           )}
         </div>

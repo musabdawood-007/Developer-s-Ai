@@ -1233,7 +1233,7 @@ export default function Home() {
               <button
                 type="button"
                 onClick={() => setModelDropdownOpen((v) => !v)}
-                className="flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/5 px-3 py-1.5 text-[11px] font-medium text-emerald-300 transition-all hover:bg-emerald-500/10 hover:border-emerald-500/50 active:scale-95 will-change-transform"
+                className="flex items-center gap-1.5 rounded-full glass-pill px-3 py-1.5 text-[11px] font-medium text-emerald-300 transition-all hover:bg-emerald-500/15 hover:border-emerald-500/40 active:scale-95 will-change-transform"
                 title="Switch model"
               >
                 <span className="text-sm">{getModel(selectedModelId)?.badge}</span>
@@ -1246,7 +1246,7 @@ export default function Home() {
                     className="fixed inset-0 z-40"
                     onClick={() => setModelDropdownOpen(false)}
                   />
-                  <div className="absolute left-0 bottom-full z-50 mb-1 w-72 rounded-lg border border-border bg-popover shadow-2xl overflow-hidden animate-scale-in will-change-transform">
+                  <div className="absolute left-0 bottom-full z-50 mb-1 w-72 rounded-lg glass-strong overflow-hidden animate-scale-in will-change-transform">
                     {MODELS.map((m) => {
                       const isSelected = m.id === selectedModelId;
                       return (
