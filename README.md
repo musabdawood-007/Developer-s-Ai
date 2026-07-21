@@ -4,7 +4,7 @@
 
 A full-stack AI chatbot web application providing casual conversation, coding tips, AI image generation, and multi-format file export. Built with Next.js, TypeScript, and MongoDB.
 
-**Live:** https://musab-007.netlify.app
+**Live:** https://developer-space-ai.vercel.app
 
 ---
 
