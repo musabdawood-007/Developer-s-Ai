@@ -18,9 +18,6 @@ function getTransporter() {
   });
 }
 
-/**
- * Send an OTP email to the user via Gmail SMTP.
- */
 export async function sendOtpEmail(
   toEmail: string,
   otp: string

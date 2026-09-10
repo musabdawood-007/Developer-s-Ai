@@ -55,10 +55,7 @@ import {
 } from "@/lib/chat-config";
 import { MODELS, DEFAULT_MODEL_ID, MODEL_STORAGE_KEY, getModel } from "@/lib/models";
 import { cn } from "@/lib/utils";
-
-/* ------------------------------------------------------------------ */
-/*  Visitor context                                                   */
-/* ------------------------------------------------------------------ */
+import { ThemeToggle } from "@/components/theme-toggle";
 
 interface SessionInfo {
   id: string;
@@ -74,15 +71,10 @@ interface VisitorCtx {
 
 const VISITOR_STORAGE_KEY = "devai:auth";
 
-/* ------------------------------------------------------------------ */
-/*  Helpers                                                           */
-/* ------------------------------------------------------------------ */
-
 function uid() {
   return Math.random().toString(36).slice(2) + Date.now().toString(36);
 }
 
-/** Detects whether the user's text is asking for a markdown file */
 const MD_TRIGGERS = [
   "generate a markdown",
   "generate a .md",
@@ -110,20 +102,13 @@ function isMarkdownRequest(text: string) {
   return MD_TRIGGERS.some((t) => lower.includes(t));
 }
 
-/** Detects whether the model's reply is essentially one big ```md block */
 function looksLikeMarkdownFile(content: string) {
   const trimmed = content.trim();
-  // Single fenced md/markdown block taking up most of the message
   const fenceMatch = trimmed.match(/^```(?:md|markdown)\s*\n([\s\S]*?)\n```$/);
   if (fenceMatch) return true;
-  // Heuristic: message starts with a # heading and is "long enough"
   if (trimmed.startsWith("#") && trimmed.length > 200) return true;
   return false;
 }
-
-/* ------------------------------------------------------------------ */
-/*  Suggested prompt chips                                            */
-/* ------------------------------------------------------------------ */
 
 const SUGGESTIONS: {
   label: string;
@@ -165,10 +150,6 @@ const SUGGESTIONS: {
   },
 ];
 
-/* ------------------------------------------------------------------ */
-/*  Page                                                              */
-/* ------------------------------------------------------------------ */
-
 export default function Home() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -195,7 +176,6 @@ export default function Home() {
   const abortRef = useRef<AbortController | null>(null);
   const { toast } = useToast();
 
-  // ===== Model selection state =====
   const [selectedModelId, setSelectedModelId] = useState<string>(DEFAULT_MODEL_ID);
   const [modelDropdownOpen, setModelDropdownOpen] = useState(false);
   const [usage, setUsage] = useState<Record<string, { used: number; remaining: number; dailyLimit: number; locked: boolean }>>({});
@@ -205,9 +185,7 @@ export default function Home() {
   const [showPatchNotes, setShowPatchNotes] = useState(false);
   const [showPostLoginWelcome, setShowPostLoginWelcome] = useState(false);
 
-  // Show welcome screen on every fresh page load (not on route changes within SPA)
   useEffect(() => {
-    // Use performance API to detect if this is a fresh navigation
     const nav = performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming | undefined;
     const isFreshLoad = !nav || nav.type === "navigate" || nav.type === "reload";
     if (!isFreshLoad) {
@@ -215,7 +193,6 @@ export default function Home() {
     }
   }, []);
 
-  // Restore selected model from localStorage on mount
   useEffect(() => {
     try {
       const saved = localStorage.getItem(MODEL_STORAGE_KEY);
@@ -225,14 +202,12 @@ export default function Home() {
     } catch {}
   }, []);
 
-  // Save selected model to localStorage when it changes
   useEffect(() => {
     try {
       localStorage.setItem(MODEL_STORAGE_KEY, selectedModelId);
     } catch {}
   }, [selectedModelId]);
 
-  // Fetch usage from /api/usage when visitor changes or after each chat
   const refreshUsage = useCallback(async () => {
     if (!visitor?.visitorId) return;
     try {
@@ -270,7 +245,6 @@ export default function Home() {
     } catch {}
   }, [visitor]);
 
-  // Try to restore a returning visitor from localStorage so they skip the gate.
   useEffect(() => {
     try {
       const cached = localStorage.getItem(VISITOR_STORAGE_KEY);
@@ -284,25 +258,20 @@ export default function Home() {
         }
       }
     } catch {
-      // ignore
     }
   }, []);
 
-  // Capture the PWA install prompt event so we can trigger it from our
-  // custom "Download App" button instead of the browser's default popup.
   useEffect(() => {
     const handler = (e: Event) => {
-      e.preventDefault(); // prevent the default browser prompt
+      e.preventDefault();
       setInstallPromptEvent(e);
     };
     window.addEventListener("beforeinstallprompt", handler);
     return () => window.removeEventListener("beforeinstallprompt", handler);
   }, []);
 
-  // Handle the install flow when user clicks "Download App"
   const handleInstallApp = async () => {
     if (!installPromptEvent) {
-      // PWA not installable yet (already installed, or browser doesn't support)
       setShowInstallToast(true);
       setTimeout(() => setShowInstallToast(false), 5000);
       return;
@@ -316,17 +285,15 @@ export default function Home() {
         description: "Find it on your home screen. Thanks for installing!",
       });
     }
-    setInstallPromptEvent(null); // can only prompt once
+    setInstallPromptEvent(null);
   };
 
-  // When visitor is known, load their sessions list + chat history.
   useEffect(() => {
     if (!visitor) return;
 
     let cancelled = false;
 
     (async () => {
-      // 1. Load sessions list
       try {
         const sessRes = await fetch(
           `/api/sessions?visitorId=${encodeURIComponent(visitor.visitorId)}`
@@ -335,10 +302,8 @@ export default function Home() {
           const sessData = await sessRes.json();
           if (!cancelled && sessData.sessions?.length > 0) {
             setSessions(sessData.sessions);
-            // Set the most recent session as current
             setCurrentSessionId(sessData.sessions[0].id);
           } else if (!cancelled) {
-            // No sessions yet — create one
             await createNewSession();
           }
         }
@@ -352,7 +317,6 @@ export default function Home() {
     };
   }, [visitor]);
 
-  // Load chats when session changes
   useEffect(() => {
     if (!visitor || !currentSessionId) return;
 
@@ -424,7 +388,6 @@ export default function Home() {
     };
   }, [visitor, currentSessionId]);
 
-  /** Create a new chat session */
   const createNewSession = async () => {
     if (!visitor) return;
     try {
@@ -451,18 +414,14 @@ export default function Home() {
         },
       ]);
       setSidebarOpen(false);
-    } catch {
-      // ignore
     }
   };
 
-  /** Switch to an existing session */
   const switchSession = (sessionId: string) => {
     setCurrentSessionId(sessionId);
     setSidebarOpen(false);
   };
 
-  /** Refresh the sessions list from the server */
   const refreshSessions = useCallback(async () => {
     if (!visitor) return;
     try {
@@ -473,12 +432,9 @@ export default function Home() {
         const data = await res.json();
         setSessions(data.sessions || []);
       }
-    } catch {
-      // ignore
     }
   }, [visitor]);
 
-  /** Delete a chat session and all its messages */
   const deleteSession = async (sessionId: string) => {
     try {
       const res = await fetch(
@@ -489,8 +445,6 @@ export default function Home() {
 
       setSessions((prev) => prev.filter((s) => s.id !== sessionId));
 
-      // If we deleted the current session, switch to the next available one
-      // or create a new one
       if (sessionId === currentSessionId) {
         const remaining = sessions.filter((s) => s.id !== sessionId);
         if (remaining.length > 0) {
@@ -510,8 +464,6 @@ export default function Home() {
     }
   };
 
-  // Auto-scroll on new messages / streaming tokens.
-  // Use instant scroll during streaming to keep up with tokens smoothly.
   useEffect(() => {
     const el = scrollRef.current;
     if (el) {
@@ -522,7 +474,6 @@ export default function Home() {
     }
   }, [messages, loading, streaming]);
 
-  // Auto-grow the textarea.
   useEffect(() => {
     const ta = textareaRef.current;
     if (!ta) return;
@@ -534,7 +485,6 @@ export default function Home() {
     async (rawText?: string) => {
       const text = (rawText ?? input).trim();
       const images = [...pendingImages];
-      // Allow send if there's text OR at least one image
       if ((!text && images.length === 0) || loading) return;
 
       const userMsg: Message = {
@@ -551,7 +501,6 @@ export default function Home() {
       setLoading(true);
       setStreaming(true);
 
-      // Detect "about developer" intent to also reveal the contact card.
       const lower = text.toLowerCase();
       if (
         /developer|musab|who (made|built|created)|about you|about your maker/.test(
@@ -561,7 +510,6 @@ export default function Home() {
         setShowDevCard(true);
       }
 
-      // Create an empty bot message that we'll fill in as tokens arrive.
       const botId = uid();
       const wasMarkdownRequest = isMarkdownRequest(text);
       setMessages((prev) => [
@@ -598,7 +546,6 @@ export default function Home() {
 
         if (!res.ok || !res.body) {
           const errBody = await res.json().catch(() => ({}));
-          // If 403 (limit reached) — show upgrade modal
           if (res.status === 403) {
             setShowUpgradeModal(true);
           }
@@ -615,7 +562,6 @@ export default function Home() {
           if (done) break;
           buffer += decoder.decode(value, { stream: true });
 
-          // SSE messages are separated by "\n\n"
           const parts = buffer.split("\n\n");
           buffer = parts.pop() ?? "";
 
@@ -632,8 +578,6 @@ export default function Home() {
               if (json.error) {
                 throw new Error(json.error);
               }
-              // Server confirmed it's processing — switch from "sending"
-              // to "thinking" so the user sees instant feedback.
               if (json.started) {
                 setThinking(true);
               }
@@ -648,7 +592,6 @@ export default function Home() {
                 );
               }
               if (typeof json.token === "string" && json.token.length > 0) {
-                // First token arrived — stop showing the "thinking" dots.
                 setThinking(false);
                 accumulated += json.token;
                 const snapshot = accumulated;
@@ -658,8 +601,6 @@ export default function Home() {
                   )
                 );
               }
-              // `done` and `error` are handled by the loop ending / catch.
-              // Handle image generation result from server
               if (json.generatedImage) {
                 setMessages((prev) =>
                   prev.map((m) =>
@@ -675,12 +616,10 @@ export default function Home() {
                 );
               }
             } catch {
-              // ignore malformed chunk
             }
           }
         }
 
-        // Finalize: ensure asMarkdownFile flag is correct on the completed message.
         const finalText =
           accumulated ||
           "Sorry, I didn't get a response. Please try again.";
@@ -697,9 +636,7 @@ export default function Home() {
           )
         );
       } catch (e) {
-        // AbortError is expected when user clicks Stop
         if (e instanceof DOMException && e.name === "AbortError") {
-          // Keep whatever was streamed so far, but add a small "(stopped)" note
           setMessages((prev) =>
             prev.map((m) =>
               m.id === botId && m.content.trim().length > 0
@@ -731,9 +668,7 @@ export default function Home() {
         setStreaming(false);
         setThinking(false);
         abortRef.current = null;
-        // Refresh sessions list so titles update (auto-titling on first msg)
         void refreshSessions();
-        // Refresh usage so remaining counter updates
         void refreshUsage();
       }
     },
@@ -744,7 +679,6 @@ export default function Home() {
     abortRef.current?.abort();
   }, []);
 
-  /** Convert a File to a base64 data URL */
   const fileToDataUrl = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -754,7 +688,6 @@ export default function Home() {
     });
   };
 
-  /** Handle file selection from the file input */
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
@@ -762,7 +695,6 @@ export default function Home() {
     const newImages: string[] = [];
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
-      // Only accept images
       if (!file.type.startsWith("image/")) {
         toast({
           title: "Unsupported file",
@@ -771,7 +703,6 @@ export default function Home() {
         });
         continue;
       }
-      // 5MB limit
       if (file.size > 5 * 1024 * 1024) {
         toast({
           title: "File too large",
@@ -789,10 +720,9 @@ export default function Home() {
     }
 
     if (newImages.length > 0) {
-      setPendingImages((prev) => [...prev, ...newImages].slice(0, 4)); // max 4 images
+      setPendingImages((prev) => [...prev, ...newImages].slice(0, 4));
     }
 
-    // Reset the input so the same file can be selected again
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -802,16 +732,9 @@ export default function Home() {
     setPendingImages((prev) => prev.filter((_, i) => i !== idx));
   };
 
-  /**
-   * Hide a chat message from the user's view. Calls the server to set
-   * `userHiddenAt` on the ChatLog row, then removes the message from local
-   * state. Admin can still see the message (with a "Hidden by user" badge).
-   * The "welcome" bubble (id === "welcome") can't be hidden.
-   */
   const handleHideMessage = useCallback(
     async (id: string) => {
       if (!visitor || id === "welcome") return;
-      // Optimistic update — remove from UI immediately
       setMessages((prev) => prev.filter((m) => m.id !== id));
       try {
         const res = await fetch(
@@ -828,10 +751,7 @@ export default function Home() {
           description: "Removed from your view. Admin can still see it.",
         });
       } catch (e) {
-        // Restore the message if hiding failed
         setMessages((prev) => {
-          // Best-effort restore — we don't have the original content here,
-          // so just refetch from server
           return prev;
         });
         toast({
@@ -851,16 +771,12 @@ export default function Home() {
     }
   };
 
-  /**
-   * Generate an image from a text prompt and display it in the chat.
-   */
   const handleGenerateImage = async () => {
     const prompt = imagePrompt.trim();
     if (!prompt || generatingImage) return;
 
     setGeneratingImage(true);
 
-    // Add a "generating" placeholder message
     const placeholderId = uid();
     setMessages((prev) => [
       ...prev,
@@ -886,8 +802,6 @@ export default function Home() {
 
       const data = (await res.json()) as { imageDataUrl: string };
 
-      // Replace the placeholder with the generated image — render directly,
-      // NOT through markdown (markdown can't handle long base64 data URLs)
       setMessages((prev) =>
         prev.map((m) =>
           m.id === placeholderId
@@ -905,7 +819,6 @@ export default function Home() {
       setImageGenOpen(false);
       toast({ title: "Image generated!", description: "Check it out in the chat." });
     } catch (e) {
-      // Replace placeholder with error
       setMessages((prev) =>
         prev.map((m) =>
           m.id === placeholderId
@@ -927,25 +840,21 @@ export default function Home() {
   };
 
   const clearChat = () => {
-    // Start a new chat session instead of just clearing the view
     void createNewSession();
     setShowDevCard(false);
   };
 
   const signOut = async () => {
     try {
-      // Call the API to clear the httpOnly cookie
       await fetch("/api/auth/signout", {
         method: "POST",
         credentials: "include",
       });
     } catch {
-      // ignore — still clear client-side
     }
     try {
       localStorage.removeItem(VISITOR_STORAGE_KEY);
     } catch {
-      // ignore
     }
     setVisitor(null);
     setMessages([]);
@@ -958,19 +867,15 @@ export default function Home() {
     });
   };
 
-  // Show welcome screen on first visit (only once per session)
   if (showWelcome) {
     return <WelcomeScreen onEnter={() => setShowWelcome(false)} />;
   }
 
-  // Show the auth gate first; chat only opens once the visitor signs in.
   if (!visitor) {
     return (
       <AuthGate
         onReady={(info) => {
           setVisitor(info);
-          // Trigger post-login welcome animation for fresh logins
-          // (not for cached restoration — that's handled separately)
           try {
             const justLoggedIn = sessionStorage.getItem("devai:just-logged-in");
             if (justLoggedIn === "1") {
@@ -985,18 +890,14 @@ export default function Home() {
 
   return (
     <div className="flex flex-col overflow-hidden overflow-x-hidden bg-background text-foreground" style={{ height: "100dvh" }}>
-      {/* --------------------------- Chat Sessions Sidebar --------------------------- */}
       {sidebarOpen && (
         <div className="fixed inset-0 z-40 flex">
-          {/* Backdrop */}
           <div
             className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             onClick={() => setSidebarOpen(false)}
             aria-hidden
           />
-          {/* Sidebar panel — glass morphism */}
           <div className="relative flex h-full w-80 max-w-[85vw] flex-col border-r border-emerald-500/20 glass-card shadow-2xl animate-slide-in-right">
-            {/* Sidebar header */}
             <div className="flex items-center justify-between border-b border-border px-4 py-3">
               <h2 className="text-sm font-bold text-foreground">Chat History</h2>
               <button
@@ -1009,7 +910,6 @@ export default function Home() {
               </button>
             </div>
 
-            {/* New Chat button */}
             <div className="p-3">
               <button
                 type="button"
@@ -1021,7 +921,6 @@ export default function Home() {
               </button>
             </div>
 
-            {/* Sessions list */}
             <div className="chat-scroll min-h-0 flex-1 overflow-y-auto px-2 pb-2">
               {sessions.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-10 text-center">
@@ -1065,7 +964,6 @@ export default function Home() {
                           </div>
                         </div>
                       </button>
-                      {/* Delete button — appears on hover */}
                       <button
                         type="button"
                         onClick={(e) => {
@@ -1086,7 +984,6 @@ export default function Home() {
               )}
             </div>
 
-            {/* Sidebar footer */}
             <div className="border-t border-border px-4 py-2 text-center text-[10px] text-muted-foreground">
               {BOT_NAME} · Built by {DEVELOPER_INFO.name}
             </div>
@@ -1094,29 +991,26 @@ export default function Home() {
         </div>
       )}
 
-      {/* ------------------------------ Header ------------------------------ */}
-      <header className="shrink-0 border-b border-emerald-500/20 glass">
+      <header className="shrink-0 border-b border-border bg-background/80 backdrop-blur-lg">
         <div className="mx-auto flex max-w-3xl items-center justify-between gap-2 px-3 py-2.5 sm:px-4 sm:py-3 sm:gap-3">
-          {/* Left: Menu + Logo + Title */}
           <div className="flex min-w-0 items-center gap-2 sm:gap-2.5">
-            {/* Menu button */}
             <button
               type="button"
               onClick={() => {
                 setSidebarOpen(true);
                 void refreshSessions();
               }}
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-emerald-400 active:scale-95"
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground active:scale-95"
               aria-label="Open chat history"
             >
               <Menu className="h-5 w-5" />
             </button>
-            <img src="/custom-logo.png" alt="Developer's Ai" className="aurora-glow h-9 w-9 shrink-0 rounded-lg shadow-md object-cover" />
+            <img src="/custom-logo.png" alt="Developer's Ai" className="h-9 w-9 shrink-0 rounded-lg object-cover" />
             <div className="min-w-0 leading-tight">
               <button
                 type="button"
                 onClick={() => setAdminOpen(true)}
-                className="aurora-shimmer text-sm sm:text-base font-bold tracking-tight font-mono hover:opacity-80 transition-opacity cursor-default truncate"
+                className="text-sm sm:text-base font-bold tracking-tight hover:opacity-80 transition-opacity cursor-default truncate"
                 title={BOT_NAME}
                 aria-label={BOT_NAME}
               >
@@ -1128,24 +1022,21 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Right: New chat + Account button */}
           <div className="flex shrink-0 items-center gap-1">
-            {/* New chat */}
             <button
               type="button"
               onClick={clearChat}
-              className="flex h-10 w-10 items-center justify-center rounded-lg text-muted-foreground transition-all hover:bg-emerald-500/10 hover:text-emerald-400 active:scale-95"
+              className="flex h-10 w-10 items-center justify-center rounded-lg text-muted-foreground transition-all hover:bg-muted hover:text-foreground active:scale-95"
               aria-label="New chat"
               title="Start a new chat"
             >
               <Plus className="h-4 w-4" />
             </button>
 
-            {/* Account button */}
             <button
               type="button"
               onClick={() => setAccountOpen(true)}
-              className="flex h-10 w-10 items-center justify-center rounded-lg text-muted-foreground transition-all hover:bg-muted hover:text-emerald-400 active:scale-95"
+              className="flex h-10 w-10 items-center justify-center rounded-lg text-muted-foreground transition-all hover:bg-muted hover:text-foreground active:scale-95"
               aria-label="Account"
               title="Account settings"
             >
@@ -1155,10 +1046,8 @@ export default function Home() {
         </div>
       </header>
 
-      {/* --------------------------- Dev Card ---------------------------- */}
       {showDevCard && <DeveloperCard onClose={() => setShowDevCard(false)} />}
 
-      {/* ----------------------------- Chat ----------------------------- */}
       <main
         ref={scrollRef}
         className="chat-scroll min-h-0 flex-1 scroll-smooth pb-4"
@@ -1183,22 +1072,26 @@ export default function Home() {
           ))}
 
           {loading && messages[messages.length - 1]?.role !== "assistant" && (
-            <div className="flex w-full gap-3 px-3 sm:px-4 py-3">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-emerald-500/40 bg-emerald-500/10 text-emerald-400">
-                <Loader2 className="h-4 w-4 animate-spin" />
-              </div>
-              <div className="flex items-center gap-1.5 rounded-2xl rounded-tl-sm border border-border bg-card px-4 py-3">
-                <span className="h-2 w-2 animate-bounce rounded-full bg-emerald-400 [animation-delay:-0.3s]" />
-                <span className="h-2 w-2 animate-bounce rounded-full bg-emerald-400 [animation-delay:-0.15s]" />
-                <span className="h-2 w-2 animate-bounce rounded-full bg-emerald-400" />
+            <div className="flex w-full py-4">
+              <div className="w-full max-w-3xl mx-auto px-4">
+                <div className="flex items-center gap-3">
+                  <div className="relative flex h-7 w-7 items-center justify-center">
+                    <div className="absolute inset-0 rounded-full border-2 border-primary/20 border-t-primary animate-spin" />
+                    <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-primary [animation-delay:-0.3s]" />
+                    <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-primary [animation-delay:-0.15s]" />
+                    <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-primary" />
+                  </div>
+                </div>
               </div>
             </div>
           )}
 
-          {/* Suggestions */}
           {messages.length <= 1 && !loading && (
-            <div className="px-3 sm:px-4 pt-2 pb-4">
-              <p className="mb-2 text-xs font-medium text-muted-foreground">
+            <div className="px-4 pt-2 pb-4">
+              <p className="mb-3 text-xs font-medium text-muted-foreground">
                 Try one of these:
               </p>
               <div className="flex flex-wrap gap-2">
@@ -1208,9 +1101,9 @@ export default function Home() {
                     type="button"
                     onClick={() => void send(s.prompt)}
                     className={cn(
-                      "suggestion-chip inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-4 py-2.5",
-                      "text-xs font-medium text-foreground/90 transition-all",
-                      "hover:border-rose-500/50 hover:bg-rose-500/10 hover:text-rose-300",
+                      "suggestion-chip inline-flex items-center gap-1.5 rounded-full border border-border bg-card/50 px-4 py-2",
+                      "text-xs font-medium text-foreground/80 transition-all",
+                      "hover:border-primary/50 hover:bg-primary/5 hover:text-primary",
                       "active:scale-95"
                     )}
                   >
@@ -1224,21 +1117,19 @@ export default function Home() {
         </div>
       </main>
 
-      {/* --------------------------- Composer (fixed) — glass morphism --------------------------- */}
-      <div className="shrink-0 border-t border-emerald-500/20 glass">
+      <div className="shrink-0 border-t border-border bg-background/80 backdrop-blur-lg">
         <div className="mx-auto max-w-3xl px-3 sm:px-4 py-3">
-          {/* ===== Model selector AIO (above composer) ===== */}
           <div className="mb-2 flex items-center justify-between gap-2">
             <div className="relative">
               <button
                 type="button"
                 onClick={() => setModelDropdownOpen((v) => !v)}
-                className="flex items-center gap-1.5 rounded-full glass-pill px-3 py-1.5 text-[11px] font-medium text-emerald-300 transition-all hover:bg-emerald-500/15 hover:border-emerald-500/40 active:scale-95 will-change-transform"
+                className="flex items-center gap-1.5 rounded-full border border-border bg-card/50 px-3 py-1.5 text-[11px] font-medium text-muted-foreground transition-all hover:bg-muted hover:text-foreground active:scale-95"
                 title="Switch model"
               >
                 <span className="text-sm">{getModel(selectedModelId)?.badge}</span>
                 <span>{getModel(selectedModelId)?.label}</span>
-                <ChevronDown className={cn("h-3 w-3 transition-transform duration-200 will-change-transform", modelDropdownOpen && "rotate-180")} />
+                <ChevronDown className={cn("h-3 w-3 transition-transform duration-200", modelDropdownOpen && "rotate-180")} />
               </button>
               {modelDropdownOpen && (
                 <>
@@ -1246,7 +1137,7 @@ export default function Home() {
                     className="fixed inset-0 z-40"
                     onClick={() => setModelDropdownOpen(false)}
                   />
-                  <div className="absolute left-0 bottom-full z-50 mb-1 w-72 rounded-lg glass-strong overflow-hidden animate-scale-in will-change-transform">
+                  <div className="absolute left-0 bottom-full z-50 mb-1 w-72 rounded-xl border border-border bg-popover shadow-lg overflow-hidden animate-scale-in">
                     {MODELS.map((m) => {
                       const isSelected = m.id === selectedModelId;
                       return (
@@ -1260,7 +1151,7 @@ export default function Home() {
                           className={cn(
                             "w-full px-3 py-2.5 text-left flex items-start gap-2 transition-colors",
                             "hover:bg-muted",
-                            isSelected && "bg-emerald-500/10"
+                            isSelected && "bg-primary/5"
                           )}
                         >
                           <span className="text-base mt-0.5">{m.badge}</span>
@@ -1268,11 +1159,10 @@ export default function Home() {
                             <div className="flex items-center gap-1.5">
                               <span className="text-xs font-semibold">{m.label}</span>
                               {isSelected && (
-                                <span className="ml-auto text-[10px] text-emerald-400">●</span>
+                                <span className="ml-auto text-[10px] text-primary">●</span>
                               )}
                             </div>
                             <p className="text-[10px] text-muted-foreground truncate">{m.tagline}</p>
-                            <p className="text-[10px] text-emerald-400/80 mt-0.5">∞ Unlimited</p>
                           </div>
                         </button>
                       );
@@ -1282,12 +1172,12 @@ export default function Home() {
               )}
             </div>
 
-            {/* Right side: quick actions */}
             <div className="flex items-center gap-1">
+              <ThemeToggle />
               <button
                 type="button"
                 onClick={() => setShowPatchNotes(true)}
-                className="flex items-center gap-1 rounded-full px-2.5 py-1.5 text-[10px] text-muted-foreground transition-colors hover:bg-muted hover:text-emerald-400 will-change-transform"
+                className="flex items-center gap-1 rounded-full px-2.5 py-1.5 text-[10px] text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                 title="View patch notes"
               >
                 <Sparkles className="h-3 w-3" />
@@ -1296,12 +1186,11 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Image generation panel */}
           {imageGenOpen && (
-            <div className="mb-2 rounded-lg border border-fuchsia-500/30 bg-fuchsia-500/5 p-3">
+            <div className="mb-2 rounded-xl border border-border bg-card p-3">
               <div className="mb-2 flex items-center gap-2">
-                <Sparkle className="h-4 w-4 text-fuchsia-400" />
-                <span className="text-xs font-medium text-fuchsia-300">
+                <Sparkle className="h-4 w-4 text-primary" />
+                <span className="text-xs font-medium text-foreground">
                   AI Image Generation
                 </span>
               </div>
@@ -1317,7 +1206,7 @@ export default function Home() {
                     }
                   }}
                   placeholder="Describe the image you want to generate…"
-                  className="h-11 flex-1 rounded-lg border border-fuchsia-500/30 bg-card px-3 text-sm focus:border-fuchsia-500 focus:outline-none"
+                  className="h-11 flex-1 rounded-lg border border-border bg-background px-3 text-sm focus:border-primary focus:outline-none"
                   autoFocus
                   disabled={generatingImage}
                 />
@@ -1326,7 +1215,7 @@ export default function Home() {
                   size="sm"
                   onClick={() => void handleGenerateImage()}
                   disabled={!imagePrompt.trim() || generatingImage}
-                  className="h-11 gap-1.5 rounded-lg bg-gradient-to-r from-fuchsia-500 to-purple-600 text-white hover:from-fuchsia-400 hover:to-purple-500 active:scale-95 disabled:opacity-50 transition-all"
+                  className="h-11 gap-1.5 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 active:scale-95 disabled:opacity-50 transition-all"
                 >
                   {generatingImage ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
@@ -1342,7 +1231,6 @@ export default function Home() {
             </div>
           )}
 
-          {/* Pending image previews */}
           {pendingImages.length > 0 && (
             <div className="mb-2 flex flex-wrap gap-2 rounded-lg border border-border bg-card p-2">
               {pendingImages.map((img, idx) => (
@@ -1365,8 +1253,7 @@ export default function Home() {
             </div>
           )}
 
-          <div className="flex items-end gap-1.5 rounded-2xl border border-emerald-500/20 glass-card p-2 shadow-lg focus-within:border-emerald-500/50 focus-within:ring-1 focus-within:ring-emerald-500/30 transition-all sm:gap-2">
-            {/* Hidden file input */}
+          <div className="flex items-end gap-1.5 rounded-2xl border border-border bg-card p-2 shadow-sm focus-within:border-primary/50 focus-within:ring-1 focus-within:ring-primary/20 transition-all sm:gap-2">
             <input
               ref={fileInputRef}
               type="file"
@@ -1376,7 +1263,6 @@ export default function Home() {
               className="hidden"
             />
 
-            {/* Attach button */}
             <TooltipProvider delayDuration={300}>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -1384,7 +1270,7 @@ export default function Home() {
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
                     disabled={streaming || pendingImages.length >= 4}
-                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-muted-foreground transition-all hover:bg-muted hover:text-rose-400 active:scale-95 disabled:opacity-40 sm:h-9 sm:w-9"
+                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-muted-foreground transition-all hover:bg-muted hover:text-foreground active:scale-95 disabled:opacity-40 sm:h-9 sm:w-9"
                     aria-label="Attach image"
                   >
                     <Paperclip className="h-4 w-4" />
@@ -1396,7 +1282,6 @@ export default function Home() {
               </Tooltip>
             </TooltipProvider>
 
-            {/* Generate image button */}
             <TooltipProvider delayDuration={300}>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -1431,7 +1316,7 @@ export default function Home() {
               placeholder={
                 pendingImages.length > 0
                   ? "Describe what you want to know about the image…"
-                  : "wanna taste me? Ask Anything....."
+                  : "Ask anything..."
               }
               rows={1}
               className="min-h-[40px] resize-none border-0 bg-transparent px-2 py-2 text-sm shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
@@ -1442,7 +1327,7 @@ export default function Home() {
                 type="button"
                 size="icon"
                 onClick={stopGeneration}
-                className="h-10 w-10 shrink-0 rounded-xl bg-gradient-to-br from-rose-500 to-red-600 text-white hover:from-rose-400 hover:to-red-500 active:scale-95 transition-all hover:scale-105 sm:h-9 sm:w-9"
+                className="h-10 w-10 shrink-0 rounded-xl bg-destructive text-destructive-foreground hover:bg-destructive/90 active:scale-95 transition-all sm:h-9 sm:w-9"
                 aria-label="Stop generating"
               >
                 <Square className="h-4 w-4 fill-current" />
@@ -1453,7 +1338,7 @@ export default function Home() {
                 size="icon"
                 onClick={() => void send()}
                 disabled={!input.trim() && pendingImages.length === 0}
-                className="h-9 w-9 shrink-0 rounded-xl bg-gradient-to-br from-rose-500 to-red-600 text-white hover:from-rose-400 hover:to-red-500 disabled:opacity-50 transition-all hover:scale-105"
+                className="h-9 w-9 shrink-0 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-all hover:scale-105"
                 aria-label="Send message"
               >
                 <Send className="h-4 w-4" />
@@ -1462,8 +1347,8 @@ export default function Home() {
           </div>
           <p className="mt-1.5 px-1 text-[11px] text-muted-foreground">
             {streaming ? (
-              <span className="inline-flex items-center gap-1.5 text-emerald-400">
-                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" />
+              <span className="inline-flex items-center gap-1.5 text-primary">
+                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary" />
                 {thinking ? "Thinking…" : "Generating…"} click the stop button to interrupt.
               </span>
             ) : (
@@ -1478,20 +1363,16 @@ export default function Home() {
         </div>
       </div>
 
-      {/* --------------------------- Admin Portal (hidden, opened via title) --------------------------- */}
       <AdminPortal open={adminOpen} onOpenChange={setAdminOpen} />
 
-      {/* --------------------------- Patch Notes Modal (shown on first visit after update) --------------------------- */}
       <PatchNotesModal open={showPatchNotes} onOpenChange={setShowPatchNotes} />
 
-      {/* --------------------------- Post-Login Welcome Animation (colorful username + fireworks) --------------------------- */}
       <PostLoginWelcome
         open={showPostLoginWelcome}
         username={visitor?.name || "Friend"}
         onOpenChange={setShowPostLoginWelcome}
       />
 
-      {/* --------------------------- Upgrade Modal (limit reached / pro clicked) --------------------------- */}
       {showUpgradeModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 p-4" onClick={() => setShowUpgradeModal(false)}>
           <div
@@ -1548,10 +1429,8 @@ export default function Home() {
         </div>
       )}
 
-      {/* --------------------------- Privacy & Terms --------------------------- */}
       <PrivacyTerms open={privacyOpen} onOpenChange={setPrivacyOpen} />
 
-      {/* --------------------------- Account Portal --------------------------- */}
       <AccountPortal
         open={accountOpen}
         onOpenChange={setAccountOpen}
@@ -1583,7 +1462,6 @@ export default function Home() {
         }}
       />
 
-      {/* --------------------------- Install Instructions Toast --------------------------- */}
       {showInstallToast && (
         <div className="fixed bottom-20 left-1/2 z-50 -translate-x-1/2 animate-float-up">
           <div className="flex items-start gap-3 rounded-xl border border-rose-500/40 bg-card px-4 py-3 shadow-2xl max-w-sm">
@@ -1618,10 +1496,6 @@ export default function Home() {
     </div>
   );
 }
-
-/* ------------------------------------------------------------------ */
-/*  Developer card                                                    */
-/* ------------------------------------------------------------------ */
 
 function DeveloperCard({ onClose }: { onClose: () => void }) {
   return (

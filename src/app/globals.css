@@ -45,37 +45,37 @@
 
 :root {
   --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
+  --background: oklch(0.99 0.002 250);
+  --foreground: oklch(0.15 0.01 260);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
+  --card-foreground: oklch(0.15 0.01 260);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --popover-foreground: oklch(0.15 0.01 260);
+  --primary: oklch(0.55 0.15 165);
+  --primary-foreground: oklch(0.99 0 0);
+  --secondary: oklch(0.96 0.005 250);
+  --secondary-foreground: oklch(0.20 0.01 260);
+  --muted: oklch(0.96 0.005 250);
+  --muted-foreground: oklch(0.50 0.01 260);
+  --accent: oklch(0.94 0.01 165);
+  --accent-foreground: oklch(0.20 0.01 260);
+  --destructive: oklch(0.58 0.22 27);
+  --border: oklch(0.92 0.005 250);
+  --input: oklch(0.92 0.005 250);
+  --ring: oklch(0.55 0.15 165);
+  --chart-1: oklch(0.55 0.15 165);
+  --chart-2: oklch(0.60 0.12 185);
+  --chart-3: oklch(0.40 0.08 230);
+  --chart-4: oklch(0.75 0.15 85);
+  --chart-5: oklch(0.65 0.18 320);
+  --sidebar: oklch(0.98 0.002 250);
+  --sidebar-foreground: oklch(0.15 0.01 260);
+  --sidebar-primary: oklch(0.55 0.15 165);
+  --sidebar-primary-foreground: oklch(0.99 0 0);
+  --sidebar-accent: oklch(0.96 0.005 250);
+  --sidebar-accent-foreground: oklch(0.20 0.01 260);
+  --sidebar-border: oklch(0.92 0.005 250);
+  --sidebar-ring: oklch(0.55 0.15 165);
 }
 
 .dark {
@@ -119,40 +119,23 @@
   }
   body {
     @apply bg-background text-foreground;
-    /* Safe area insets for PWA installed on notched phones */
     padding-top: env(safe-area-inset-top);
     padding-bottom: env(safe-area-inset-bottom);
     padding-left: env(safe-area-inset-left);
     padding-right: env(safe-area-inset-right);
-    /* Prevent text size adjust on orientation change */
     -webkit-text-size-adjust: 100%;
-    /* Prevent tap highlight on mobile */
     -webkit-tap-highlight-color: transparent;
-    /* Smooth touch scrolling */
     -webkit-overflow-scrolling: touch;
   }
   html,
   body {
     height: 100%;
-    /* Use dvh for dynamic viewport height (handles mobile browser UI) */
     min-height: 100vh;
     min-height: 100dvh;
   }
-  /* Prevent pull-to-refresh when installed as PWA */
   html {
     overscroll-behavior-y: none;
   }
-}
-
-/* Custom scrollbar — visible on dark theme */
-.scroll-smooth {
-  scroll-behavior: smooth;
-}
-
-/* Ruby theme animations */
-@keyframes aurora-glow {
-  0%, 100% { box-shadow: 0 0 12px oklch(0.72 0.18 165 / 0.4); }
-  50% { box-shadow: 0 0 20px oklch(0.72 0.18 165 / 0.7); }
 }
 
 @keyframes shimmer {
@@ -165,32 +148,10 @@
   100% { opacity: 1; transform: translateY(0); }
 }
 
-.aurora-glow {
-  animation: aurora-glow 3s ease-in-out infinite;
-}
-
 .animate-float-up {
   animation: float-up 0.3s ease-out;
 }
 
-/* Shimmer text effect for the title */
-.shimmer-text {
-  background: linear-gradient(
-    90deg,
-    oklch(0.96 0.008 200) 0%,
-    oklch(0.72 0.18 165) 25%,
-    oklch(0.68 0.20 290) 50%,
-    oklch(0.72 0.18 165) 75%,
-    oklch(0.96 0.008 200) 100%
-  );
-  background-size: 200% auto;
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  animation: shimmer 4s linear infinite;
-}
-
-/* Button hover lift */
 button:hover:not(:disabled) {
   transform: translateY(-1px);
 }
@@ -199,42 +160,39 @@ button:active:not(:disabled) {
   transform: translateY(0);
 }
 
-/* Suggestion chip entrance */
 .suggestion-chip {
   transition: all 0.2s ease;
 }
 
 .suggestion-chip:hover {
-  transform: translateY(-2px) scale(1.03);
+  transform: translateY(-1px);
 }
 
-/* Always show scrollbar on the main chat scroll area */
 .chat-scroll {
   scrollbar-width: thin;
-  scrollbar-color: oklch(0.72 0.18 165) oklch(0.11 0.015 20);
+  scrollbar-color: var(--muted-foreground) var(--muted);
   overflow-y: scroll !important;
 }
 
-/* WebKit (Chrome, Safari, Edge) scrollbar styling for chat-scroll */
 .chat-scroll::-webkit-scrollbar {
   width: 14px;
   height: 14px;
 }
 .chat-scroll::-webkit-scrollbar-track {
-  background: oklch(0.11 0.015 20);
-  border-left: 1px solid oklch(0.25 0.03 20);
+  background: var(--muted);
+  border-left: 1px solid var(--border);
 }
 .chat-scroll::-webkit-scrollbar-thumb {
-  background: oklch(0.72 0.18 165);
+  background: var(--primary);
   border-radius: 8px;
-  border: 3px solid oklch(0.11 0.015 20);
+  border: 3px solid var(--muted);
   background-clip: padding-box;
   min-height: 50px;
 }
 .chat-scroll::-webkit-scrollbar-thumb:hover {
-  background: oklch(0.78 0.20 165);
+  background: var(--primary);
   background-clip: padding-box;
-  border: 3px solid oklch(0.11 0.015 20);
+  border: 3px solid var(--muted);
 }
 
 ::-webkit-scrollbar {
@@ -242,87 +200,26 @@ button:active:not(:disabled) {
   height: 10px;
 }
 ::-webkit-scrollbar-track {
-  background: oklch(0.11 0.015 20);
+  background: var(--muted);
 }
 ::-webkit-scrollbar-thumb {
-  background: oklch(0.5 0.2 25);
+  background: var(--muted-foreground);
   border-radius: 6px;
-  border: 2px solid oklch(0.11 0.015 20);
+  border: 2px solid var(--muted);
   background-clip: padding-box;
   min-height: 40px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: oklch(0.72 0.18 165);
+  background: var(--primary);
   background-clip: padding-box;
-  border: 2px solid oklch(0.11 0.015 20);
+  border: 2px solid var(--muted);
 }
 
 * {
   scrollbar-width: thin;
-  scrollbar-color: oklch(0.5 0.2 25) oklch(0.11 0.015 20);
+  scrollbar-color: var(--muted-foreground) var(--muted);
 }
 
-/* ============================================
-   WELCOME SCREEN ANIMATIONS
-   ============================================ */
-
-/* Slow ping for the logo glow halo */
-@keyframes ping-slow {
-  0% {
-    transform: scale(1);
-    opacity: 0.6;
-  }
-  75%,
-  100% {
-    transform: scale(1.6);
-    opacity: 0;
-  }
-}
-.animate-ping-slow {
-  animation: ping-slow 2.5s cubic-bezier(0, 0, 0.2, 1) infinite;
-}
-
-/* Floating logo animation — gentle up/down */
-@keyframes logo-float {
-  0%,
-  100% {
-    transform: translateY(0) rotate(0deg);
-  }
-  50% {
-    transform: translateY(-8px) rotate(-1deg);
-  }
-}
-.animate-logo-float {
-  animation: logo-float 4s ease-in-out infinite;
-}
-
-/* Animated gradient blobs in the background */
-@keyframes blob {
-  0%,
-  100% {
-    transform: translate(0, 0) scale(1);
-  }
-  33% {
-    transform: translate(30px, -50px) scale(1.1);
-  }
-  66% {
-    transform: translate(-20px, 20px) scale(0.9);
-  }
-}
-.animate-blob {
-  animation: blob 8s ease-in-out infinite;
-}
-
-/* Smooth fade-out for welcome screen */
-.transition-opacity.duration-400 {
-  transition-duration: 400ms;
-}
-
-/* ============================================
-   ENHANCED BUTTON & CARD ANIMATIONS
-   ============================================ */
-
-/* Slide-in entrance for chat messages */
 @keyframes message-in {
   from {
     opacity: 0;
@@ -337,7 +234,6 @@ button:active:not(:disabled) {
   animation: message-in 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Subtle scale-in for modals & dropdowns */
 @keyframes scale-in {
   from {
     opacity: 0;
@@ -352,7 +248,6 @@ button:active:not(:disabled) {
   animation: scale-in 0.2s ease-out;
 }
 
-/* Bounce-in for suggestion chips */
 @keyframes bounce-in {
   0% {
     opacity: 0;
@@ -370,71 +265,35 @@ button:active:not(:disabled) {
   animation: bounce-in 0.4s ease-out backwards;
 }
 
-/* Gradient shift for headings */
-@keyframes gradient-shift {
-  0%,
-  100% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-}
-
-/* Pulse glow for selected items */
 @keyframes pulse-glow {
   0%,
   100% {
-    box-shadow: 0 0 0 0 oklch(0.72 0.18 165 / 0.4);
+    box-shadow: 0 0 0 0 color-mix(in oklch, var(--primary) 40%, transparent);
   }
   50% {
-    box-shadow: 0 0 0 8px oklch(0.72 0.18 165 / 0);
+    box-shadow: 0 0 0 8px color-mix(in oklch, var(--primary) 0%, transparent);
   }
 }
 .animate-pulse-glow {
   animation: pulse-glow 2s ease-in-out infinite;
 }
 
-/* ============================================
-   GRADIENT TEXT HELPERS
-   ============================================ */
-
-.gradient-text-emerald {
-  background: linear-gradient(
-    135deg,
-    oklch(0.72 0.18 165) 0%,
-    oklch(0.68 0.20 180) 50%,
-    oklch(0.78 0.13 200) 100%
-  );
-  background-size: 200% 200%;
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  animation: gradient-shift 4s ease infinite;
-}
-
 .gradient-bg-aurora {
   background: linear-gradient(
     135deg,
-    oklch(0.12 0.022 290) 0%,
-    oklch(0.10 0.020 270) 50%,
-    oklch(0.08 0.018 165) 100%
+    var(--background) 0%,
+    color-mix(in oklch, var(--background) 95%, var(--primary)) 100%
   );
 }
-
-/* ============================================
-   BETTER FOCUS STATES
-   ============================================ */
 
 button:focus-visible,
 a:focus-visible,
 input:focus-visible,
 textarea:focus-visible {
-  outline: 2px solid oklch(0.72 0.18 165 / 0.6);
+  outline: 2px solid color-mix(in oklch, var(--primary) 60%, transparent);
   outline-offset: 2px;
 }
 
-/* Smooth transitions on interactive elements */
 button,
 a,
 input,
@@ -442,87 +301,57 @@ textarea {
   transition: all 0.15s ease;
 }
 
-/* ============================================
-   GLASS MORPHISM EFFECT — Enhanced
-   ============================================ */
-
 .glass {
-  background: rgba(10, 15, 25, 0.45);
-  backdrop-filter: blur(24px) saturate(200%);
-  -webkit-backdrop-filter: blur(24px) saturate(200%);
-  border: 1px solid rgba(16, 185, 129, 0.2);
-  box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  background: color-mix(in oklch, var(--background) 80%, transparent);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border: 1px solid var(--border);
   transform: translateZ(0);
 }
 
 .glass-card {
-  background: rgba(12, 18, 30, 0.55);
-  backdrop-filter: blur(28px) saturate(200%);
-  -webkit-backdrop-filter: blur(28px) saturate(200%);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.2);
+  background: color-mix(in oklch, var(--card) 80%, transparent);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border: 1px solid var(--border);
   transform: translateZ(0);
 }
 
 .glass-strong {
-  background: rgba(8, 12, 20, 0.7);
-  backdrop-filter: blur(32px) saturate(220%);
-  -webkit-backdrop-filter: blur(32px) saturate(220%);
-  border: 1px solid rgba(16, 185, 129, 0.25);
-  box-shadow:
-    0 16px 48px rgba(0, 0, 0, 0.5),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.3);
+  background: color-mix(in oklch, var(--card) 90%, transparent);
+  backdrop-filter: blur(20px) saturate(200%);
+  -webkit-backdrop-filter: blur(20px) saturate(200%);
+  border: 1px solid var(--border);
   transform: translateZ(0);
 }
 
 .glass-input {
-  background: rgba(15, 23, 35, 0.4);
+  background: color-mix(in oklch, var(--card) 60%, transparent);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(16, 185, 129, 0.2);
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--border);
 }
 
 .glass-button {
-  background: rgba(16, 185, 129, 0.12);
+  background: color-mix(in oklch, var(--primary) 12%, transparent);
   backdrop-filter: blur(16px) saturate(180%);
   -webkit-backdrop-filter: blur(16px) saturate(180%);
-  border: 1px solid rgba(16, 185, 129, 0.35);
-  box-shadow:
-    0 4px 16px rgba(16, 185, 129, 0.15),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  border: 1px solid color-mix(in oklch, var(--primary) 35%, transparent);
   transition: all 0.2s ease;
 }
 
 .glass-button:hover {
-  background: rgba(16, 185, 129, 0.22);
-  border-color: rgba(16, 185, 129, 0.55);
-  box-shadow:
-    0 6px 24px rgba(16, 185, 129, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  background: color-mix(in oklch, var(--primary) 22%, transparent);
+  border-color: color-mix(in oklch, var(--primary) 55%, transparent);
 }
 
 .glass-pill {
-  background: rgba(16, 185, 129, 0.08);
+  background: color-mix(in oklch, var(--primary) 8%, transparent);
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border: 1px solid rgba(16, 185, 129, 0.25);
-  box-shadow:
-    0 2px 8px rgba(0, 0, 0, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  border: 1px solid color-mix(in oklch, var(--primary) 25%, transparent);
 }
 
-/* ============================================
-   SCROLLBAR ENHANCEMENTS
-   ============================================ */
-
-/* Hide scrollbar but keep functionality */
 .scrollbar-hidden {
   -ms-overflow-style: none;
   scrollbar-width: none;
@@ -530,10 +359,6 @@ textarea {
 .scrollbar-hidden::-webkit-scrollbar {
   display: none;
 }
-
-/* ============================================
-   REDUCED MOTION SUPPORT
-   ============================================ */
 
 @media (prefers-reduced-motion: reduce) {
   *,
@@ -546,12 +371,6 @@ textarea {
   }
 }
 
-/* ============================================
-   HARDWARE-ACCELERATED ANIMATIONS (v2.5)
-   All use transform/opacity for GPU acceleration
-   ============================================ */
-
-/* Fade in (for modals & overlays) */
 @keyframes fade-in {
   from { opacity: 0; }
   to { opacity: 1; }
@@ -560,7 +379,6 @@ textarea {
   animation: fade-in 0.2s ease-out;
 }
 
-/* Slide up from bottom (for composer elements) */
 @keyframes slide-up {
   from {
     opacity: 0;
@@ -575,7 +393,6 @@ textarea {
   animation: slide-up 0.3s cubic-bezier(0.16, 1, 0.3, 1) will-change-transform;
 }
 
-/* Slide in from right (for sidebar) */
 @keyframes slide-in-right {
   from { transform: translateX(100%); }
   to { transform: translateX(0); }
@@ -584,7 +401,6 @@ textarea {
   animation: slide-in-right 0.3s cubic-bezier(0.16, 1, 0.3, 1) will-change-transform;
 }
 
-/* Pop in (for buttons appearing) */
 @keyframes pop-in {
   0% { opacity: 0; transform: scale(0.8); }
   60% { opacity: 1; transform: scale(1.05); }
@@ -594,7 +410,6 @@ textarea {
   animation: pop-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) will-change-transform;
 }
 
-/* Token stream (for chat messages appearing one-by-one) */
 @keyframes token-in {
   from {
     opacity: 0;
@@ -609,17 +424,14 @@ textarea {
   animation: token-in 0.15s ease-out will-change-transform;
 }
 
-/* Hover lift (for cards, buttons) */
 .hover-lift {
-  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   will-change: transform;
 }
 .hover-lift:hover {
-  transform: translateY(-2px) translateZ(0);
-  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.15);
+  transform: translateY(-1px);
 }
 
-/* Glow pulse (for selected items) */
 @keyframes glow-pulse {
   0%, 100% {
     box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4);
@@ -632,7 +444,6 @@ textarea {
   animation: glow-pulse 2s ease-in-out infinite;
 }
 
-/* Shimmer line (loading effect) */
 @keyframes shimmer-line {
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }
@@ -641,27 +452,24 @@ textarea {
   background: linear-gradient(
     90deg,
     transparent 0%,
-    rgba(16, 185, 129, 0.2) 50%,
+    color-mix(in oklch, var(--primary) 20%, transparent) 50%,
     transparent 100%
   );
   background-size: 200% 100%;
   animation: shimmer-line 1.5s linear infinite;
 }
 
-/* Smooth scroll behavior */
 html {
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
 }
 
-/* Better backdrop-filter performance */
 .backdrop-blur {
   -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
   transform: translateZ(0);
 }
 
-/* GPU layer promotion for animated elements */
 .will-change-transform {
   will-change: transform;
 }
@@ -669,13 +477,11 @@ html {
   will-change: opacity;
 }
 
-/* Smooth button presses */
 button:active:not(:disabled) {
   transform: scale(0.97) translateZ(0);
   transition: transform 0.1s ease;
 }
 
-/* Smooth focus rings */
 *:focus-visible {
   transition: outline 0.15s ease, box-shadow 0.15s ease;
 }

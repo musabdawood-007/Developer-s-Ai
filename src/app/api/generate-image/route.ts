@@ -12,17 +12,6 @@ interface GenerateImageBody {
   visitorId?: string;
 }
 
-/**
- * POST /api/generate-image
- *
- * Generates a single image from a text prompt using the configured LLM API.
- * Returns { imageDataUrl } (a base64 data URL ready to render in <img src>).
- *
- * If the LLM API returns a URL instead of base64, we still wrap it as a data URL
- * only when it's already base64 — otherwise we return the URL directly.
- *
- * On failure, returns { error } with HTTP 500.
- */
 export async function POST(req: NextRequest) {
   let body: GenerateImageBody;
   try {
@@ -49,7 +38,6 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // Try up to 3 attempts — image gen APIs sometimes rate-limit cold starts.
   let lastError: string | null = null;
 
   for (let attempt = 1; attempt <= 3; attempt++) {
@@ -65,9 +53,6 @@ export async function POST(req: NextRequest) {
         break;
       }
 
-      // If result is already a data URL, use it as-is.
-      // If it's a URL (https://...), return it directly — the <img> tag will load it.
-      // If it's raw base64, wrap it in a data URL.
       let imageDataUrl: string;
       if (result.startsWith("data:")) {
         imageDataUrl = result;
@@ -121,7 +106,6 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // All attempts failed — return a friendly error
   return NextResponse.json(
     {
       error:

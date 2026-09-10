@@ -12,11 +12,6 @@ interface Body {
   newPassword?: string;
 }
 
-/**
- * POST /api/auth/forgot-password/reset
- * Body: { email, otp, newPassword }
- * Verifies OTP and resets password in one step.
- */
 export async function POST(req: NextRequest) {
   try {
     const body = (await req.json()) as Body;

@@ -67,11 +67,9 @@ export function PatchNotesModal({ open, onOpenChange }: PatchNotesModalProps) {
         className="glass-card relative w-full max-w-lg overflow-hidden rounded-2xl shadow-2xl animate-scale-in will-change-transform"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Decorative gradient top */}
         <div className="absolute -top-20 -left-20 h-40 w-40 rounded-full bg-emerald-500/20 blur-3xl animate-blob" />
         <div className="absolute -top-10 -right-10 h-32 w-32 rounded-full bg-purple-500/20 blur-3xl animate-blob [animation-delay:1s]" />
 
-        {/* Header */}
         <div className="relative z-10 flex items-start justify-between border-b border-border p-5">
           <div className="flex items-center gap-3">
             <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500/20 to-teal-500/20 border border-emerald-500/30">
@@ -98,7 +96,6 @@ export function PatchNotesModal({ open, onOpenChange }: PatchNotesModalProps) {
           </button>
         </div>
 
-        {/* Body */}
         <div className="relative z-10 max-h-[60vh] overflow-y-auto chat-scroll p-5">
           <p className="mb-4 text-sm text-muted-foreground">
             Hey! 👋 We've shipped some exciting updates to make your experience smoother.
@@ -126,7 +123,6 @@ export function PatchNotesModal({ open, onOpenChange }: PatchNotesModalProps) {
           </div>
         </div>
 
-        {/* Footer */}
         <div className="relative z-10 flex items-center justify-between gap-3 border-t border-border p-4">
           <p className="text-[11px] text-muted-foreground">
             Built by <span className="text-emerald-400 font-medium">{DEVELOPER_INFO.name}</span>

@@ -47,7 +47,6 @@ export function AuthGate({ onReady }: AuthGateProps) {
     setSuccessMsg(null);
 
     try {
-      // ===== SIGNUP STEP 1: Initiate =====
       if (view === "signup") {
         const res = await fetch("/api/auth/signup", {
           method: "POST",
@@ -65,7 +64,6 @@ export function AuthGate({ onReady }: AuthGateProps) {
         startTimer();
         setView("signup-otp");
       }
-      // ===== SIGNUP STEP 2: Verify OTP =====
       else if (view === "signup-otp") {
         if (!otp.trim()) throw new Error("Please enter the OTP.");
         const res = await fetch("/api/auth/signup", {
@@ -79,7 +77,6 @@ export function AuthGate({ onReady }: AuthGateProps) {
         try { sessionStorage.setItem("devai:just-logged-in", "1"); } catch {}
         onReady({ name: data.name, visitorId: data.visitorId });
       }
-      // ===== SIGNIN =====
       else if (view === "signin") {
         const res = await fetch("/api/auth/signin", {
           method: "POST",
@@ -92,7 +89,6 @@ export function AuthGate({ onReady }: AuthGateProps) {
         try { sessionStorage.setItem("devai:just-logged-in", "1"); } catch {}
         onReady({ name: data.name, visitorId: data.visitorId });
       }
-      // ===== FORGOT: SEND OTP =====
       else if (view === "forgot-email") {
         const res = await fetch("/api/auth/forgot-password/send-otp", {
           method: "POST",
@@ -111,7 +107,6 @@ export function AuthGate({ onReady }: AuthGateProps) {
         startTimer();
         setView("forgot-otp");
       }
-      // ===== FORGOT: VERIFY OTP =====
       else if (view === "forgot-otp") {
         if (!otp.trim()) throw new Error("Please enter the OTP.");
         const res = await fetch("/api/auth/forgot-password/verify-otp", {
@@ -125,7 +120,6 @@ export function AuthGate({ onReady }: AuthGateProps) {
         setSuccessMsg("OTP verified! Set your new password.");
         setView("forgot-reset");
       }
-      // ===== FORGOT: RESET PASSWORD =====
       else if (view === "forgot-reset") {
         if (!newPassword.trim() || newPassword.length < 4) throw new Error("Password must be at least 4 characters.");
         const res = await fetch("/api/auth/forgot-password/reset", {
@@ -218,7 +212,6 @@ export function AuthGate({ onReady }: AuthGateProps) {
           )}
 
           <form onSubmit={submit} className="mt-4 space-y-3">
-            {/* Email — shown in signup, signin, forgot-email */}
             {(isSignup || isSignin || view === "forgot-email") && (
               <div>
                 <label className="mb-1 block text-xs font-medium text-muted-foreground">Email</label>
@@ -229,7 +222,6 @@ export function AuthGate({ onReady }: AuthGateProps) {
               </div>
             )}
 
-            {/* Name — signup only */}
             {isSignup && (
               <div>
                 <label className="mb-1 block text-xs font-medium text-muted-foreground">Name</label>
@@ -240,7 +232,6 @@ export function AuthGate({ onReady }: AuthGateProps) {
               </div>
             )}
 
-            {/* Password — signup + signin */}
             {(isSignup || isSignin) && (
               <div>
                 <label className="mb-1 block text-xs font-medium text-muted-foreground">Password</label>
@@ -251,7 +242,6 @@ export function AuthGate({ onReady }: AuthGateProps) {
               </div>
             )}
 
-            {/* OTP — signup-otp + forgot-otp */}
             {(isSignupOtp || view === "forgot-otp") && (
               <div>
                 <label className="mb-1 block text-xs font-medium text-muted-foreground">OTP Code (6 digits)</label>
@@ -267,7 +257,6 @@ export function AuthGate({ onReady }: AuthGateProps) {
               </div>
             )}
 
-            {/* New password — forgot-reset only */}
             {isForgotReset && otpVerified && (
               <div>
                 <label className="mb-1 block text-xs font-medium text-muted-foreground">New Password</label>

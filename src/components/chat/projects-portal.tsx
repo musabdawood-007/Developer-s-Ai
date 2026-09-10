@@ -48,20 +48,6 @@ const SUPPORTED_LANGUAGES: Record<string, { label: string; icon: string }> = {
   py: { label: "Python", icon: "🐍" },
 };
 
-/**
- * Developer's Projects — a local file manager built into the chatbot.
- *
- * Two modes:
- * 1. **Browser Storage Mode** (default, works everywhere):
- *    Files are saved to IndexedDB via localStorage. No permissions needed.
- *
- * 2. **Drive Mode** (Chrome/Edge only, uses File System Access API):
- *    User picks a folder on their computer. Files are read/written directly
- *    to that folder. Changes persist even after the browser is closed.
- *    This is the "access their drive" feature the user requested.
- *
- * Both modes support: .html, .css, .js, .ts, .tsx, .jsx, .json, .md, .txt, .py
- */
 export function ProjectsPortal({
   open,
   onOpenChange,
@@ -79,14 +65,12 @@ export function ProjectsPortal({
   const [supportsFileSystemAccess, setSupportsFileSystemAccess] = useState(false);
   const driveHandleRef = useRef<any>(null);
 
-  // Check if browser supports File System Access API
   useEffect(() => {
     setSupportsFileSystemAccess(
       typeof window !== "undefined" && "showDirectoryPicker" in window
     );
   }, []);
 
-  // Load files from localStorage on mount
   useEffect(() => {
     if (!open) return;
     try {
@@ -101,7 +85,6 @@ export function ProjectsPortal({
     } catch {}
   }, [open]);
 
-  // Save files to localStorage whenever they change
   const persistFiles = useCallback((newFiles: ProjectFile[]) => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(newFiles));
@@ -110,7 +93,6 @@ export function ProjectsPortal({
     }
   }, []);
 
-  // Auto-save pending content (from chat code blocks)
   useEffect(() => {
     if (!open || !pendingContent) return;
     const newFile: ProjectFile = {
@@ -132,7 +114,6 @@ export function ProjectsPortal({
     return SUPPORTED_LANGUAGES[ext]?.label || "Text";
   };
 
-  // Connect to local drive (File System Access API)
   const connectDrive = async () => {
     if (!supportsFileSystemAccess) {
       setError("Your browser doesn't support drive access. Use Chrome or Edge.");
@@ -146,7 +127,6 @@ export function ProjectsPortal({
       setDriveName(handle.name);
       setDriveConnected(true);
       setError(null);
-      // Load files from drive
       await loadFilesFromDrive(handle);
     } catch (err: any) {
       if (err.name !== "AbortError") {
@@ -155,14 +135,12 @@ export function ProjectsPortal({
     }
   };
 
-  // Load files from the connected drive
   const loadFilesFromDrive = async (handle: any) => {
     const driveFiles: ProjectFile[] = [];
     for await (const entry of handle.values()) {
       if (entry.kind === "file") {
         try {
           const file = await entry.getFile();
-          // Only load text-based files (skip images, binaries)
           if (file.size < 1024 * 1024) {
             // 1MB limit
             const content = await file.text();
@@ -182,7 +160,6 @@ export function ProjectsPortal({
     if (driveFiles.length > 0) setSelectedFile(driveFiles[0]);
   };
 
-  // Save current file (to drive if connected, else localStorage)
   const saveFile = async () => {
     if (!selectedFile) return;
     if (driveConnected && driveHandleRef.current) {
@@ -199,7 +176,6 @@ export function ProjectsPortal({
         setError(`Drive save failed: ${err.message}`);
       }
     }
-    // Always update localStorage as backup
     const newFiles = files.map((f) =>
       f.name === selectedFile.name
         ? { ...f, content: selectedFile.content, updatedAt: Date.now() }
@@ -209,7 +185,6 @@ export function ProjectsPortal({
     persistFiles(newFiles);
   };
 
-  // Download a file
   const downloadFile = (file: ProjectFile) => {
     const blob = new Blob([file.content], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
@@ -220,7 +195,6 @@ export function ProjectsPortal({
     URL.revokeObjectURL(url);
   };
 
-  // Create new file
   const createNewFile = () => {
     if (!newFileName.trim()) return;
     const ext = newFileName.includes(".") ? "" : ".txt";
@@ -241,7 +215,6 @@ export function ProjectsPortal({
     setShowNewFileForm(false);
   };
 
-  // Delete file
   const deleteFile = (name: string) => {
     if (!confirm(`Delete "${name}"?`)) return;
     const newFiles = files.filter((f) => f.name !== name);
@@ -257,7 +230,6 @@ export function ProjectsPortal({
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
       <div className="flex h-[85vh] w-full max-w-5xl flex-col rounded-2xl border border-emerald-500/30 bg-card shadow-2xl">
-        {/* Header */}
         <div className="flex items-center justify-between border-b border-border px-6 py-4">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-500/20 to-teal-500/20">
@@ -301,7 +273,6 @@ export function ProjectsPortal({
           </div>
         )}
 
-        {/* Toolbar */}
         <div className="flex flex-wrap items-center gap-2 border-b border-border px-6 py-3">
           <Button
             size="sm"
@@ -334,7 +305,6 @@ export function ProjectsPortal({
           )}
         </div>
 
-        {/* New File Form */}
         {showNewFileForm && (
           <div className="border-b border-border bg-muted/20 px-6 py-3">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
@@ -360,9 +330,7 @@ export function ProjectsPortal({
           </div>
         )}
 
-        {/* Main content: file list + editor */}
         <div className="flex min-h-0 flex-1">
-          {/* File list */}
           <div className="w-64 shrink-0 border-r border-border overflow-y-auto">
             {files.length === 0 ? (
               <div className="flex h-full flex-col items-center justify-center p-6 text-center">
@@ -421,7 +389,6 @@ export function ProjectsPortal({
             )}
           </div>
 
-          {/* Editor */}
           <div className="min-w-0 flex-1 flex flex-col">
             {selectedFile ? (
               <>
@@ -482,7 +449,6 @@ export function ProjectsPortal({
           </div>
         </div>
 
-        {/* Footer */}
         <div className="border-t border-border px-6 py-2 text-center text-[10px] text-muted-foreground">
           {BOT_NAME} · Files stored locally in your browser
           {driveConnected && " · Synced with drive"}

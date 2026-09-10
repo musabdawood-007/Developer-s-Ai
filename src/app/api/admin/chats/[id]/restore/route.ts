@@ -7,12 +7,6 @@ export const dynamic = "force-dynamic";
 const SESSION_TOKEN =
   "devai-admin-" + Buffer.from("admin:admin123").toString("base64");
 
-/**
- * PATCH /api/admin/chats/[id]/restore
- * -----------------------------------
- * Restores a soft-deleted chat message (sets `deletedAt` back to null).
- * Requires the devai_admin cookie.
- */
 export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }

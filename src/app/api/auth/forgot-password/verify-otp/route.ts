@@ -9,12 +9,6 @@ interface Body {
   otp?: string;
 }
 
-/**
- * POST /api/auth/forgot-password/verify-otp
- * Body: { email, otp }
- * Only verifies the OTP — does NOT reset password yet.
- * Returns { ok: true, verified: true } if correct.
- */
 export async function POST(req: NextRequest) {
   try {
     const body = (await req.json()) as Body;

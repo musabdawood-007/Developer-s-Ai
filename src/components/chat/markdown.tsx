@@ -27,20 +27,6 @@ interface MarkdownProps {
   asMarkdownFile?: boolean;
 }
 
-/**
- * Renders markdown content with syntax-highlighted code blocks.
- *
- * Mobile-friendly improvements:
- * - Code blocks wrap long lines (no horizontal scroll on phones)
- * - Tables scroll horizontally inside their own container (not the page)
- * - Word-break on long URLs / unbroken strings
- *
- * UI polish:
- * - Better typography with proper spacing rhythm
- * - Cleaner code block header
- * - Tighter list spacing
- * - Inline code with subtle background
- */
 export function Markdown({ content, asMarkdownFile }: MarkdownProps) {
   const { displayContent, embeddedMarkdown } = useMemo(() => {
     const trimmed = content.trim();
@@ -155,8 +141,6 @@ export function Markdown({ content, asMarkdownFile }: MarkdownProps) {
   );
 }
 
-/* ----------------------------- Code Block ----------------------------- */
-
 function CodeBlock(props: any) {
   const { className, children, ...rest } = props;
   const match = /language-(\w+)/.exec(className || "");
@@ -166,7 +150,6 @@ function CodeBlock(props: any) {
   const isMarkdownFile = language === "md" || language === "markdown";
 
   if (!language) {
-    // inline code
     return (
       <code
         className="rounded bg-muted px-1.5 py-0.5 text-[0.85em] font-mono text-emerald-300 break-all"
@@ -187,7 +170,6 @@ function CodeBlock(props: any) {
           {isMarkdownFile && (
             <FormatDownloadMenu content={rawCode} variant="compact" />
           )}
-          {/* Download button for ALL code blocks (.html, .css, .js, etc.) */}
           <CodeDownloadButton code={rawCode} language={language} />
           <CopyButton text={rawCode} />
         </div>
@@ -219,9 +201,6 @@ function CodeBlock(props: any) {
   );
 }
 
-/* ------------------------ Code Download Button ------------------------ */
-
-/** Maps a language string to a file extension */
 const LANG_TO_EXT: Record<string, string> = {
   html: "html",
   htm: "html",
@@ -298,8 +277,6 @@ function CodeDownloadButton({ code, language }: { code: string; language: string
   );
 }
 
-/* --------------------------- Download Bar ---------------------------- */
-
 function DownloadBar({ content }: { content: string }) {
   return (
     <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-md border border-emerald-500/40 bg-emerald-500/10 px-3 py-2">
@@ -311,17 +288,11 @@ function DownloadBar({ content }: { content: string }) {
   );
 }
 
-/* ----------------------- Format Download Menu ------------------------ */
-
 interface FormatDownloadMenuProps {
   content: string;
   variant: "compact" | "expanded";
 }
 
-/**
- * A small dropdown that lets the user download the markdown content as
- * .md / .pdf / .docx / .txt. All conversion happens client-side.
- */
 function FormatDownloadMenu({ content, variant }: FormatDownloadMenuProps) {
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState<null | "pdf" | "docx">(null);
@@ -378,7 +349,6 @@ function FormatDownloadMenu({ content, variant }: FormatDownloadMenuProps) {
     );
   }
 
-  // compact variant — dropdown button (used in code block headers)
   return (
     <div className="relative">
       <button
@@ -398,7 +368,6 @@ function FormatDownloadMenu({ content, variant }: FormatDownloadMenuProps) {
       </button>
       {open && (
         <>
-          {/* click-away */}
           <div
             className="fixed inset-0 z-10"
             onClick={() => setOpen(false)}
@@ -481,8 +450,6 @@ function FormatMenuItem({
   );
 }
 
-/* --------------------------- Copy Button ----------------------------- */
-
 function CopyButton({ text }: { text: string }) {
   const [copied, setCopied] = useState(false);
 
@@ -492,7 +459,6 @@ function CopyButton({ text }: { text: string }) {
       setCopied(true);
       setTimeout(() => setCopied(false), 1500);
     } catch {
-      // ignore
     }
   };
 

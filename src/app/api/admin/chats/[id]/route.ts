@@ -7,19 +7,6 @@ export const dynamic = "force-dynamic";
 const SESSION_TOKEN =
   "devai-admin-" + Buffer.from("admin:admin123").toString("base64");
 
-/**
- * DELETE /api/admin/chats/[id]
- * ----------------------------
- * Soft-deletes a single chat message (sets `deletedAt`). The message stays
- * in the database and can be restored. The admin UI shows soft-deleted
- * messages with a "Deleted" badge and a "Restore" button.
- *
- * Query params:
- *   - permanent=true  →  actually removes the row from the database (irreversible)
- *   - visitorId=...   →  when id is "all", soft-deletes ALL chats for that visitor
- *
- * Requires the devai_admin cookie.
- */
 export async function DELETE(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -35,7 +22,6 @@ export async function DELETE(
     const permanent = url.searchParams.get("permanent") === "true";
     const visitorId = url.searchParams.get("visitorId");
 
-    // Bulk soft-delete: /api/admin/chats/all?visitorId=...
     if (id === "all" && visitorId) {
       if (permanent) {
         await db.chatLog.deleteMany({

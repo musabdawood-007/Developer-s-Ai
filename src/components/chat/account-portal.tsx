@@ -57,7 +57,6 @@ export function AccountPortal({
   const [deleting, setDeleting] = useState(false);
   const fileRef = useRef<HTMLInputElement | null>(null);
 
-  // Sync name when visitor changes
   useState(() => {
     if (visitor) setName(visitor.name);
   });
@@ -130,7 +129,6 @@ export function AccountPortal({
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v) setTab("menu"); onOpenChange(v); }}>
       <DialogContent className="max-w-md p-0 overflow-hidden gap-0">
-        {/* Header */}
         <div className="flex items-center justify-between border-b border-border bg-card px-4 py-3">
           <div className="flex items-center gap-2">
             {tab !== "menu" && (
@@ -155,10 +153,8 @@ export function AccountPortal({
           </button>
         </div>
 
-        {/* Menu Tab */}
         {tab === "menu" && (
           <div className="p-4 space-y-3">
-            {/* Profile header */}
             <div className="flex items-center gap-3 rounded-xl border border-border bg-muted/20 p-3">
               <div className="h-12 w-12 shrink-0 overflow-hidden rounded-full border border-emerald-500/30 bg-emerald-500/10">
                 {profilePic ? (
@@ -182,7 +178,6 @@ export function AccountPortal({
               </button>
             </div>
 
-            {/* Menu items */}
             <div className="space-y-1">
               <MenuItem icon={<User className="h-4 w-4" />} label="Edit Profile" onClick={() => setTab("profile")} />
               <MenuItem icon={<Settings className="h-4 w-4" />} label="Settings" onClick={() => setTab("settings")} />
@@ -200,10 +195,8 @@ export function AccountPortal({
           </div>
         )}
 
-        {/* Profile Tab */}
         {tab === "profile" && (
           <div className="p-4 space-y-4">
-            {/* Profile picture */}
             <div className="flex flex-col items-center gap-3">
               <div className="relative">
                 <div className="h-24 w-24 overflow-hidden rounded-full border-2 border-emerald-500/40 bg-emerald-500/10">
@@ -233,7 +226,6 @@ export function AccountPortal({
               <p className="text-xs text-muted-foreground">Click camera to upload (max 2MB)</p>
             </div>
 
-            {/* Name */}
             <div>
               <label className="mb-1 block text-xs font-medium text-muted-foreground">Name</label>
               <Input
@@ -245,7 +237,6 @@ export function AccountPortal({
               />
             </div>
 
-            {/* Email (read-only) */}
             <div>
               <label className="mb-1 block text-xs font-medium text-muted-foreground">Email (cannot change)</label>
               <div className="relative">
@@ -258,7 +249,6 @@ export function AccountPortal({
               </div>
             </div>
 
-            {/* Save */}
             <Button
               type="button"
               onClick={saveProfile}
@@ -271,7 +261,6 @@ export function AccountPortal({
           </div>
         )}
 
-        {/* Settings Tab */}
         {tab === "settings" && (
           <div className="p-4 space-y-4">
             <div className="space-y-3">
@@ -287,7 +276,6 @@ export function AccountPortal({
               </div>
             </div>
 
-            {/* Danger Zone */}
             <div className="rounded-lg border border-red-500/30 bg-red-500/5 p-3">
               <p className="text-xs font-semibold text-red-400 mb-2">⚠️ Danger Zone</p>
               <p className="text-xs text-muted-foreground mb-3">
@@ -309,7 +297,6 @@ export function AccountPortal({
           </div>
         )}
 
-        {/* Contact Tab */}
         {tab === "contact" && (
           <div className="p-4 space-y-4">
             <div className="space-y-3">

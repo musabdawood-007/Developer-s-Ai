@@ -8,11 +8,6 @@ interface Body {
   visitorId?: string;
 }
 
-/**
- * POST /api/auth/delete-account
- * Body: { visitorId }
- * Permanently deletes the visitor account + all chats + sessions (cascade).
- */
 export async function POST(req: NextRequest) {
   try {
     const body = (await req.json()) as Body;
@@ -24,9 +19,7 @@ export async function POST(req: NextRequest) {
 
     // Delete all chat logs first (manual cleanup for MongoDB)
     await db.chatLog.deleteMany({ where: { visitorId } }).catch(() => {});
-    // Delete all sessions
     await db.chatSession.deleteMany({ where: { visitorId } }).catch(() => {});
-    // Delete the visitor
     await db.visitor.delete({ where: { id: visitorId } });
 
     const res = NextResponse.json({ ok: true });

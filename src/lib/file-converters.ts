@@ -7,8 +7,6 @@
  * All conversions happen in the browser — no server round-trip.
  */
 
-/* --------------------------- shared helpers --------------------------- */
-
 function slugify(text: string): string {
   return (
     text
@@ -39,14 +37,10 @@ function downloadBlob(blob: Blob, filename: string) {
   URL.revokeObjectURL(url);
 }
 
-/* ------------------------------ Markdown ------------------------------ */
-
 export function downloadMarkdown(markdown: string, filename?: string) {
   const blob = new Blob([markdown], { type: "text/markdown;charset=utf-8" });
   downloadBlob(blob, (filename ?? slugify(deriveTitle(markdown))) + ".md");
 }
-
-/* ------------------------------ Plain text ---------------------------- */
 
 export function downloadText(markdown: string, filename?: string) {
   // Strip common markdown formatting for a clean .txt export
@@ -72,38 +66,28 @@ function markdownToPlainText(md: string): string {
     .trim();
 }
 
-/* ------------------------------- PDF ---------------------------------- */
-
-/**
- * Strip emoji and other non-WinAnsi characters that jsPDF's default
- * Helvetica font cannot render. Replaces a few common ones with ASCII
- * fallbacks (to preserve meaning), then strips everything else cleanly.
- */
 function stripEmojis(text: string): string {
   return text
-    // Multi-codepoint emoji sequences first (longest patterns)
-    .replace(/[\u{1F1E6}-\u{1F1FF}]{2}/gu, "") // regional flag pairs
-    .replace(/[\u{1F300}-\u{1FAFF}]/gu, "") // symbols & pictographs
+    .replace(/[\u{1F1E6}-\u{1F1FF}]{2}/gu, "")
+    .replace(/[\u{1F300}-\u{1FAFF}]/gu, "")
     .replace(/[\u{2600}-\u{27BF}]/gu, (m) => {
       // Keep a few safe typographic symbols; strip the rest
       if (/[•°–—‘’“”…©®™±×÷]/.test(m)) return m;
       return "";
     })
-    .replace(/[\u{2190}-\u{21FF}]/gu, "") // arrows
-    .replace(/[\u{2B00}-\u{2BFF}]/gu, "") // misc symbols & arrows
-    .replace(/[\u{FE00}-\u{FE0F}]/gu, "") // variation selectors
-    .replace(/[\u{200D}]/gu, "") // zero-width joiner
-    .replace(/[\u{20E3}]/gu, "") // combining enclosing keycap
-    // Tidy up: collapse multiple spaces and trim leading/trailing whitespace
+    .replace(/[\u{2190}-\u{21FF}]/gu, "")
+    .replace(/[\u{2B00}-\u{2BFF}]/gu, "")
+    .replace(/[\u{FE00}-\u{FE0F}]/gu, "")
+    .replace(/[\u{200D}]/gu, "")
+    .replace(/[\u{20E3}]/gu, "")
     .replace(/[ \t]{2,}/g, " ")
     .replace(/^\s+/, "")
     .trim();
 }
 
-/** Strip inline markdown formatting: **bold**, *italic*, `code`, [text](url) */
 function stripInline(text: string): string {
   return text
-    .replace(/!\[([^\]]*)\]\([^)]+\)/g, "$1") // images first
+    .replace(/!\[([^\]]*)\]\([^)]+\)/g, "$1")
     .replace(/\*\*([^*]+)\*\*/g, "$1")
     .replace(/\*([^*]+)\*/g, "$1")
     .replace(/__([^_]+)__/g, "$1")
@@ -112,13 +96,6 @@ function stripInline(text: string): string {
     .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1");
 }
 
-/**
- * Generate a PDF from markdown using jsPDF.
- * Headings (#, ##, ###) become larger bold lines; lists become bullet lines;
- * paragraphs wrap automatically. Code blocks become monospace blocks with
- * light grey background. Emojis are stripped to keep jsPDF's default font
- * from rendering garbage characters.
- */
 export async function downloadPdf(markdown: string, filename?: string) {
   const { jsPDF } = await import("jspdf");
 
@@ -141,7 +118,6 @@ export async function downloadPdf(markdown: string, filename?: string) {
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
 
-    // Code fence
     if (line.trim().startsWith("```")) {
       const codeLines: string[] = [];
       i++;
@@ -149,7 +125,6 @@ export async function downloadPdf(markdown: string, filename?: string) {
         codeLines.push(lines[i]);
         i++;
       }
-      // Render code block (emojis removed from code too — they still break jsPDF)
       ensureSpace(20);
       doc.setFont("courier", "normal");
       doc.setFontSize(9);
@@ -173,7 +148,6 @@ export async function downloadPdf(markdown: string, filename?: string) {
       continue;
     }
 
-    // Headings — strip emojis + inline formatting
     const h1 = line.match(/^#\s+(.+)$/);
     const h2 = line.match(/^##\s+(.+)$/);
     const h3 = line.match(/^###\s+(.+)$/);
@@ -276,7 +250,6 @@ export async function downloadPdf(markdown: string, filename?: string) {
       continue;
     }
 
-    // Blockquote — strip emojis + inline formatting
     const quote = line.match(/^>\s*(.*)$/);
     if (quote) {
       const text = stripEmojis(stripInline(quote[1] || ""));
@@ -288,7 +261,6 @@ export async function downloadPdf(markdown: string, filename?: string) {
       const wrapped = doc.splitTextToSize(text, maxWidth - 12) as string[];
       wrapped.forEach((ln, idx) => {
         ensureSpace(12);
-        // Only draw the left accent on the first wrapped line
         if (idx === 0) {
           doc.setDrawColor(16, 185, 129);
           doc.setLineWidth(2);
@@ -304,7 +276,6 @@ export async function downloadPdf(markdown: string, filename?: string) {
       continue;
     }
 
-    // Unordered list — strip emojis + inline formatting
     const ul = line.match(/^\s*[-*+]\s+(.+)$/);
     if (ul) {
       const text = stripEmojis(stripInline(ul[1]));
@@ -325,7 +296,6 @@ export async function downloadPdf(markdown: string, filename?: string) {
       continue;
     }
 
-    // Ordered list — strip emojis + inline formatting
     const ol = line.match(/^\s*(\d+)\.\s+(.+)$/);
     if (ol) {
       const text = stripEmojis(stripInline(ol[2]));
@@ -352,7 +322,6 @@ export async function downloadPdf(markdown: string, filename?: string) {
       continue;
     }
 
-    // Regular paragraph
     const cleanLine = stripEmojis(stripInline(line));
     if (!cleanLine) continue;
     doc.setFont("helvetica", "normal");
@@ -366,7 +335,6 @@ export async function downloadPdf(markdown: string, filename?: string) {
     });
   }
 
-  // Footer with page numbers
   const pageCount = doc.getNumberOfPages();
   for (let p = 1; p <= pageCount; p++) {
     doc.setPage(p);
@@ -383,12 +351,6 @@ export async function downloadPdf(markdown: string, filename?: string) {
   doc.save((filename ?? slugify(deriveTitle(markdown))) + ".pdf");
 }
 
-/* ------------------------------- DOCX --------------------------------- */
-
-/**
- * Generate a .docx from markdown using the `docx` library.
- * Supports headings, paragraphs, lists, code blocks, bold/italic inline.
- */
 export async function downloadDocx(markdown: string, filename?: string) {
   const {
     Document,
@@ -402,10 +364,8 @@ export async function downloadDocx(markdown: string, filename?: string) {
   const children: InstanceType<typeof Paragraph>[] = [];
   const lines = markdown.split("\n");
 
-  // Inline markdown parser — returns TextRun[] for one line
   const parseInline = (text: string): InstanceType<typeof TextRun>[] => {
     const runs: InstanceType<typeof TextRun>[] = [];
-    // Very small inline parser: **bold**, *italic*, `code`, [text](url)
     const regex = /(\*\*([^*]+)\*\*|\*([^*]+)\*|`([^`]+)`|\[([^\]]+)\]\(([^)]+)\))/g;
     let last = 0;
     let m: RegExpExecArray | null;
@@ -446,7 +406,6 @@ export async function downloadDocx(markdown: string, filename?: string) {
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
 
-    // Code block
     if (line.trim().startsWith("```")) {
       const codeLines: string[] = [];
       i++;
@@ -471,7 +430,6 @@ export async function downloadDocx(markdown: string, filename?: string) {
       continue;
     }
 
-    // Headings
     const h1 = line.match(/^#\s+(.+)$/);
     const h2 = line.match(/^##\s+(.+)$/);
     const h3 = line.match(/^###\s+(.+)$/);
@@ -481,7 +439,6 @@ export async function downloadDocx(markdown: string, filename?: string) {
       children.push(
         new Paragraph({
           children: parseInline(h1[1]).map((r) => {
-            // make TextRun bold + large by re-instantiating
             return r;
           }),
           heading: HeadingLevel.HEADING_1,
@@ -535,7 +492,6 @@ export async function downloadDocx(markdown: string, filename?: string) {
       continue;
     }
 
-    // Blockquote
     const quote = line.match(/^>\s*(.*)$/);
     if (quote) {
       children.push(
@@ -553,7 +509,6 @@ export async function downloadDocx(markdown: string, filename?: string) {
       continue;
     }
 
-    // Unordered list
     const ul = line.match(/^\s*[-*+]\s+(.+)$/);
     if (ul) {
       children.push(
@@ -566,7 +521,6 @@ export async function downloadDocx(markdown: string, filename?: string) {
       continue;
     }
 
-    // Ordered list
     const ol = line.match(/^\s*(\d+)\.\s+(.+)$/);
     if (ol) {
       children.push(
@@ -579,13 +533,11 @@ export async function downloadDocx(markdown: string, filename?: string) {
       continue;
     }
 
-    // Empty line
     if (line.trim() === "") {
       children.push(new Paragraph({ children: [new TextRun({ text: "" })] }));
       continue;
     }
 
-    // Regular paragraph
     children.push(
       new Paragraph({
         children: parseInline(line),

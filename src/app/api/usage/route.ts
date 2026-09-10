@@ -5,12 +5,6 @@ import { MODELS } from "@/lib/models";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-/**
- * GET /api/usage?visitorId=xxx
- *
- * Returns the visitor's current daily usage and remaining messages
- * for each available model.
- */
 export async function GET(req: NextRequest) {
   const visitorId = req.nextUrl.searchParams.get("visitorId");
   if (!visitorId) {

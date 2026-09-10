@@ -10,10 +10,6 @@ interface Body {
   password?: string;
 }
 
-/**
- * POST /api/auth/signin
- * Body: { email, password }
- */
 export async function POST(req: NextRequest) {
   try {
     const body = (await req.json()) as Body;

@@ -4,10 +4,6 @@ import { db } from "@/lib/db";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-/**
- * DELETE /api/sessions/[id]
- * Deletes a chat session AND all its messages (cascade).
- */
 export async function DELETE(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }

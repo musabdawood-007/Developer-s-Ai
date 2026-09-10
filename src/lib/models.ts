@@ -54,29 +54,21 @@ export const MODELS: ModelInfo[] = [
   },
 ];
 
-/** Default model id used on first visit */
 export const DEFAULT_MODEL_ID = "v1";
 
-/** Look up a model by id */
 export function getModel(id: string | undefined): ModelInfo | undefined {
   if (!id) return undefined;
   return MODELS.find((m) => m.id === id);
 }
 
-/** Get the default model */
 export function getDefaultModel(): ModelInfo {
   return getModel(DEFAULT_MODEL_ID)!;
 }
 
-/**
- * Build a list of API model names to try, in order:
- * [primary, ...fallbacks]
- */
 export function getModelChain(modelId: string): string[] {
   const model = getModel(modelId);
   if (!model) return [process.env.LLM_MODEL || "mistral-medium-3-5"];
   return [model.apiModel, ...(model.fallbacks || [])];
 }
 
-/** LocalStorage key for the user's selected model */
 export const MODEL_STORAGE_KEY = "devai:model";

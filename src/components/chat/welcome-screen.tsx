@@ -10,17 +10,12 @@ interface WelcomeScreenProps {
 
 type AnimationPhase = "orb" | "expand" | "logo" | "title" | "cards" | "button";
 
-/**
- * Cinematic welcome screen with sequential animation.
- * Mobile-optimized + properly centered + faster timing.
- */
 export function WelcomeScreen({ onEnter }: WelcomeScreenProps) {
   const [phase, setPhase] = useState<AnimationPhase>("orb");
   const [exiting, setExiting] = useState(false);
 
   useEffect(() => {
     const timers: ReturnType<typeof setTimeout>[] = [];
-    // Faster timing — total 1.6s instead of 2.6s
     timers.push(setTimeout(() => setPhase("expand"), 250));
     timers.push(setTimeout(() => setPhase("logo"), 500));
     timers.push(setTimeout(() => setPhase("title"), 800));
@@ -42,18 +37,14 @@ export function WelcomeScreen({ onEnter }: WelcomeScreenProps) {
         exiting ? "opacity-0" : "opacity-100"
       }`}
     >
-      {/* Animated gradient background blobs */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="absolute -top-32 -left-32 h-72 w-72 rounded-full bg-emerald-500/20 blur-3xl animate-blob sm:h-96 sm:w-96" />
         <div className="absolute -bottom-32 -right-32 h-72 w-72 rounded-full bg-purple-500/20 blur-3xl animate-blob [animation-delay:2s] sm:h-96 sm:w-96" />
         <div className="absolute top-1/2 left-1/2 h-56 w-56 -translate-x-1/2 -translate-y-1/2 rounded-full bg-teal-500/15 blur-3xl animate-blob [animation-delay:4s] sm:h-72 sm:w-72" />
       </div>
 
-      {/* Main content */}
       <div className="relative z-10 flex flex-col items-center text-center w-full max-w-md">
-        {/* ===== CINEMATIC LOGO SEQUENCE — properly centered, BIG logo ===== */}
         <div className="relative mb-6 flex h-44 w-44 items-center justify-center sm:h-52 sm:w-52 sm:mb-8">
-          {/* Phase 1: Glowing orb — CENTERED */}
           <div
             className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-emerald-400 blur-3xl transition-all duration-500 ease-out ${
               phaseIndex >= 0 ? "h-32 w-32 opacity-80 sm:h-40 sm:w-40" : "h-0 w-0 opacity-0"
@@ -61,7 +52,6 @@ export function WelcomeScreen({ onEnter }: WelcomeScreenProps) {
             style={{ boxShadow: "0 0 80px 20px rgba(16, 185, 129, 0.7)" }}
           />
 
-          {/* Phase 2: Expanding ring — CENTERED */}
           <div
             className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-emerald-400/50 transition-all duration-500 ease-out ${
               phaseIndex >= 1
@@ -70,7 +60,6 @@ export function WelcomeScreen({ onEnter }: WelcomeScreenProps) {
             }`}
           />
 
-          {/* Phase 3: Logo appears — BIGGER + CENTERED */}
           <div
             className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 transition-all duration-500 ease-out ${
               phaseIndex >= 2 ? "opacity-100 scale-100 rotate-0" : "opacity-0 scale-50 rotate-180"
@@ -86,7 +75,6 @@ export function WelcomeScreen({ onEnter }: WelcomeScreenProps) {
             </div>
           </div>
 
-          {/* Sparkle particles — positioned around big logo */}
           {phaseIndex >= 2 && (
             <>
               <Sparkles className="absolute right-0 top-4 h-5 w-5 text-emerald-400 animate-pulse sm:right-2 sm:top-6 sm:h-6 sm:w-6" />
@@ -97,7 +85,6 @@ export function WelcomeScreen({ onEnter }: WelcomeScreenProps) {
           )}
         </div>
 
-        {/* Phase 4: Title */}
         <h1
           className={`aurora-shimmer text-4xl sm:text-6xl font-bold tracking-tight font-mono mb-2 sm:mb-3 transition-all duration-500 ${
             phaseIndex >= 3 ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
@@ -106,7 +93,6 @@ export function WelcomeScreen({ onEnter }: WelcomeScreenProps) {
           {BOT_NAME}
         </h1>
 
-        {/* Subtitle */}
         <p
           className={`text-sm sm:text-lg text-muted-foreground max-w-md mb-6 sm:mb-8 transition-all duration-500 delay-75 ${
             phaseIndex >= 3 ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
@@ -116,7 +102,6 @@ export function WelcomeScreen({ onEnter }: WelcomeScreenProps) {
           <span className="text-emerald-400 font-medium">{DEVELOPER_INFO.name}</span>
         </p>
 
-        {/* Phase 5: Feature cards — GLASS MORPHISM */}
         <div
           className={`grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4 mb-6 sm:mb-8 w-full transition-all duration-500 ${
             phaseIndex >= 4 ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
@@ -145,7 +130,6 @@ export function WelcomeScreen({ onEnter }: WelcomeScreenProps) {
           />
         </div>
 
-        {/* Phase 6: Enter button — GLASS MORPHISM */}
         <button
           type="button"
           onClick={handleEnter}

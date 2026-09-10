@@ -17,13 +17,6 @@ interface Body {
   otp?: string;
 }
 
-/**
- * POST /api/auth/signup
- *
- * Two-step flow:
- * Step 1: { action: "initiate", email, name, password } → sends OTP, stores pending signup
- * Step 2: { action: "verify", email, otp } → verifies OTP, creates actual account in DB
- */
 export async function POST(req: NextRequest) {
   try {
     const body = (await req.json()) as Body;
@@ -38,7 +31,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Please enter a valid email." }, { status: 400 });
     }
 
-    // ====== STEP 1: INITIATE SIGNUP ======
     if (action === "initiate") {
       const name = (body?.name ?? "").trim();
       const password = (body?.password ?? "").trim();
@@ -53,7 +45,6 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "Password must be at least 4 characters." }, { status: 400 });
       }
 
-      // Check if email already registered
       const existing = await db.visitor.findUnique({
         where: { email },
         select: { id: true },
@@ -62,14 +53,12 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "An account with this email already exists." }, { status: 409 });
       }
 
-      // Hash password, generate OTP
       const hashedPassword = await bcrypt.hash(password, 10);
       const otp = Math.floor(100000 + Math.random() * 900000).toString();
       const expires = Date.now() + 10 * 60 * 1000; // 10 min
 
       pendingSignups.set(email, { name, hashedPassword, otp, expires });
 
-      // Send OTP email
       const result = await sendOtpEmail(email, otp);
       if (!result.success) {
         // Fallback: return OTP in response if email fails
@@ -88,7 +77,6 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // ====== STEP 2: VERIFY OTP & CREATE ACCOUNT ======
     if (action === "verify") {
       const otp = (body?.otp ?? "").trim();
 
@@ -110,7 +98,6 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "Incorrect OTP. Please try again." }, { status: 401 });
       }
 
-      // OTP correct — create the actual account
       const sessionId =
         "v-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 10);
 
@@ -124,7 +111,6 @@ export async function POST(req: NextRequest) {
         select: { id: true, name: true, email: true },
       });
 
-      // Clean up pending signup
       pendingSignups.delete(email);
 
       const res = NextResponse.json({

@@ -40,10 +40,6 @@ function buildHeaders(config: ZaiConfig): Record<string, string> {
   };
 }
 
-/**
- * Try a single model — returns async generator yielding tokens.
- * Throws on error.
- */
 async function* tryStreamModel(
   messages: ChatMessage[],
   apiModel: string,
@@ -105,15 +101,6 @@ async function* tryStreamModel(
   }
 }
 
-/**
- * Stream a chat completion with automatic fallback.
- *
- * Tries each model in `modelChain` (in order) until one succeeds.
- * If a model throws OR returns zero tokens, we move to the next one.
- *
- * @param messages  - chat messages
- * @param modelChain - array of API model names to try (e.g. ["mistral-medium-3-5", "claude-sonnet-4.5"])
- */
 export async function* streamChatCompletion(
   messages: ChatMessage[],
   modelChain: string[] = []
@@ -128,11 +115,6 @@ export async function* streamChatCompletion(
     const apiModel = chain[i];
     try {
       console.log(`[chat] Trying model ${i + 1}/${chain.length}: ${apiModel}`);
-      // We need to consume the entire generator in a try/catch BEFORE yielding
-      // so that if the first token fails, we can fall back.
-      // But streaming requires yielding as we go — so we use a "yielded flag":
-      // only fall back if NO tokens were yielded yet.
-
       let hasYielded = false;
       const generator = tryStreamModel(messages, apiModel, config.baseUrl, headers);
 
@@ -141,15 +123,11 @@ export async function* streamChatCompletion(
           hasYielded = true;
           yield token;
         }
-        // Success — return
         return;
       } catch (err) {
         if (hasYielded) {
-          // We already yielded tokens to the user — can't fall back.
-          // Re-throw so the caller knows streaming ended abruptly.
           throw err;
         }
-        // No tokens yet — safe to fall back
         lastError = err instanceof Error ? err : new Error(String(err));
         console.warn(`[chat] Model ${apiModel} failed, falling back:`, lastError.message);
         continue;
@@ -161,16 +139,11 @@ export async function* streamChatCompletion(
     }
   }
 
-  // All models failed
   throw new Error(
     `All models failed. Last error: ${lastError?.message || "Unknown error"}`
   );
 }
 
-/**
- * Non-streaming chat completion (for vision).
- * Tries each model in the chain.
- */
 export async function createChatCompletion(
   messages: ChatMessage[],
   modelChain: string[] = []
@@ -211,15 +184,10 @@ export async function createChatCompletion(
   throw new Error(`All models failed. Last error: ${lastError?.message}`);
 }
 
-/**
- * Vision chat completion (non-streaming).
- * Falls back through the model chain.
- */
 export async function createVisionChatCompletion(
   messages: any[],
   modelChain: string[] = []
 ): Promise<string> {
-  // Reuse the same logic as createChatCompletion
   return createChatCompletion(messages as ChatMessage[], modelChain);
 }
 

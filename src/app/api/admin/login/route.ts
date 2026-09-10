@@ -8,7 +8,6 @@ export const dynamic = "force-dynamic";
 const ADMIN_USER = "admin";
 const ADMIN_PASS = "admin123";
 
-// A simple shared secret stored in an httpOnly cookie.
 const SESSION_TOKEN = "devai-admin-" + Buffer.from(`${ADMIN_USER}:${ADMIN_PASS}`).toString("base64");
 
 interface Body {

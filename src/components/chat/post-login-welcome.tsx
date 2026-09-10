@@ -12,15 +12,6 @@ interface PostLoginWelcomeProps {
 
 type Phase = "name" | "subtitle" | "fireworks" | "button";
 
-/**
- * Post-login welcome animation:
- * 1. Colorful animated username appears
- * 2. "Welcome to Developer's Ai" subtitle slides up
- * 3. Fireworks burst across the screen
- * 4. "Continue" button appears
- *
- * User must click "Continue" — no auto-dismiss.
- */
 export function PostLoginWelcome({ open, username, onOpenChange }: PostLoginWelcomeProps) {
   const [phase, setPhase] = useState<Phase>("name");
   const [exiting, setExiting] = useState(false);
@@ -40,7 +31,6 @@ export function PostLoginWelcome({ open, username, onOpenChange }: PostLoginWelc
     return () => timers.forEach(clearTimeout);
   }, [open]);
 
-  // Fireworks effect — canvas-based for performance
   useEffect(() => {
     if (!open || phase !== "fireworks") return;
 
@@ -67,7 +57,6 @@ export function PostLoginWelcome({ open, username, onOpenChange }: PostLoginWelc
       const x = canvas.width * (0.15 + Math.random() * 0.7);
       const y = canvas.height * (0.15 + Math.random() * 0.5);
       const color = colors[Math.floor(Math.random() * colors.length)];
-      // Fewer particles per burst on mobile (smaller screens)
       const isMobile = window.innerWidth < 640;
       const count = isMobile ? 25 : 40 + Math.floor(Math.random() * 15);
       for (let i = 0; i < count; i++) {
@@ -85,7 +74,6 @@ export function PostLoginWelcome({ open, username, onOpenChange }: PostLoginWelc
       }
     };
 
-    // Launch initial burst, then keep launching at slower interval
     launchFirework();
     const burstInterval = setInterval(launchFirework, 800);
 
@@ -93,14 +81,12 @@ export function PostLoginWelcome({ open, username, onOpenChange }: PostLoginWelc
     let lastTime = performance.now();
 
     const animate = (now: number) => {
-      const delta = Math.min((now - lastTime) / 16.67, 2); // normalize to 60fps, cap at 2x
+      const delta = Math.min((now - lastTime) / 16.67, 2);
       lastTime = now;
 
-      // Clear with semi-transparent rect for trail effect
       ctx.fillStyle = "rgba(10, 10, 26, 0.2)";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Render all particles (no per-particle save/restore = faster)
       for (let i = particles.length - 1; i >= 0; i--) {
         const p = particles[i];
         p.x += p.vx * delta;
@@ -114,7 +100,6 @@ export function PostLoginWelcome({ open, username, onOpenChange }: PostLoginWelc
           continue;
         }
 
-        // Use simple alpha + fillStyle (no shadowBlur — too expensive)
         ctx.globalAlpha = p.life;
         ctx.fillStyle = p.color;
         ctx.beginPath();
@@ -149,7 +134,6 @@ export function PostLoginWelcome({ open, username, onOpenChange }: PostLoginWelc
         exiting ? "opacity-0" : "opacity-100"
       }`}
     >
-      {/* Fireworks canvas */}
       {phaseIndex >= 2 && (
         <canvas
           ref={canvasRef}
@@ -157,13 +141,11 @@ export function PostLoginWelcome({ open, username, onOpenChange }: PostLoginWelc
         />
       )}
 
-      {/* Gradient blobs background */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="absolute -top-20 -left-20 h-72 w-72 rounded-full bg-emerald-500/20 blur-3xl animate-blob" />
         <div className="absolute -bottom-20 -right-20 h-72 w-72 rounded-full bg-purple-500/20 blur-3xl animate-blob [animation-delay:2s]" />
       </div>
 
-      {/* Close button (top-right) */}
       {phaseIndex >= 3 && (
         <button
           onClick={handleClose}
@@ -174,9 +156,7 @@ export function PostLoginWelcome({ open, username, onOpenChange }: PostLoginWelc
         </button>
       )}
 
-      {/* Main content */}
       <div className="relative z-10 flex flex-col items-center px-4 text-center max-w-md">
-        {/* Sparkle icon */}
         <div
           className={`mb-4 transition-all duration-500 ${
             phaseIndex >= 0 ? "opacity-100 scale-100" : "opacity-0 scale-50"
@@ -187,7 +167,6 @@ export function PostLoginWelcome({ open, username, onOpenChange }: PostLoginWelc
           </div>
         </div>
 
-        {/* "Welcome" text */}
         <p
           className={`text-base sm:text-lg font-medium text-muted-foreground mb-2 transition-all duration-500 ${
             phaseIndex >= 0 ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"
@@ -196,7 +175,6 @@ export function PostLoginWelcome({ open, username, onOpenChange }: PostLoginWelc
           Welcome,
         </p>
 
-        {/* Colorful animated username */}
         <h1
           className={`text-3xl sm:text-5xl font-bold mb-3 transition-all duration-700 ${
             phaseIndex >= 0
@@ -215,7 +193,6 @@ export function PostLoginWelcome({ open, username, onOpenChange }: PostLoginWelc
           {username}!
         </h1>
 
-        {/* Subtitle */}
         <p
           className={`text-sm sm:text-base text-muted-foreground mb-2 transition-all duration-500 ${
             phaseIndex >= 1 ? "opacity-100 translate-y-0" : "opacity-0 translate-y-3"
@@ -232,7 +209,6 @@ export function PostLoginWelcome({ open, username, onOpenChange }: PostLoginWelc
           Let's build something amazing together 🚀
         </p>
 
-        {/* Continue button */}
         <button
           type="button"
           onClick={handleClose}
@@ -247,7 +223,6 @@ export function PostLoginWelcome({ open, username, onOpenChange }: PostLoginWelc
           <Sparkles className="h-4 w-4 transition-transform group-hover:rotate-12" />
         </button>
 
-        {/* Skip hint */}
         {phaseIndex >= 3 && (
           <p className="mt-4 text-[10px] text-muted-foreground/50 animate-pulse">
             Click anywhere or press Continue
@@ -255,7 +230,6 @@ export function PostLoginWelcome({ open, username, onOpenChange }: PostLoginWelc
         )}
       </div>
 
-      {/* Click anywhere to dismiss after button appears */}
       {phaseIndex >= 3 && (
         <div
           className="absolute inset-0 z-0"

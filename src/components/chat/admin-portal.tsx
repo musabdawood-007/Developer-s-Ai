@@ -93,7 +93,6 @@ export function AdminPortal({ open, onOpenChange }: AdminPortalProps) {
   const [chatSearch, setChatSearch] = useState("");
   const [showDeleted, setShowDeleted] = useState(false);
 
-  // Confirmation dialogs
   const [deleteVisitorId, setDeleteVisitorId] = useState<string | null>(null);
   const [deleteChatId, setDeleteChatId] = useState<string | null>(null);
   const [clearChatsVisitorId, setClearChatsVisitorId] = useState<string | null>(null);
@@ -179,8 +178,6 @@ export function AdminPortal({ open, onOpenChange }: AdminPortalProps) {
     setSearch("");
     setChatSearch("");
   };
-
-  /* ----------------------- delete handlers ----------------------- */
 
   const handleDeleteVisitor = async () => {
     if (!deleteVisitorId) return;
@@ -293,8 +290,6 @@ export function AdminPortal({ open, onOpenChange }: AdminPortalProps) {
     }
   };
 
-  /* ----------------------- derived data ----------------------- */
-
   const filtered = useMemo(
     () =>
       visitors.filter((v) =>
@@ -328,8 +323,6 @@ export function AdminPortal({ open, onOpenChange }: AdminPortalProps) {
       totalUserMsgs,
     };
   }, [visitors]);
-
-  /* ----------------------- export conversation ----------------------- */
 
   const buildConversationMarkdown = (v: AdminVisitor): string => {
     const lines: string[] = [];
@@ -381,8 +374,6 @@ export function AdminPortal({ open, onOpenChange }: AdminPortalProps) {
       });
     }
   };
-
-  /* ============================ render ============================ */
 
   return (
     <>
@@ -457,8 +448,7 @@ export function AdminPortal({ open, onOpenChange }: AdminPortalProps) {
             </div>
           ) : (
             <div className="flex h-[92vh] flex-col">
-              {/* Header */}
-              <div className="flex shrink-0 items-center justify-between border-b border-border bg-rose-500/5 px-4 py-3">
+                <div className="flex shrink-0 items-center justify-between border-b border-border bg-rose-500/5 px-4 py-3">
                 <div className="flex items-center gap-2">
                   <Shield className="h-5 w-5 text-emerald-400" />
                   <div>
@@ -496,7 +486,6 @@ export function AdminPortal({ open, onOpenChange }: AdminPortalProps) {
                 </div>
               </div>
 
-              {/* Stats bar */}
               <div className="grid shrink-0 grid-cols-1 gap-2 border-b border-border bg-muted/20 px-4 py-2 sm:grid-cols-3">
                 <StatCard
                   icon={<Users className="h-3.5 w-3.5" />}
@@ -515,9 +504,7 @@ export function AdminPortal({ open, onOpenChange }: AdminPortalProps) {
                 />
               </div>
 
-              {/* Body: list + detail */}
               <div className="flex min-h-0 flex-1 flex-col md:flex-row">
-                {/* List */}
                 <div className="flex w-full flex-col border-b border-border md:w-64 md:shrink-0 md:border-b-0 md:border-r">
                   <div className="border-b border-border p-2">
                     <div className="relative">
@@ -590,13 +577,10 @@ export function AdminPortal({ open, onOpenChange }: AdminPortalProps) {
                   </div>
                 </div>
 
-                {/* Detail */}
                 <div className="min-h-0 flex-1 overflow-hidden">
                   {selected ? (
                     <div className="flex h-full flex-col">
-                      {/* Detail header */}
                       <div className="flex shrink-0 flex-col gap-3 border-b border-border px-4 py-3 lg:flex-row lg:items-start lg:justify-between">
-                        {/* Visitor info — takes most of the width on large screens */}
                         <div className="flex min-w-0 flex-1 items-center gap-3">
                           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-500/20 text-sm font-bold text-emerald-300">
                             {selected.name.slice(0, 2).toUpperCase()}
@@ -614,7 +598,6 @@ export function AdminPortal({ open, onOpenChange }: AdminPortalProps) {
                             </p>
                           </div>
                         </div>
-                        {/* Action buttons — fixed width, never squeezes the info */}
                         <div className="flex flex-wrap items-center gap-1.5 lg:shrink-0">
                           <ExportMenu onExport={(f) => void handleExport(f)} />
                           <Button
@@ -639,7 +622,6 @@ export function AdminPortal({ open, onOpenChange }: AdminPortalProps) {
                         </div>
                       </div>
 
-                      {/* In-chat search + show-deleted toggle */}
                       {selected.chats.length > 0 && (
                         <div className="flex shrink-0 items-center gap-2 border-b border-border p-2">
                           <div className="relative min-w-0 flex-1">
@@ -678,7 +660,6 @@ export function AdminPortal({ open, onOpenChange }: AdminPortalProps) {
                         </div>
                       )}
 
-                      {/* Chat list */}
                       <div className="chat-scroll min-h-0 flex-1 overflow-y-auto">
                         <div className="space-y-2 p-3 sm:p-4">
                           {selectedFilteredChats.length === 0 ? (
@@ -725,7 +706,6 @@ export function AdminPortal({ open, onOpenChange }: AdminPortalProps) {
         </DialogContent>
       </Dialog>
 
-      {/* Confirm: delete visitor */}
       <AlertDialog
         open={deleteVisitorId !== null}
         onOpenChange={(v) => !v && setDeleteVisitorId(null)}
@@ -750,7 +730,6 @@ export function AdminPortal({ open, onOpenChange }: AdminPortalProps) {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Confirm: delete single chat (soft-delete) */}
       <AlertDialog
         open={deleteChatId !== null}
         onOpenChange={(v) => !v && setDeleteChatId(null)}
@@ -776,7 +755,6 @@ export function AdminPortal({ open, onOpenChange }: AdminPortalProps) {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Confirm: clear all chats for visitor */}
       <AlertDialog
         open={clearChatsVisitorId !== null}
         onOpenChange={(v) => !v && setClearChatsVisitorId(null)}
@@ -803,8 +781,6 @@ export function AdminPortal({ open, onOpenChange }: AdminPortalProps) {
     </>
   );
 }
-
-/* --------------------------- sub-components --------------------------- */
 
 function StatCard({
   icon,
@@ -857,7 +833,6 @@ function ChatLogRow({
               : "border-border bg-muted/40"
       )}
     >
-      {/* Header row: role + timestamp + actions (full width) */}
       <div className="flex items-center justify-between gap-2 text-[10px] uppercase tracking-wider text-muted-foreground">
         <div className="flex min-w-0 items-center gap-1.5">
           {isUser ? (
@@ -881,7 +856,6 @@ function ChatLogRow({
             </span>
           )}
         </div>
-        {/* Action buttons — different sets for active vs deleted chats */}
         <div className="flex shrink-0 items-center gap-0.5">
           {isDeleted ? (
             <>
@@ -917,7 +891,6 @@ function ChatLogRow({
           )}
         </div>
       </div>
-      {/* Message content — full width, wraps naturally. Strikethrough when deleted. */}
       <p
         className={cn(
           "whitespace-pre-wrap break-words font-mono leading-relaxed",
@@ -1016,8 +989,6 @@ function ExportItem({
     </button>
   );
 }
-
-/* --------------------------- helpers --------------------------- */
 
 function formatDate(iso: string) {
   try {

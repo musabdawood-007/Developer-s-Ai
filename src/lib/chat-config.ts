@@ -104,23 +104,16 @@ export const SPECIAL_GUESTS: Record<string, { message: string; note: string }> =
   },
 };
 
-/** Returns a special guest entry if the name matches, otherwise null. */
 export function getSpecialGuest(name: string): { message: string; note: string } | null {
   const normalized = name.trim().toLowerCase();
   if (!normalized) return null;
-  // Exact match first
   if (SPECIAL_GUESTS[normalized]) return SPECIAL_GUESTS[normalized];
-  // Partial match — visitor's name contains a known VIP name (e.g. "Hammad Dawood Khan")
   for (const key of Object.keys(SPECIAL_GUESTS)) {
     if (normalized.includes(key)) return SPECIAL_GUESTS[key];
   }
   return null;
 }
 
-/**
- * The intro the bot always leads with on the very first message of a session.
- * If the visitor is a known special guest, returns their custom welcome.
- */
 export function buildWelcomeMessage(visitorName?: string) {
   if (visitorName) {
     const special = getSpecialGuest(visitorName);
@@ -139,17 +132,6 @@ So — do you wanna know more about my developer, or just want some coding tips?
 /** @deprecated use buildWelcomeMessage() — kept for backward compat */
 export const WELCOME_MESSAGE = buildWelcomeMessage();
 
-/**
- * The system prompt that controls the LLM's behavior.
- * Sent as the first "assistant" message in every request.
- *
- * If `visitorName` is provided and matches a special guest, the prompt
- * includes a note about them so the bot keeps the tone consistent across
- * the rest of the conversation.
- *
- * NOTE: Keep this short! Every character here is sent on every request
- * and counts toward the model's time-to-first-token.
- */
 export function buildSystemPrompt(visitorName?: string): string {
   const special = visitorName ? getSpecialGuest(visitorName) : null;
   const specialBlock = special

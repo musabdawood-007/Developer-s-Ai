@@ -31,7 +31,6 @@ export function PrivacyTerms({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-2xl w-[95vw] max-w-[95vw] max-h-[85vh] p-0 overflow-hidden gap-0">
-        {/* Header */}
         <div className="border-b border-border bg-emerald-500/5 px-5 py-4">
           <DialogHeader>
             <div className="flex items-center gap-2.5">
@@ -50,7 +49,6 @@ export function PrivacyTerms({
           </DialogHeader>
         </div>
 
-        {/* Tabs */}
         <Tabs
           value={tab}
           onValueChange={(v) => setTab(v as "privacy" | "terms")}
@@ -87,7 +85,6 @@ export function PrivacyTerms({
           </ScrollArea>
         </Tabs>
 
-        {/* Footer */}
         <div className="border-t border-border bg-muted/30 px-5 py-3 text-center text-[11px] text-muted-foreground">
           By continuing to chat, you agree to both the Privacy Policy and Terms
           of Use. Stay safe &amp; build cool things! 🚀

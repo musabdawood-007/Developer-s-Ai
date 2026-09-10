@@ -7,11 +7,6 @@ export const dynamic = "force-dynamic";
 const SESSION_TOKEN =
   "devai-admin-" + Buffer.from("admin:admin123").toString("base64");
 
-/**
- * DELETE /api/admin/visitors/[id]
- * Deletes a visitor AND all their chat logs (cascade).
- * Requires the devai_admin cookie.
- */
 export async function DELETE(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -30,7 +25,6 @@ export async function DELETE(
       );
     }
 
-    // Cascade delete will remove chat logs automatically per schema.
     await db.visitor.delete({ where: { id } });
 
     return NextResponse.json({ ok: true });

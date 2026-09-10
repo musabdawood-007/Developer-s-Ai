@@ -10,11 +10,6 @@ interface Body {
   profilePicture?: string;
 }
 
-/**
- * POST /api/auth/update-profile
- * Body: { visitorId, name?, profilePicture? }
- * Updates the visitor's name and/or profile picture.
- */
 export async function POST(req: NextRequest) {
   try {
     const body = (await req.json()) as Body;

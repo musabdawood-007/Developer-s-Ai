@@ -7,10 +7,6 @@ export const dynamic = "force-dynamic";
 const SESSION_TOKEN =
   "devai-admin-" + Buffer.from("admin:admin123").toString("base64");
 
-/**
- * GET /api/admin/data
- * Returns all visitors and their chat logs. Requires the devai_admin cookie.
- */
 export async function GET(req: NextRequest) {
   const cookie = req.cookies.get("devai_admin")?.value;
   if (cookie !== SESSION_TOKEN) {

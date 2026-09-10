@@ -8,10 +8,6 @@ interface Body {
   visitorId?: string;
 }
 
-/**
- * GET /api/sessions?visitorId=...
- * Returns all chat sessions for a visitor, newest first.
- */
 export async function GET(req: NextRequest) {
   const url = new URL(req.url);
   const visitorId = url.searchParams.get("visitorId");
@@ -34,11 +30,6 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({ sessions });
 }
 
-/**
- * POST /api/sessions
- * Body: { visitorId }
- * Creates a new chat session and returns it.
- */
 export async function POST(req: NextRequest) {
   const body = (await req.json()) as Body;
   const visitorId = body?.visitorId?.trim();

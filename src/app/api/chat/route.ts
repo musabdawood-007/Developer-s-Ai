@@ -43,10 +43,6 @@ async function resolveVisitorName(
   }
 }
 
-/**
- * Check if the visitor can use this model.
- * Returns { allowed, reason, apiModel }.
- */
 async function checkModelAccess(
   visitorId: string | undefined,
   modelId: string | undefined
@@ -109,10 +105,6 @@ async function checkModelAccess(
   return { allowed: true, apiModel: model.apiModel, modelId: id };
 }
 
-/**
- * Increment today's usage count for a (visitor, model) pair.
- * Failures are swallowed — don't break the chat over a counting bug.
- */
 async function incrementUsage(
   visitorId: string | undefined,
   modelId: string
@@ -185,10 +177,6 @@ async function safeLog(
   }
 }
 
-/**
- * POST /api/chat
- * Streams the model's reply as Server-Sent Events (SSE).
- */
 export async function POST(req: NextRequest) {
   let body: ChatRequestBody;
   try {
@@ -210,7 +198,6 @@ export async function POST(req: NextRequest) {
   const visitorId = body.visitorId;
   const visitorName = await resolveVisitorName(visitorId, body.visitorName);
 
-  // ====== MODEL ACCESS CHECK ======
   const access = await checkModelAccess(visitorId, body.modelId);
   if (!access.allowed) {
     return NextResponse.json(
@@ -218,8 +205,6 @@ export async function POST(req: NextRequest) {
       { status: 403 }
     );
   }
-  // Build the model chain: [primary, ...fallbacks]
-  // If V2 (Claude) fails, it will auto-try V1 (Mistral) and vice versa.
   const modelChain = getModelChain(access.modelId);
   const modelId = access.modelId;
   console.log(`[chat] Model chain for ${modelId}:`, modelChain);
@@ -238,7 +223,6 @@ export async function POST(req: NextRequest) {
     void safeLog(visitorId, "user", lastUserMsg.content, body.sessionId, modelId);
   }
 
-  // ====== IMAGE GENERATION DETECTION ======
   const imageMatch = lastUserMsg?.content?.match(
     /^(?:generate\s+image\s*[:\s]+|draw\s*[:\s]+|create\s+image\s*[:\s]+|image\s*[:\s]+)(.+)$/i
   );
@@ -313,8 +297,6 @@ export async function POST(req: NextRequest) {
       },
     });
   }
-  // ====== END IMAGE GENERATION DETECTION ======
-
   const encoder = new TextEncoder();
 
   const stream = new ReadableStream<Uint8Array>({
@@ -335,7 +317,6 @@ export async function POST(req: NextRequest) {
         );
 
         if (hasImages) {
-          // ===== VISION (multimodal) =====
           const visionMessages: any[] = [
             { role: "assistant", content: systemPrompt },
             ...body.messages
@@ -360,7 +341,6 @@ export async function POST(req: NextRequest) {
           fullReply = reply;
           send({ token: reply });
         } else {
-          // ===== STANDARD TEXT STREAMING =====
           for await (const token of streamChatCompletion(messagesForModel, modelChain)) {
             fullReply += token;
             send({ token });
@@ -381,9 +361,7 @@ export async function POST(req: NextRequest) {
           }
           try {
             send({ done: true });
-          } catch {
-            // ignore
-          }
+          } catch {}
         } else {
           console.error("[chat/stream] error:", err);
           const message = err instanceof Error ? err.message : "Unknown error";
@@ -392,9 +370,7 @@ export async function POST(req: NextRequest) {
       } finally {
         try {
           controller.close();
-        } catch {
-          // already closed
-        }
+        } catch {}
       }
     },
   });
