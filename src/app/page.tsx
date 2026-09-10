@@ -14,7 +14,6 @@ import {
   Code2,
   Wand2,
   Square,
-  ShieldCheck,
   LogOut,
   Paperclip,
   X,
@@ -907,8 +906,8 @@ export default function Home() {
               <button type="button" onClick={() => { setImageGenOpen(true); setSidebarOpen(false); }} className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
                 <Sparkle className="h-4 w-4" /> Image Gen
               </button>
-              <button type="button" onClick={() => { setAdminOpen(true); setSidebarOpen(false); }} className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
-                <ShieldCheck className="h-4 w-4" /> Customize
+              <button type="button" onClick={() => { setAccountOpen(true); setSidebarOpen(false); }} className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
+                <UserCircle className="h-4 w-4" /> Account
               </button>
             </div>
             <div className="chat-scroll min-h-0 flex-1 overflow-y-auto border-t border-border px-2 py-2">
@@ -936,7 +935,7 @@ export default function Home() {
             </div>
             <div className="border-t border-border p-3">
               <button type="button" onClick={() => { setAccountOpen(true); setSidebarOpen(false); }} className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
-                <UserCircle className="h-4 w-4" /> Sign In
+                <UserCircle className="h-4 w-4" /> Account
               </button>
             </div>
           </div>
@@ -955,8 +954,8 @@ export default function Home() {
           <button type="button" onClick={() => setImageGenOpen(true)} className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
             <Sparkle className="h-4 w-4" /> Image Gen
           </button>
-          <button type="button" onClick={() => setAdminOpen(true)} className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
-            <ShieldCheck className="h-4 w-4" /> Customize
+          <button type="button" onClick={() => setAccountOpen(true)} className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
+            <UserCircle className="h-4 w-4" /> Account
           </button>
         </div>
         <div className="chat-scroll min-h-0 flex-1 overflow-y-auto border-t border-border px-2 py-2">
@@ -984,7 +983,7 @@ export default function Home() {
         </div>
         <div className="border-t border-border p-3">
           <button type="button" onClick={() => setAccountOpen(true)} className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
-            <UserCircle className="h-4 w-4" /> Sign In
+            <UserCircle className="h-4 w-4" /> Account
           </button>
         </div>
       </aside>
