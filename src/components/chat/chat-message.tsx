@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Bot, User, Trash2, Download } from "lucide-react";
+import { Trash2, Download } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Markdown } from "./markdown";
 import { watermarkImage } from "@/lib/watermark";
@@ -46,39 +46,34 @@ export function ChatMessage({
       await onHide(message.id);
     } finally {
       setHiding(false);
-    }
+      }
   };
 
   if (isUser) {
     return (
       <motion.div
-        initial={{ opacity: 0, y: 6 }}
+        initial={{ opacity: 0, y: 4 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.15, ease: "easeOut" }}
-        className="flex w-full justify-end py-2"
+        className="flex w-full justify-end py-3"
       >
         <div className="w-full max-w-3xl mx-auto px-4 flex justify-end">
-          <div className="flex items-start gap-2 max-w-[80%]">
-            <div className="flex-1 text-right">
-              <div className="inline-block text-sm leading-relaxed text-foreground text-left">
-                {message.images && message.images.length > 0 && (
-                  <div className="mb-2 flex flex-wrap gap-2 justify-end">
-                    {message.images.map((img, idx) => (
-                      <img
-                        key={idx}
-                        src={img}
-                        alt={`Attachment ${idx + 1}`}
-                        className="max-h-40 max-w-[200px] rounded-lg object-cover"
-                      />
-                    ))}
-                  </div>
-                )}
-                <p className="whitespace-pre-wrap break-words">{message.content}</p>
+          <div className="max-w-[80%]">
+            {message.images && message.images.length > 0 && (
+              <div className="mb-2 flex flex-wrap gap-2 justify-end">
+                {message.images.map((img, idx) => (
+                  <img
+                    key={idx}
+                    src={img}
+                    alt={`Attachment ${idx + 1}`}
+                    className="max-h-40 max-w-[200px] rounded-lg object-cover"
+                  />
+                ))}
               </div>
-            </div>
-            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground mt-0.5">
-              <User className="h-3.5 w-3.5" />
-            </div>
+            )}
+            <p className="text-sm leading-relaxed text-foreground whitespace-pre-wrap break-words text-right">
+              {message.content}
+            </p>
           </div>
         </div>
       </motion.div>
@@ -87,10 +82,10 @@ export function ChatMessage({
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 8 }}
+      initial={{ opacity: 0, y: 6 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.2, ease: "easeOut" }}
-      className="group flex w-full py-4 border-t border-border"
+      className="group flex w-full py-3"
     >
       <div className="w-full max-w-3xl mx-auto px-4">
         {isEmpty && isThinking ? (

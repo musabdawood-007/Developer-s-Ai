@@ -46,7 +46,7 @@ import { PrivacyTerms } from "@/components/chat/privacy-terms";
 import { AccountPortal } from "@/components/chat/account-portal";
 import { WelcomeScreen } from "@/components/chat/welcome-screen";
 import { PatchNotesModal } from "@/components/chat/patch-notes-modal";
-import { PostLoginWelcome } from "@/components/chat/post-login-welcome";
+
 import {
   BOT_NAME,
   DEVELOPER_INFO,
@@ -182,7 +182,7 @@ export default function Home() {
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [showWelcome, setShowWelcome] = useState(true);
   const [showPatchNotes, setShowPatchNotes] = useState(false);
-  const [showPostLoginWelcome, setShowPostLoginWelcome] = useState(false);
+
 
   useEffect(() => {
     const nav = performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming | undefined;
@@ -875,13 +875,6 @@ export default function Home() {
       <AuthGate
         onReady={(info) => {
           setVisitor(info);
-          try {
-            const justLoggedIn = sessionStorage.getItem("devai:just-logged-in");
-            if (justLoggedIn === "1") {
-              sessionStorage.removeItem("devai:just-logged-in");
-              setTimeout(() => setShowPostLoginWelcome(true), 300);
-            }
-          } catch {}
         }}
       />
     );
@@ -1129,12 +1122,6 @@ export default function Home() {
       <AdminPortal open={adminOpen} onOpenChange={setAdminOpen} />
 
       <PatchNotesModal open={showPatchNotes} onOpenChange={setShowPatchNotes} />
-
-      <PostLoginWelcome
-        open={showPostLoginWelcome}
-        username={visitor?.name || "Friend"}
-        onOpenChange={setShowPostLoginWelcome}
-      />
 
       {showUpgradeModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 p-4" onClick={() => setShowUpgradeModal(false)}>
