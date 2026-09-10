@@ -414,7 +414,7 @@ export default function Home() {
         },
       ]);
       setSidebarOpen(false);
-    }
+    } catch {}
   };
 
   const switchSession = (sessionId: string) => {
@@ -432,7 +432,7 @@ export default function Home() {
         const data = await res.json();
         setSessions(data.sessions || []);
       }
-    }
+    } catch {}
   }, [visitor]);
 
   const deleteSession = async (sessionId: string) => {
