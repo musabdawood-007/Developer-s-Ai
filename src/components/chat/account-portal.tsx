@@ -156,11 +156,11 @@ export function AccountPortal({
         {tab === "menu" && (
           <div className="p-4 space-y-3">
             <div className="flex items-center gap-3 rounded-xl border border-border bg-muted/20 p-3">
-              <div className="h-12 w-12 shrink-0 overflow-hidden rounded-full border border-emerald-500/30 bg-emerald-500/10">
+              <div className="h-12 w-12 shrink-0 overflow-hidden rounded-full border border-border bg-muted">
                 {profilePic ? (
                   <img src={profilePic} alt={visitor?.name} className="h-full w-full object-cover" />
                 ) : (
-                  <div className="flex h-full w-full items-center justify-center text-emerald-400">
+                  <div className="flex h-full w-full items-center justify-center text-foreground">
                     <User className="h-5 w-5" />
                   </div>
                 )}
@@ -172,7 +172,7 @@ export function AccountPortal({
               <button
                 type="button"
                 onClick={() => setTab("profile")}
-                className="rounded-lg px-3 py-1.5 text-xs font-medium text-emerald-400 hover:bg-emerald-500/10"
+                className="rounded-lg px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted"
               >
                 Edit
               </button>
@@ -199,11 +199,11 @@ export function AccountPortal({
           <div className="p-4 space-y-4">
             <div className="flex flex-col items-center gap-3">
               <div className="relative">
-                <div className="h-24 w-24 overflow-hidden rounded-full border-2 border-emerald-500/40 bg-emerald-500/10">
+                <div className="h-24 w-24 overflow-hidden rounded-full border-2 border-border bg-muted">
                   {profilePic ? (
                     <img src={profilePic} alt="Profile" className="h-full w-full object-cover" />
                   ) : (
-                    <div className="flex h-full w-full items-center justify-center text-emerald-400">
+                    <div className="flex h-full w-full items-center justify-center text-foreground">
                       <User className="h-10 w-10" />
                     </div>
                   )}
@@ -211,7 +211,7 @@ export function AccountPortal({
                 <button
                   type="button"
                   onClick={() => fileRef.current?.click()}
-                  className="absolute bottom-0 right-0 flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500 text-white shadow-lg hover:bg-emerald-400"
+                  className="absolute bottom-0 right-0 flex h-8 w-8 items-center justify-center rounded-full bg-primary text-white shadow-lg hover:bg-primary"
                 >
                   <Camera className="h-4 w-4" />
                 </button>
@@ -253,7 +253,7 @@ export function AccountPortal({
               type="button"
               onClick={saveProfile}
               disabled={saving || name.trim().length < 2}
-              className="h-11 w-full gap-2 bg-gradient-to-r from-emerald-500 to-teal-600 text-white hover:from-emerald-400 hover:to-teal-500"
+              className="h-11 w-full gap-2 bg-gradient-to-r from-primary to-primary text-white hover:from-primary hover:to-primary"
             >
               {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : saved ? <Check className="h-4 w-4" /> : null}
               {saving ? "Saving…" : saved ? "Saved!" : "Save Changes"}
@@ -337,7 +337,7 @@ function MenuItem({
           : "text-foreground hover:bg-muted/50"
       )}
     >
-      <span className={danger ? "text-red-400" : "text-emerald-400"}>{icon}</span>
+      <span className={danger ? "text-red-400" : "text-foreground"}>{icon}</span>
       <span className="flex-1">{label}</span>
       <ChevronRight className="h-4 w-4 text-muted-foreground" />
     </button>
@@ -360,9 +360,9 @@ function ContactItem({
       href={href}
       target={href.startsWith("http") ? "_blank" : undefined}
       rel="noopener noreferrer"
-      className="flex items-center gap-3 rounded-lg border border-border bg-card px-3 py-2.5 transition-colors hover:border-emerald-500/30"
+      className="flex items-center gap-3 rounded-lg border border-border bg-card px-3 py-2.5 transition-colors hover:border-border"
     >
-      <span className="text-emerald-400">{icon}</span>
+      <span className="text-foreground">{icon}</span>
       <div>
         <p className="text-[10px] uppercase tracking-wider text-muted-foreground">{label}</p>
         <p className="text-sm font-medium">{value}</p>

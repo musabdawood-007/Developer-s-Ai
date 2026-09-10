@@ -183,7 +183,7 @@ export function AuthGate({ onReady }: AuthGateProps) {
         </div>
 
         <div className="rounded-2xl border border-border bg-card p-6 shadow-xl">
-          <div className="mb-4 flex items-center gap-2 text-emerald-400">
+          <div className="mb-4 flex items-center gap-2 text-foreground">
             <Sparkles className="h-4 w-4" />
             <span className="text-xs font-medium uppercase tracking-wider">
               {isSignup ? "Create Account" : isSignin ? "Welcome Back" : isSignupOtp ? "Verify Your Email" : "Password Recovery"}
@@ -200,13 +200,13 @@ export function AuthGate({ onReady }: AuthGateProps) {
           )}
 
           {(isForgot || isSignupOtp) && (
-            <button type="button" onClick={() => { setView(isSignupOtp ? "signup" : "signin"); setError(null); setSuccessMsg(null); setOtpVerified(false); }} className="mb-4 flex items-center gap-1 text-xs text-emerald-400 hover:text-emerald-300">
+            <button type="button" onClick={() => { setView(isSignupOtp ? "signup" : "signin"); setError(null); setSuccessMsg(null); setOtpVerified(false); }} className="mb-4 flex items-center gap-1 text-xs text-foreground hover:text-foreground">
               <ChevronLeft className="h-3.5 w-3.5" />Back
             </button>
           )}
 
           {successMsg && (
-            <div className="mb-3 flex items-start gap-2 rounded-md border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-300">
+            <div className="mb-3 flex items-start gap-2 rounded-md border border-border bg-muted px-3 py-2 text-xs text-foreground">
               <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0" /><span>{successMsg}</span>
             </div>
           )}
@@ -250,7 +250,7 @@ export function AuthGate({ onReady }: AuthGateProps) {
                   <Input value={otp} onChange={(e) => { setOtp(e.target.value); setError(null); }} disabled={submitting} placeholder="000000" className="h-11 pl-10 text-center text-lg tracking-widest font-mono" maxLength={6} inputMode="numeric" />
                 </div>
                 <div className="mt-2">
-                  <button type="button" onClick={resendOtp} disabled={resendTimer > 0 || submitting} className="text-[11px] text-emerald-400 hover:text-emerald-300 disabled:opacity-40">
+                  <button type="button" onClick={resendOtp} disabled={resendTimer > 0 || submitting} className="text-[11px] text-foreground hover:text-foreground disabled:opacity-40">
                     {resendTimer > 0 ? `Resend OTP in ${resendTimer}s` : "Resend OTP"}
                   </button>
                 </div>
@@ -274,7 +274,7 @@ export function AuthGate({ onReady }: AuthGateProps) {
             )}
 
             {!(isForgotReset && !otpVerified) && (
-              <Button type="submit" disabled={submitting || (!email.trim() && !isSignupOtp && view !== "forgot-otp" && view !== "forgot-reset")} className="h-11 w-full gap-2 bg-gradient-to-r from-emerald-500 to-teal-600 text-white hover:from-emerald-400 hover:to-teal-500 disabled:opacity-50">
+              <Button type="submit" disabled={submitting || (!email.trim() && !isSignupOtp && view !== "forgot-otp" && view !== "forgot-reset")} className="h-11 w-full gap-2 bg-gradient-to-r from-primary to-primary text-white hover:from-primary hover:to-primary disabled:opacity-50">
                 {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : isSignup ? <UserPlus className="h-4 w-4" /> : isSignin ? <LogIn className="h-4 w-4" /> : <KeyRound className="h-4 w-4" />}
                 {submitting ? "Please wait…" : isSignup ? "Send Verification OTP" : isSignin ? "Sign In" : isSignupOtp ? "Verify & Create Account" : view === "forgot-email" ? "Send OTP" : view === "forgot-otp" ? "Verify OTP" : "Reset Password"}
                 {!submitting && <ArrowRight className="h-4 w-4" />}
@@ -284,10 +284,10 @@ export function AuthGate({ onReady }: AuthGateProps) {
 
           <div className="mt-4 space-y-2 text-center">
             {isSignin && (
-              <button type="button" onClick={() => { setView("forgot-email"); setError(null); setSuccessMsg(null); setOtpVerified(false); }} className="text-[11px] text-muted-foreground hover:text-emerald-400">Forgot password?</button>
+              <button type="button" onClick={() => { setView("forgot-email"); setError(null); setSuccessMsg(null); setOtpVerified(false); }} className="text-[11px] text-muted-foreground hover:text-foreground">Forgot password?</button>
             )}
             <p className="text-[11px] text-muted-foreground">
-              {isSignup ? (<>Already have an account? <button type="button" onClick={() => { setView("signin"); setError(null); setSuccessMsg(null); }} className="font-medium text-emerald-400 underline underline-offset-2 hover:text-emerald-300">Sign in</button></>) : isSignin ? (<>New here? <button type="button" onClick={() => { setView("signup"); setError(null); setSuccessMsg(null); }} className="font-medium text-emerald-400 underline underline-offset-2 hover:text-emerald-300">Create an account</button></>) : null}
+              {isSignup ? (<>Already have an account? <button type="button" onClick={() => { setView("signin"); setError(null); setSuccessMsg(null); }} className="font-medium text-foreground underline underline-offset-2 hover:text-foreground">Sign in</button></>) : isSignin ? (<>New here? <button type="button" onClick={() => { setView("signup"); setError(null); setSuccessMsg(null); }} className="font-medium text-foreground underline underline-offset-2 hover:text-foreground">Create an account</button></>) : null}
             </p>
           </div>
         </div>

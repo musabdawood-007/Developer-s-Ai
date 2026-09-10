@@ -90,7 +90,7 @@ export function Markdown({ content, asMarkdownFile }: MarkdownProps) {
               href={href}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-emerald-400 hover:text-emerald-300 underline decoration-emerald-500/40 underline-offset-2 break-all"
+              className="text-foreground hover:text-foreground underline decoration-border underline-offset-2 break-all"
             >
               {children}
             </a>
@@ -108,7 +108,7 @@ export function Markdown({ content, asMarkdownFile }: MarkdownProps) {
           ),
           em: ({ children }) => <em className="italic">{children}</em>,
           blockquote: ({ children }) => (
-            <blockquote className="my-3 border-l-2 border-emerald-500/60 bg-emerald-500/5 py-1.5 pl-3 pr-2 italic text-muted-foreground">
+            <blockquote className="my-3 border-l-2 border-border bg-muted py-1.5 pl-3 pr-2 italic text-muted-foreground">
               {children}
             </blockquote>
           ),
@@ -152,7 +152,7 @@ function CodeBlock(props: any) {
   if (!language) {
     return (
       <code
-        className="rounded bg-muted px-1.5 py-0.5 text-[0.85em] font-mono text-emerald-300 break-all"
+        className="rounded bg-muted px-1.5 py-0.5 text-[0.85em] font-mono text-foreground break-all"
         {...rest}
       >
         {children}
@@ -268,7 +268,7 @@ function CodeDownloadButton({ code, language }: { code: string; language: string
   return (
     <button
       onClick={handleDownload}
-      className="flex items-center gap-1 rounded px-2 py-1 text-[10px] font-medium text-zinc-400 transition-colors hover:bg-emerald-500/10 hover:text-emerald-400"
+      className="flex items-center gap-1 rounded px-2 py-1 text-[10px] font-medium text-zinc-400 transition-colors hover:bg-muted hover:text-foreground"
       title={`Download as .${LANG_TO_EXT[language.toLowerCase()] || "txt"}`}
     >
       <Download className="h-3 w-3" />
@@ -279,8 +279,8 @@ function CodeDownloadButton({ code, language }: { code: string; language: string
 
 function DownloadBar({ content }: { content: string }) {
   return (
-    <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-md border border-emerald-500/40 bg-emerald-500/10 px-3 py-2">
-      <span className="text-xs font-medium text-emerald-300">
+    <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-md border border-border bg-muted px-3 py-2">
+      <span className="text-xs font-medium text-foreground">
         📄 Document ready — download as:
       </span>
       <FormatDownloadMenu content={content} variant="expanded" />
@@ -356,7 +356,7 @@ function FormatDownloadMenu({ content, variant }: FormatDownloadMenuProps) {
         onClick={() => setOpen((v) => !v)}
         className={cn(
           "inline-flex items-center gap-1 rounded px-2 py-1 text-xs font-medium transition-colors",
-          "bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30",
+          "bg-muted text-foreground hover:bg-muted",
           busy !== null && "opacity-60"
         )}
         disabled={busy !== null}
@@ -419,7 +419,7 @@ function FormatChip({
       disabled={disabled}
       className={cn(
         "inline-flex items-center gap-1 rounded px-2 py-1 text-[11px] font-semibold transition-colors",
-        "bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30",
+        "bg-muted text-foreground hover:bg-muted",
         disabled && "opacity-60 cursor-not-allowed"
       )}
     >
@@ -442,7 +442,7 @@ function FormatMenuItem({
     <button
       type="button"
       onClick={onClick}
-      className="flex w-full items-center gap-2 px-3 py-1.5 text-xs text-left text-popover-foreground hover:bg-emerald-500/15 hover:text-emerald-300 transition-colors"
+      className="flex w-full items-center gap-2 px-3 py-1.5 text-xs text-left text-popover-foreground hover:bg-muted hover:text-foreground transition-colors"
     >
       {icon}
       {label}
@@ -469,7 +469,7 @@ function CopyButton({ text }: { text: string }) {
       className={cn(
         "inline-flex items-center gap-1 rounded px-2 py-1 text-xs font-medium transition-colors",
         copied
-          ? "text-emerald-400"
+          ? "text-foreground"
           : "text-zinc-400 hover:text-zinc-100 hover:bg-white/5"
       )}
       aria-label="Copy code"

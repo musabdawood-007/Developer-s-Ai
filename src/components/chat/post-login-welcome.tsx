@@ -142,8 +142,8 @@ export function PostLoginWelcome({ open, username, onOpenChange }: PostLoginWelc
       )}
 
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -top-20 -left-20 h-72 w-72 rounded-full bg-emerald-500/20 blur-3xl animate-blob" />
-        <div className="absolute -bottom-20 -right-20 h-72 w-72 rounded-full bg-purple-500/20 blur-3xl animate-blob [animation-delay:2s]" />
+        <div className="absolute -top-20 -left-20 h-72 w-72 rounded-full bg-muted blur-3xl animate-blob" />
+        <div className="absolute -bottom-20 -right-20 h-72 w-72 rounded-full bg-muted/50 blur-3xl animate-blob [animation-delay:2s]" />
       </div>
 
       {phaseIndex >= 3 && (
@@ -162,8 +162,8 @@ export function PostLoginWelcome({ open, username, onOpenChange }: PostLoginWelc
             phaseIndex >= 0 ? "opacity-100 scale-100" : "opacity-0 scale-50"
           }`}
         >
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500/20 to-teal-500/20 border border-emerald-500/30">
-            <Sparkles className="h-7 w-7 text-emerald-400 animate-pulse" />
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-muted border border-border">
+            <Sparkles className="h-7 w-7 text-foreground animate-pulse" />
           </div>
         </div>
 
@@ -199,7 +199,7 @@ export function PostLoginWelcome({ open, username, onOpenChange }: PostLoginWelc
           }`}
         >
           You're all set to explore{" "}
-          <span className="text-emerald-400 font-medium">{BOT_NAME}</span>
+          <span className="text-foreground font-medium">{BOT_NAME}</span>
         </p>
         <p
           className={`text-xs text-muted-foreground/70 mb-8 transition-all duration-500 delay-100 ${
@@ -213,9 +213,9 @@ export function PostLoginWelcome({ open, username, onOpenChange }: PostLoginWelc
           type="button"
           onClick={handleClose}
           disabled={phaseIndex < 3}
-          className={`group flex items-center gap-2 rounded-full bg-gradient-to-r from-emerald-500 to-teal-600 px-7 py-3 text-sm font-semibold text-white shadow-lg shadow-emerald-500/30 transition-all duration-500 ${
+          className={`group flex items-center gap-2 rounded-full bg-gradient-to-r from-primary to-primary px-7 py-3 text-sm font-semibold text-white shadow-lg shadow-primary/30 transition-all duration-500 ${
             phaseIndex >= 3
-              ? "opacity-100 translate-y-0 hover:scale-105 hover:shadow-emerald-500/50 active:scale-95"
+              ? "opacity-100 translate-y-0 hover:scale-105 hover:shadow-primary/50 active:scale-95"
               : "opacity-0 translate-y-4 pointer-events-none"
           }`}
         >

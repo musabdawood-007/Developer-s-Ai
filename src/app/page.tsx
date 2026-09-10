@@ -897,7 +897,7 @@ export default function Home() {
             onClick={() => setSidebarOpen(false)}
             aria-hidden
           />
-          <div className="relative flex h-full w-80 max-w-[85vw] flex-col border-r border-emerald-500/20 glass-card shadow-2xl animate-slide-in-right">
+          <div className="relative flex h-full w-80 max-w-[85vw] flex-col border-r border-border glass-card shadow-2xl animate-slide-in-right">
             <div className="flex items-center justify-between border-b border-border px-4 py-3">
               <h2 className="text-sm font-bold text-foreground">Chat History</h2>
               <button
@@ -991,7 +991,7 @@ export default function Home() {
         </div>
       )}
 
-      <header className="shrink-0 border-b border-border bg-background/80 backdrop-blur-lg">
+      <header className="shrink-0 border-b border-border bg-background">
         <div className="mx-auto flex max-w-3xl items-center justify-between gap-2 px-3 py-2.5 sm:px-4 sm:py-3 sm:gap-3">
           <div className="flex min-w-0 items-center gap-2 sm:gap-2.5">
             <button
@@ -1075,40 +1075,33 @@ export default function Home() {
             <div className="flex w-full py-4">
               <div className="w-full max-w-3xl mx-auto px-4">
                 <div className="flex items-center gap-3">
-                  <div className="relative flex h-7 w-7 items-center justify-center">
-                    <div className="absolute inset-0 rounded-full border-2 border-primary/20 border-t-primary animate-spin" />
-                    <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+                  <div className="relative flex h-6 w-6 items-center justify-center">
+                    <div className="absolute inset-0 rounded-full border-2 border-muted-foreground/20 border-t-foreground animate-spin" />
+                    <div className="h-1.5 w-1.5 rounded-full bg-foreground animate-pulse" />
                   </div>
-                  <div className="flex items-center gap-1">
-                    <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-primary [animation-delay:-0.3s]" />
-                    <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-primary [animation-delay:-0.15s]" />
-                    <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-primary" />
-                  </div>
+                  <span className="text-sm text-muted-foreground">Thinking…</span>
                 </div>
               </div>
             </div>
           )}
 
           {messages.length <= 1 && !loading && (
-            <div className="px-4 pt-2 pb-4">
-              <p className="mb-3 text-xs font-medium text-muted-foreground">
-                Try one of these:
-              </p>
-              <div className="flex flex-wrap gap-2">
+            <div className="px-4 pt-6 pb-4">
+              <div className="flex flex-col gap-0">
                 {SUGGESTIONS.map((s) => (
                   <button
                     key={s.label}
                     type="button"
                     onClick={() => void send(s.prompt)}
                     className={cn(
-                      "suggestion-chip inline-flex items-center gap-1.5 rounded-full border border-border bg-card/50 px-4 py-2",
-                      "text-xs font-medium text-foreground/80 transition-all",
-                      "hover:border-primary/50 hover:bg-primary/5 hover:text-primary",
-                      "active:scale-95"
+                      "w-full text-left px-3 py-3 rounded-lg",
+                      "text-sm text-muted-foreground transition-colors",
+                      "hover:bg-muted hover:text-foreground",
+                      "flex items-center gap-3"
                     )}
                   >
-                    {s.icon}
-                    {s.label}
+                    <span className="text-muted-foreground/50 text-xs">↗</span>
+                    <span>{s.label}</span>
                   </button>
                 ))}
               </div>
@@ -1117,14 +1110,14 @@ export default function Home() {
         </div>
       </main>
 
-      <div className="shrink-0 border-t border-border bg-background/80 backdrop-blur-lg">
+      <div className="shrink-0 border-t border-border bg-background">
         <div className="mx-auto max-w-3xl px-3 sm:px-4 py-3">
           <div className="mb-2 flex items-center justify-between gap-2">
             <div className="relative">
               <button
                 type="button"
                 onClick={() => setModelDropdownOpen((v) => !v)}
-                className="flex items-center gap-1.5 rounded-full border border-border bg-card/50 px-3 py-1.5 text-[11px] font-medium text-muted-foreground transition-all hover:bg-muted hover:text-foreground active:scale-95"
+                className="flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-1.5 text-[11px] font-medium text-muted-foreground transition-all hover:bg-muted hover:text-foreground active:scale-95"
                 title="Switch model"
               >
                 <span className="text-sm">{getModel(selectedModelId)?.badge}</span>
@@ -1151,7 +1144,7 @@ export default function Home() {
                           className={cn(
                             "w-full px-3 py-2.5 text-left flex items-start gap-2 transition-colors",
                             "hover:bg-muted",
-                            isSelected && "bg-primary/5"
+                            isSelected && "bg-muted/50"
                           )}
                         >
                           <span className="text-base mt-0.5">{m.badge}</span>
@@ -1189,7 +1182,7 @@ export default function Home() {
           {imageGenOpen && (
             <div className="mb-2 rounded-xl border border-border bg-card p-3">
               <div className="mb-2 flex items-center gap-2">
-                <Sparkle className="h-4 w-4 text-primary" />
+                <Sparkle className="h-4 w-4 text-muted-foreground" />
                 <span className="text-xs font-medium text-foreground">
                   AI Image Generation
                 </span>
@@ -1206,7 +1199,7 @@ export default function Home() {
                     }
                   }}
                   placeholder="Describe the image you want to generate…"
-                  className="h-11 flex-1 rounded-lg border border-border bg-background px-3 text-sm focus:border-primary focus:outline-none"
+                  className="h-11 flex-1 rounded-lg border border-border bg-background px-3 text-sm focus:border-foreground/30 focus:outline-none"
                   autoFocus
                   disabled={generatingImage}
                 />
@@ -1215,7 +1208,7 @@ export default function Home() {
                   size="sm"
                   onClick={() => void handleGenerateImage()}
                   disabled={!imagePrompt.trim() || generatingImage}
-                  className="h-11 gap-1.5 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 active:scale-95 disabled:opacity-50 transition-all"
+                  className="h-11 gap-1.5 rounded-lg bg-foreground text-background hover:bg-foreground/90 active:scale-95 disabled:opacity-50 transition-all"
                 >
                   {generatingImage ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
@@ -1253,7 +1246,7 @@ export default function Home() {
             </div>
           )}
 
-          <div className="flex items-end gap-1.5 rounded-2xl border border-border bg-card p-2 shadow-sm focus-within:border-primary/50 focus-within:ring-1 focus-within:ring-primary/20 transition-all sm:gap-2">
+          <div className="flex items-end gap-2 rounded-xl border border-border bg-card p-2 focus-within:border-muted-foreground/30 transition-all">
             <input
               ref={fileInputRef}
               type="file"
@@ -1270,7 +1263,7 @@ export default function Home() {
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
                     disabled={streaming || pendingImages.length >= 4}
-                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-muted-foreground transition-all hover:bg-muted hover:text-foreground active:scale-95 disabled:opacity-40 sm:h-9 sm:w-9"
+                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-all hover:bg-muted hover:text-foreground active:scale-95 disabled:opacity-40"
                     aria-label="Attach image"
                   >
                     <Paperclip className="h-4 w-4" />
@@ -1282,32 +1275,6 @@ export default function Home() {
               </Tooltip>
             </TooltipProvider>
 
-            <TooltipProvider delayDuration={300}>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <button
-                    type="button"
-                    onClick={() => setImageGenOpen((v) => !v)}
-                    disabled={streaming || generatingImage}
-                    className={cn(
-                      "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-all hover:scale-110 active:scale-95 disabled:opacity-40 disabled:hover:scale-100 sm:h-9 sm:w-9",
-                      imageGenOpen
-                        ? "bg-gradient-to-br from-fuchsia-500 to-purple-600 text-white"
-                        : "text-muted-foreground hover:bg-muted hover:text-fuchsia-400"
-                    )}
-                    aria-label="Generate AI image"
-                  >
-                    {generatingImage ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <Sparkle className="h-4 w-4" />
-                    )}
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent>Generate AI image from text</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-
             <Textarea
               ref={textareaRef}
               value={input}
@@ -1316,10 +1283,10 @@ export default function Home() {
               placeholder={
                 pendingImages.length > 0
                   ? "Describe what you want to know about the image…"
-                  : "Ask anything..."
+                  : "Ask a follow-up"
               }
               rows={1}
-              className="min-h-[40px] resize-none border-0 bg-transparent px-2 py-2 text-sm shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
+              className="min-h-[36px] resize-none border-0 bg-transparent px-1 py-1.5 text-sm shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
               disabled={streaming}
             />
             {streaming ? (
@@ -1327,7 +1294,7 @@ export default function Home() {
                 type="button"
                 size="icon"
                 onClick={stopGeneration}
-                className="h-10 w-10 shrink-0 rounded-xl bg-destructive text-destructive-foreground hover:bg-destructive/90 active:scale-95 transition-all sm:h-9 sm:w-9"
+                className="h-9 w-9 shrink-0 rounded-lg bg-destructive text-destructive-foreground hover:bg-destructive/90 active:scale-95 transition-all"
                 aria-label="Stop generating"
               >
                 <Square className="h-4 w-4 fill-current" />
@@ -1338,7 +1305,7 @@ export default function Home() {
                 size="icon"
                 onClick={() => void send()}
                 disabled={!input.trim() && pendingImages.length === 0}
-                className="h-9 w-9 shrink-0 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-all hover:scale-105"
+                className="h-9 w-9 shrink-0 rounded-lg bg-foreground text-background hover:bg-foreground/90 disabled:opacity-30 disabled:hover:bg-foreground transition-all"
                 aria-label="Send message"
               >
                 <Send className="h-4 w-4" />
@@ -1347,16 +1314,14 @@ export default function Home() {
           </div>
           <p className="mt-1.5 px-1 text-[11px] text-muted-foreground">
             {streaming ? (
-              <span className="inline-flex items-center gap-1.5 text-primary">
-                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary" />
-                {thinking ? "Thinking…" : "Generating…"} click the stop button to interrupt.
+              <span className="inline-flex items-center gap-1.5 text-foreground/70">
+                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-foreground/70" />
+                {thinking ? "Thinking…" : "Generating…"}
               </span>
             ) : (
               <>
                 Press <kbd className="rounded bg-muted px-1 font-mono text-[10px]">Enter</kbd> to send,{" "}
                 <kbd className="rounded bg-muted px-1 font-mono text-[10px]">Shift+Enter</kbd> for a new line.
-                <span className="mx-1.5">·</span>
-                <ImageIcon className="inline h-3 w-3 align-text-bottom" /> Attach images to analyze.
               </>
             )}
           </p>
@@ -1376,32 +1341,32 @@ export default function Home() {
       {showUpgradeModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 p-4" onClick={() => setShowUpgradeModal(false)}>
           <div
-            className="w-full max-w-md rounded-2xl border border-emerald-500/40 bg-card p-6 shadow-2xl"
+            className="w-full max-w-md rounded-2xl border border-border bg-card p-6 shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="text-center">
-              <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-500/10">
+              <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-muted">
                 <span className="text-3xl">👑</span>
               </div>
               <h2 className="text-lg font-bold">Upgrade to Developer's Pro</h2>
               <p className="mt-2 text-sm text-muted-foreground">
-                You've hit your free message limit for today. Upgrade to <strong className="text-emerald-400">Developer's Pro</strong> for:
+                You've hit your free message limit for today. Upgrade to <strong className="text-foreground">Developer's Pro</strong> for:
               </p>
               <ul className="mt-4 space-y-2 text-left text-sm">
                 <li className="flex items-start gap-2">
-                  <Zap className="mt-0.5 h-4 w-4 text-emerald-400 shrink-0" />
+                  <Zap className="mt-0.5 h-4 w-4 text-foreground shrink-0" />
                   <span>Unlimited messages on all models</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <Zap className="mt-0.5 h-4 w-4 text-emerald-400 shrink-0" />
+                  <Zap className="mt-0.5 h-4 w-4 text-foreground shrink-0" />
                   <span>Priority access to new models</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <Zap className="mt-0.5 h-4 w-4 text-emerald-400 shrink-0" />
+                  <Zap className="mt-0.5 h-4 w-4 text-foreground shrink-0" />
                   <span>No daily limits, ever</span>
                 </li>
               </ul>
-              <div className="mt-5 rounded-lg border border-emerald-500/30 bg-emerald-500/5 p-3 text-xs text-muted-foreground">
+              <div className="mt-5 rounded-lg border border-border bg-muted/50 p-3 text-xs text-muted-foreground">
                 💡 <strong>Pro is coming soon.</strong> For now, your free messages reset daily at midnight UTC.
               </div>
               <div className="mt-5 flex gap-2">
@@ -1415,7 +1380,7 @@ export default function Home() {
                 </Button>
                 <Button
                   type="button"
-                  className="flex-1 bg-gradient-to-r from-emerald-500 to-teal-600 text-white"
+                  className="flex-1 bg-gradient-to-r from-slate-500 to-slate-700 text-white"
                   onClick={() => {
                     setShowUpgradeModal(false);
                     setAccountOpen(true);
@@ -1499,12 +1464,12 @@ export default function Home() {
 
 function DeveloperCard({ onClose }: { onClose: () => void }) {
   return (
-    <div className="border-b border-border bg-emerald-500/5">
+    <div className="border-b border-border bg-muted/50">
       <div className="mx-auto max-w-3xl px-4 py-4">
-        <div className="rounded-xl border border-emerald-500/30 bg-card p-4 shadow-sm">
+        <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
           <div className="flex items-start justify-between gap-3">
             <div className="flex items-center gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 text-emerald-950 font-bold">
+              <div className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-slate-400 to-slate-600 text-foreground font-bold">
                 MD
               </div>
               <div>
@@ -1555,7 +1520,7 @@ function DeveloperCard({ onClose }: { onClose: () => void }) {
               asChild
               size="sm"
               variant="outline"
-              className="h-8 gap-1.5 border-emerald-500/40 text-emerald-300 hover:bg-emerald-500/10"
+              className="h-8 gap-1.5 border-border text-foreground hover:bg-muted"
             >
               <a
                 href={DEVELOPER_INFO.portfolio}
@@ -1598,9 +1563,9 @@ function ContactItem({
       href={href}
       target={href.startsWith("http") ? "_blank" : undefined}
       rel="noopener noreferrer"
-      className="flex items-center gap-2 rounded-lg border border-border bg-background/50 px-3 py-2 text-xs transition-colors hover:border-emerald-500/40 hover:bg-emerald-500/5"
+      className="flex items-center gap-2 rounded-lg border border-border bg-background/50 px-3 py-2 text-xs transition-colors hover:border-border hover:bg-muted/50"
     >
-      <span className="text-emerald-400">{icon}</span>
+      <span className="text-foreground">{icon}</span>
       <span className="min-w-0 flex-1">
         <span className="block text-[10px] uppercase tracking-wider text-muted-foreground">
           {label}

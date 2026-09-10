@@ -26,7 +26,7 @@ const PATCH_NOTES = [
   {
     icon: "🎨",
     title: "New Watermark",
-    desc: "Generated images now show your actual logo with emerald/teal theme instead of old 'DA' text.",
+    desc: "Generated images now show your actual logo with clean theme instead of old 'DA' text.",
   },
   {
     icon: "📥",
@@ -67,18 +67,18 @@ export function PatchNotesModal({ open, onOpenChange }: PatchNotesModalProps) {
         className="glass-card relative w-full max-w-lg overflow-hidden rounded-2xl shadow-2xl animate-scale-in will-change-transform"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="absolute -top-20 -left-20 h-40 w-40 rounded-full bg-emerald-500/20 blur-3xl animate-blob" />
-        <div className="absolute -top-10 -right-10 h-32 w-32 rounded-full bg-purple-500/20 blur-3xl animate-blob [animation-delay:1s]" />
+        <div className="absolute -top-20 -left-20 h-40 w-40 rounded-full bg-muted blur-3xl animate-blob" />
+        <div className="absolute -top-10 -right-10 h-32 w-32 rounded-full bg-muted/50 blur-3xl animate-blob [animation-delay:1s]" />
 
         <div className="relative z-10 flex items-start justify-between border-b border-border p-5">
           <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500/20 to-teal-500/20 border border-emerald-500/30">
-              <Bell className="h-5 w-5 text-emerald-400" />
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-primary/20 to-primary/20 border border-border">
+              <Bell className="h-5 w-5 text-foreground" />
             </div>
             <div>
               <h2 className="text-lg font-bold flex items-center gap-2">
                 What's New
-                <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-mono text-emerald-400">
+                <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-mono text-foreground">
                   {PATCH_VERSION}
                 </span>
               </h2>
@@ -105,7 +105,7 @@ export function PatchNotesModal({ open, onOpenChange }: PatchNotesModalProps) {
             {PATCH_NOTES.map((note, idx) => (
               <div
                 key={idx}
-                className="flex gap-3 rounded-lg border border-border/60 bg-background/40 p-3 transition-colors hover:border-emerald-500/30 hover:bg-emerald-500/5 animate-message-in"
+                className="flex gap-3 rounded-lg border border-border/60 bg-background/40 p-3 transition-colors hover:border-border hover:bg-muted animate-message-in"
                 style={{ animationDelay: `${idx * 50}ms` }}
               >
                 <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-muted/40 text-lg">
@@ -117,7 +117,7 @@ export function PatchNotesModal({ open, onOpenChange }: PatchNotesModalProps) {
                     {note.desc}
                   </p>
                 </div>
-                <Check className="h-4 w-4 shrink-0 text-emerald-400 mt-0.5" />
+                <Check className="h-4 w-4 shrink-0 text-foreground mt-0.5" />
               </div>
             ))}
           </div>
@@ -125,7 +125,7 @@ export function PatchNotesModal({ open, onOpenChange }: PatchNotesModalProps) {
 
         <div className="relative z-10 flex items-center justify-between gap-3 border-t border-border p-4">
           <p className="text-[11px] text-muted-foreground">
-            Built by <span className="text-emerald-400 font-medium">{DEVELOPER_INFO.name}</span>
+            Built by <span className="text-foreground font-medium">{DEVELOPER_INFO.name}</span>
           </p>
           <div className="flex gap-2">
             <Button
@@ -139,7 +139,7 @@ export function PatchNotesModal({ open, onOpenChange }: PatchNotesModalProps) {
             <Button
               size="sm"
               onClick={() => onOpenChange(false)}
-              className="gap-1.5 bg-gradient-to-r from-emerald-500 to-teal-600 text-xs hover:from-emerald-400 hover:to-teal-500"
+              className="gap-1.5 bg-gradient-to-r from-primary to-primary text-xs hover:from-primary hover:to-primary"
             >
               <Zap className="h-3.5 w-3.5" />
               Let's Go

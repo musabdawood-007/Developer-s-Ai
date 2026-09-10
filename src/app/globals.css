@@ -45,72 +45,71 @@
 
 :root {
   --radius: 0.625rem;
-  --background: oklch(0.99 0.002 250);
-  --foreground: oklch(0.15 0.01 260);
+  --background: oklch(0.99 0 0);
+  --foreground: oklch(0.13 0 0);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.15 0.01 260);
+  --card-foreground: oklch(0.13 0 0);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.15 0.01 260);
-  --primary: oklch(0.55 0.15 165);
+  --popover-foreground: oklch(0.13 0 0);
+  --primary: oklch(0.13 0 0);
   --primary-foreground: oklch(0.99 0 0);
-  --secondary: oklch(0.96 0.005 250);
-  --secondary-foreground: oklch(0.20 0.01 260);
-  --muted: oklch(0.96 0.005 250);
-  --muted-foreground: oklch(0.50 0.01 260);
-  --accent: oklch(0.94 0.01 165);
-  --accent-foreground: oklch(0.20 0.01 260);
+  --secondary: oklch(0.96 0 0);
+  --secondary-foreground: oklch(0.13 0 0);
+  --muted: oklch(0.96 0 0);
+  --muted-foreground: oklch(0.50 0 0);
+  --accent: oklch(0.94 0 0);
+  --accent-foreground: oklch(0.13 0 0);
   --destructive: oklch(0.58 0.22 27);
-  --border: oklch(0.92 0.005 250);
-  --input: oklch(0.92 0.005 250);
-  --ring: oklch(0.55 0.15 165);
-  --chart-1: oklch(0.55 0.15 165);
+  --border: oklch(0.92 0 0);
+  --input: oklch(0.92 0 0);
+  --ring: oklch(0.13 0 0);
+  --chart-1: oklch(0.58 0.22 27);
   --chart-2: oklch(0.60 0.12 185);
   --chart-3: oklch(0.40 0.08 230);
   --chart-4: oklch(0.75 0.15 85);
   --chart-5: oklch(0.65 0.18 320);
-  --sidebar: oklch(0.98 0.002 250);
-  --sidebar-foreground: oklch(0.15 0.01 260);
-  --sidebar-primary: oklch(0.55 0.15 165);
+  --sidebar: oklch(0.98 0 0);
+  --sidebar-foreground: oklch(0.13 0 0);
+  --sidebar-primary: oklch(0.13 0 0);
   --sidebar-primary-foreground: oklch(0.99 0 0);
-  --sidebar-accent: oklch(0.96 0.005 250);
-  --sidebar-accent-foreground: oklch(0.20 0.01 260);
-  --sidebar-border: oklch(0.92 0.005 250);
-  --sidebar-ring: oklch(0.55 0.15 165);
+  --sidebar-accent: oklch(0.96 0 0);
+  --sidebar-accent-foreground: oklch(0.13 0 0);
+  --sidebar-border: oklch(0.92 0 0);
+  --sidebar-ring: oklch(0.13 0 0);
 }
 
 .dark {
-  /* Aurora theme — deep purple-black, electric emerald-teal accents */
-  --background: oklch(0.09 0.02 290);
-  --foreground: oklch(0.96 0.008 2000);
-  --card: oklch(0.14 0.025 290);
-  --card-foreground: oklch(0.96 0.008 2000);
-  --popover: oklch(0.14 0.025 290);
-  --popover-foreground: oklch(0.96 0.008 2000);
-  --primary: oklch(0.72 0.18 165);
-  --primary-foreground: oklch(0.09 0.02 290);
-  --secondary: oklch(0.19 0.03 290);
-  --secondary-foreground: oklch(0.96 0.008 2000);
-  --muted: oklch(0.19 0.03 290);
-  --muted-foreground: oklch(0.63 0.025 200);
-  --accent: oklch(0.24 0.04 290);
-  --accent-foreground: oklch(0.96 0.008 2000);
+  --background: oklch(0.13 0 0);
+  --foreground: oklch(0.93 0 0);
+  --card: oklch(0.16 0 0);
+  --card-foreground: oklch(0.93 0 0);
+  --popover: oklch(0.16 0 0);
+  --popover-foreground: oklch(0.93 0 0);
+  --primary: oklch(0.93 0 0);
+  --primary-foreground: oklch(0.13 0 0);
+  --secondary: oklch(0.20 0 0);
+  --secondary-foreground: oklch(0.93 0 0);
+  --muted: oklch(0.20 0 0);
+  --muted-foreground: oklch(0.55 0 0);
+  --accent: oklch(0.24 0 0);
+  --accent-foreground: oklch(0.93 0 0);
   --destructive: oklch(0.65 0.22 25);
-  --border: oklch(0.30 0.035 290 / 30%);
-  --input: oklch(0.30 0.035 290 / 40%);
-  --ring: oklch(0.72 0.18 165);
-  --chart-1: oklch(0.72 0.18 165);
-  --chart-2: oklch(0.68 0.20 290);
-  --chart-3: oklch(0.75 0.15 180);
-  --chart-4: oklch(0.65 0.22 320);
-  --chart-5: oklch(0.78 0.13 200);
-  --sidebar: oklch(0.12 0.022 290);
-  --sidebar-foreground: oklch(0.96 0.008 2000);
-  --sidebar-primary: oklch(0.72 0.18 165);
-  --sidebar-primary-foreground: oklch(0.96 0.008 2000);
-  --sidebar-accent: oklch(0.19 0.03 290);
-  --sidebar-accent-foreground: oklch(0.96 0.008 2000);
-  --sidebar-border: oklch(0.30 0.035 290 / 20%);
-  --sidebar-ring: oklch(0.72 0.18 165);
+  --border: oklch(0.25 0 0);
+  --input: oklch(0.25 0 0);
+  --ring: oklch(0.55 0 0);
+  --chart-1: oklch(0.65 0.22 25);
+  --chart-2: oklch(0.60 0.12 185);
+  --chart-3: oklch(0.40 0.08 230);
+  --chart-4: oklch(0.75 0.15 85);
+  --chart-5: oklch(0.65 0.18 320);
+  --sidebar: oklch(0.15 0 0);
+  --sidebar-foreground: oklch(0.93 0 0);
+  --sidebar-primary: oklch(0.93 0 0);
+  --sidebar-primary-foreground: oklch(0.13 0 0);
+  --sidebar-accent: oklch(0.20 0 0);
+  --sidebar-accent-foreground: oklch(0.93 0 0);
+  --sidebar-border: oklch(0.25 0 0);
+  --sidebar-ring: oklch(0.55 0 0);
 }
 
 @layer base {
@@ -268,10 +267,10 @@ button:active:not(:disabled) {
 @keyframes pulse-glow {
   0%,
   100% {
-    box-shadow: 0 0 0 0 color-mix(in oklch, var(--primary) 40%, transparent);
+    box-shadow: 0 0 0 0 color-mix(in oklch, var(--foreground) 10%, transparent);
   }
   50% {
-    box-shadow: 0 0 0 8px color-mix(in oklch, var(--primary) 0%, transparent);
+    box-shadow: 0 0 0 6px color-mix(in oklch, var(--foreground) 0%, transparent);
   }
 }
 .animate-pulse-glow {
@@ -282,7 +281,7 @@ button:active:not(:disabled) {
   background: linear-gradient(
     135deg,
     var(--background) 0%,
-    color-mix(in oklch, var(--background) 95%, var(--primary)) 100%
+    color-mix(in oklch, var(--background) 97%, var(--foreground)) 100%
   );
 }
 
@@ -302,54 +301,51 @@ textarea {
 }
 
 .glass {
-  background: color-mix(in oklch, var(--background) 80%, transparent);
-  backdrop-filter: blur(16px) saturate(180%);
-  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  background: color-mix(in oklch, var(--background) 85%, transparent);
+  backdrop-filter: blur(12px) saturate(150%);
+  -webkit-backdrop-filter: blur(12px) saturate(150%);
   border: 1px solid var(--border);
-  transform: translateZ(0);
 }
 
 .glass-card {
-  background: color-mix(in oklch, var(--card) 80%, transparent);
-  backdrop-filter: blur(16px) saturate(180%);
-  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  background: color-mix(in oklch, var(--card) 85%, transparent);
+  backdrop-filter: blur(12px) saturate(150%);
+  -webkit-backdrop-filter: blur(12px) saturate(150%);
   border: 1px solid var(--border);
-  transform: translateZ(0);
 }
 
 .glass-strong {
-  background: color-mix(in oklch, var(--card) 90%, transparent);
-  backdrop-filter: blur(20px) saturate(200%);
-  -webkit-backdrop-filter: blur(20px) saturate(200%);
+  background: color-mix(in oklch, var(--card) 95%, transparent);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
   border: 1px solid var(--border);
-  transform: translateZ(0);
 }
 
 .glass-input {
-  background: color-mix(in oklch, var(--card) 60%, transparent);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  background: color-mix(in oklch, var(--card) 70%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--border);
 }
 
 .glass-button {
-  background: color-mix(in oklch, var(--primary) 12%, transparent);
-  backdrop-filter: blur(16px) saturate(180%);
-  -webkit-backdrop-filter: blur(16px) saturate(180%);
-  border: 1px solid color-mix(in oklch, var(--primary) 35%, transparent);
+  background: color-mix(in oklch, var(--foreground) 8%, transparent);
+  backdrop-filter: blur(12px) saturate(150%);
+  -webkit-backdrop-filter: blur(12px) saturate(150%);
+  border: 1px solid var(--border);
   transition: all 0.2s ease;
 }
 
 .glass-button:hover {
-  background: color-mix(in oklch, var(--primary) 22%, transparent);
-  border-color: color-mix(in oklch, var(--primary) 55%, transparent);
+  background: color-mix(in oklch, var(--foreground) 12%, transparent);
+  border-color: var(--border);
 }
 
 .glass-pill {
-  background: color-mix(in oklch, var(--primary) 8%, transparent);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border: 1px solid color-mix(in oklch, var(--primary) 25%, transparent);
+  background: color-mix(in oklch, var(--foreground) 6%, transparent);
+  backdrop-filter: blur(12px) saturate(150%);
+  -webkit-backdrop-filter: blur(12px) saturate(150%);
+  border: 1px solid var(--border);
 }
 
 .scrollbar-hidden {
@@ -452,7 +448,7 @@ textarea {
   background: linear-gradient(
     90deg,
     transparent 0%,
-    color-mix(in oklch, var(--primary) 20%, transparent) 50%,
+    color-mix(in oklch, var(--foreground) 8%, transparent) 50%,
     transparent 100%
   );
   background-size: 200% 100%;

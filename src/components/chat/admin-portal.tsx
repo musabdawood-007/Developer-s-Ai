@@ -426,7 +426,7 @@ export function AdminPortal({ open, onOpenChange }: AdminPortalProps) {
                 </div>
 
                 {loginError && (
-                  <div className="flex items-center gap-2 rounded-md border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-300">
+                  <div className="flex items-center gap-2 rounded-md border border-border bg-muted px-3 py-2 text-xs text-foreground">
                     <AlertCircle className="h-3.5 w-3.5" />
                     {loginError}
                   </div>
@@ -435,7 +435,7 @@ export function AdminPortal({ open, onOpenChange }: AdminPortalProps) {
                 <Button
                   type="submit"
                   disabled={loginLoading || !username || !password}
-                  className="h-10 w-full gap-2 bg-rose-500 text-white hover:bg-emerald-400"
+                  className="h-10 w-full gap-2 bg-rose-500 text-white hover:bg-primary"
                 >
                   {loginLoading ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
@@ -450,7 +450,7 @@ export function AdminPortal({ open, onOpenChange }: AdminPortalProps) {
             <div className="flex h-[92vh] flex-col">
                 <div className="flex shrink-0 items-center justify-between border-b border-border bg-rose-500/5 px-4 py-3">
                 <div className="flex items-center gap-2">
-                  <Shield className="h-5 w-5 text-emerald-400" />
+                  <Shield className="h-5 w-5 text-foreground" />
                   <div>
                     <DialogTitle className="text-base">
                       Admin Portal — Visitor Logs
@@ -477,7 +477,7 @@ export function AdminPortal({ open, onOpenChange }: AdminPortalProps) {
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-8 gap-1.5 text-emerald-400 hover:bg-rose-500/10"
+                    className="h-8 gap-1.5 text-foreground hover:bg-rose-500/10"
                     onClick={doLogout}
                   >
                     <LogOut className="h-3.5 w-3.5" />
@@ -529,7 +529,7 @@ export function AdminPortal({ open, onOpenChange }: AdminPortalProps) {
                             key={v.id}
                             className={cn(
                               "group relative",
-                              selectedVisitorId === v.id && "bg-emerald-500/10"
+                              selectedVisitorId === v.id && "bg-muted"
                             )}
                           >
                             <button
@@ -540,7 +540,7 @@ export function AdminPortal({ open, onOpenChange }: AdminPortalProps) {
                               }}
                               className="flex w-full items-start gap-2 px-3 py-2.5 text-left transition-colors hover:bg-muted/50"
                             >
-                              <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-500/20 text-[10px] font-bold text-emerald-300">
+                              <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-muted text-[10px] font-bold text-foreground">
                                 {v.name.slice(0, 2).toUpperCase()}
                               </div>
                               <div className="min-w-0 flex-1">
@@ -564,7 +564,7 @@ export function AdminPortal({ open, onOpenChange }: AdminPortalProps) {
                                 e.stopPropagation();
                                 setDeleteVisitorId(v.id);
                               }}
-                              className="absolute right-2 top-2 hidden h-6 w-6 items-center justify-center rounded text-muted-foreground hover:bg-rose-500/15 hover:text-emerald-400 group-hover:flex"
+                              className="absolute right-2 top-2 hidden h-6 w-6 items-center justify-center rounded text-muted-foreground hover:bg-rose-500/15 hover:text-foreground group-hover:flex"
                               aria-label="Delete visitor"
                               title="Delete visitor & all chats"
                             >
@@ -582,7 +582,7 @@ export function AdminPortal({ open, onOpenChange }: AdminPortalProps) {
                     <div className="flex h-full flex-col">
                       <div className="flex shrink-0 flex-col gap-3 border-b border-border px-4 py-3 lg:flex-row lg:items-start lg:justify-between">
                         <div className="flex min-w-0 flex-1 items-center gap-3">
-                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-500/20 text-sm font-bold text-emerald-300">
+                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-muted text-sm font-bold text-foreground">
                             {selected.name.slice(0, 2).toUpperCase()}
                           </div>
                           <div className="min-w-0 flex-1">
@@ -613,7 +613,7 @@ export function AdminPortal({ open, onOpenChange }: AdminPortalProps) {
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="h-8 gap-1.5 text-emerald-400 hover:bg-rose-500/10"
+                            className="h-8 gap-1.5 text-foreground hover:bg-rose-500/10"
                             onClick={() => setDeleteVisitorId(selected.id)}
                           >
                             <Trash2 className="h-3.5 w-3.5" />
@@ -639,7 +639,7 @@ export function AdminPortal({ open, onOpenChange }: AdminPortalProps) {
                             className={cn(
                               "flex h-8 shrink-0 items-center gap-1 rounded-md border px-2 text-[11px] font-medium transition-colors",
                               showDeleted
-                                ? "border-rose-500/40 bg-rose-500/15 text-emerald-300"
+                                ? "border-rose-500/40 bg-rose-500/15 text-foreground"
                                 : "border-border text-muted-foreground hover:bg-muted/50"
                             )}
                             title={
@@ -722,7 +722,7 @@ export function AdminPortal({ open, onOpenChange }: AdminPortalProps) {
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => void handleDeleteVisitor()}
-              className="bg-rose-500 text-white hover:bg-emerald-400"
+              className="bg-rose-500 text-white hover:bg-primary"
             >
               Delete
             </AlertDialogAction>
@@ -747,7 +747,7 @@ export function AdminPortal({ open, onOpenChange }: AdminPortalProps) {
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => void handleDeleteChat()}
-              className="bg-rose-500 text-white hover:bg-emerald-400"
+              className="bg-rose-500 text-white hover:bg-primary"
             >
               Delete
             </AlertDialogAction>
@@ -793,7 +793,7 @@ function StatCard({
 }) {
   return (
     <div className="flex items-center gap-2 rounded-md border border-border bg-card px-3 py-1.5">
-      <span className="text-emerald-400">{icon}</span>
+      <span className="text-foreground">{icon}</span>
       <div className="leading-tight">
         <p className="text-base font-bold">{value}</p>
         <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
@@ -838,7 +838,7 @@ function ChatLogRow({
           {isUser ? (
             <UserIcon className="h-2.5 w-2.5 shrink-0 text-amber-400" />
           ) : (
-            <MessageSquare className="h-2.5 w-2.5 shrink-0 text-emerald-400" />
+            <MessageSquare className="h-2.5 w-2.5 shrink-0 text-foreground" />
           )}
           <span className="truncate font-semibold">
             {isUser ? visitorName : "Bot"}
@@ -846,7 +846,7 @@ function ChatLogRow({
           <span className="shrink-0 text-muted-foreground/60">·</span>
           <span className="shrink-0">{formatTime(log.createdAt)}</span>
           {isDeleted && (
-            <span className="ml-1 shrink-0 rounded bg-rose-500/20 px-1.5 py-0.5 text-[9px] font-bold uppercase text-emerald-300">
+            <span className="ml-1 shrink-0 rounded bg-rose-500/20 px-1.5 py-0.5 text-[9px] font-bold uppercase text-foreground">
               Deleted
             </span>
           )}
@@ -862,7 +862,7 @@ function ChatLogRow({
               <button
                 type="button"
                 onClick={onRestore}
-                className="hidden h-6 w-6 items-center justify-center rounded text-muted-foreground hover:bg-emerald-500/15 hover:text-emerald-400 group-hover:flex"
+                className="hidden h-6 w-6 items-center justify-center rounded text-muted-foreground hover:bg-muted hover:text-foreground group-hover:flex"
                 aria-label="Restore message"
                 title="Restore this message"
               >
@@ -871,7 +871,7 @@ function ChatLogRow({
               <button
                 type="button"
                 onClick={onPermanentDelete}
-                className="hidden h-6 w-6 items-center justify-center rounded text-muted-foreground hover:bg-rose-500/15 hover:text-emerald-400 group-hover:flex"
+                className="hidden h-6 w-6 items-center justify-center rounded text-muted-foreground hover:bg-rose-500/15 hover:text-foreground group-hover:flex"
                 aria-label="Permanently delete"
                 title="Permanently delete (cannot be undone)"
               >
@@ -882,7 +882,7 @@ function ChatLogRow({
             <button
               type="button"
               onClick={onDelete}
-              className="hidden h-6 w-6 items-center justify-center rounded text-muted-foreground hover:bg-rose-500/15 hover:text-emerald-400 group-hover:flex"
+              className="hidden h-6 w-6 items-center justify-center rounded text-muted-foreground hover:bg-rose-500/15 hover:text-foreground group-hover:flex"
               aria-label="Delete message"
               title="Delete this message (soft-delete, can be restored)"
             >
@@ -926,7 +926,7 @@ function ExportMenu({ onExport }: { onExport: (f: "md" | "pdf" | "docx" | "txt")
       <Button
         variant="ghost"
         size="sm"
-        className="h-8 gap-1.5 text-emerald-400 hover:bg-emerald-500/10"
+        className="h-8 gap-1.5 text-foreground hover:bg-muted"
         onClick={() => setOpen((v) => !v)}
         disabled={busy !== null}
       >
@@ -982,7 +982,7 @@ function ExportItem({
     <button
       type="button"
       onClick={onClick}
-      className="flex w-full items-center gap-2 px-3 py-1.5 text-xs text-left text-popover-foreground hover:bg-emerald-500/15 hover:text-emerald-300 transition-colors"
+      className="flex w-full items-center gap-2 px-3 py-1.5 text-xs text-left text-popover-foreground hover:bg-muted hover:text-foreground transition-colors"
     >
       {icon}
       {label}
