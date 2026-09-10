@@ -381,7 +381,7 @@ export function AdminPortal({ open, onOpenChange }: AdminPortalProps) {
         <DialogContent className="sm:max-w-7xl w-[98vw] max-w-[98vw] max-h-[95vh] p-0 overflow-hidden gap-0">
           {view === "login" ? (
             <div className="flex flex-col items-center justify-center p-8">
-              <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-rose-500 to-rose-700 text-white shadow-lg">
+              <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-muted-foreground/20 to-muted-foreground/40 text-foreground shadow-lg">
                 <Shield className="h-7 w-7" />
               </div>
               <DialogHeader className="text-center">
@@ -435,7 +435,7 @@ export function AdminPortal({ open, onOpenChange }: AdminPortalProps) {
                 <Button
                   type="submit"
                   disabled={loginLoading || !username || !password}
-                  className="h-10 w-full gap-2 bg-rose-500 text-white hover:bg-primary"
+                  className="h-10 w-full gap-2 bg-muted text-foreground hover:bg-primary"
                 >
                   {loginLoading ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
@@ -448,7 +448,7 @@ export function AdminPortal({ open, onOpenChange }: AdminPortalProps) {
             </div>
           ) : (
             <div className="flex h-[92vh] flex-col">
-                <div className="flex shrink-0 items-center justify-between border-b border-border bg-rose-500/5 px-4 py-3">
+                <div className="flex shrink-0 items-center justify-between border-b border-border bg-muted px-4 py-3">
                 <div className="flex items-center gap-2">
                   <Shield className="h-5 w-5 text-foreground" />
                   <div>
@@ -477,7 +477,7 @@ export function AdminPortal({ open, onOpenChange }: AdminPortalProps) {
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-8 gap-1.5 text-foreground hover:bg-rose-500/10"
+                    className="h-8 gap-1.5 text-foreground hover:bg-muted"
                     onClick={doLogout}
                   >
                     <LogOut className="h-3.5 w-3.5" />
@@ -564,7 +564,7 @@ export function AdminPortal({ open, onOpenChange }: AdminPortalProps) {
                                 e.stopPropagation();
                                 setDeleteVisitorId(v.id);
                               }}
-                              className="absolute right-2 top-2 hidden h-6 w-6 items-center justify-center rounded text-muted-foreground hover:bg-rose-500/15 hover:text-foreground group-hover:flex"
+                              className="absolute right-2 top-2 hidden h-6 w-6 items-center justify-center rounded text-muted-foreground hover:bg-muted hover:text-foreground group-hover:flex"
                               aria-label="Delete visitor"
                               title="Delete visitor & all chats"
                             >
@@ -613,7 +613,7 @@ export function AdminPortal({ open, onOpenChange }: AdminPortalProps) {
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="h-8 gap-1.5 text-foreground hover:bg-rose-500/10"
+                            className="h-8 gap-1.5 text-foreground hover:bg-muted"
                             onClick={() => setDeleteVisitorId(selected.id)}
                           >
                             <Trash2 className="h-3.5 w-3.5" />
@@ -639,7 +639,7 @@ export function AdminPortal({ open, onOpenChange }: AdminPortalProps) {
                             className={cn(
                               "flex h-8 shrink-0 items-center gap-1 rounded-md border px-2 text-[11px] font-medium transition-colors",
                               showDeleted
-                                ? "border-rose-500/40 bg-rose-500/15 text-foreground"
+                                ? "border-muted bg-muted text-foreground"
                                 : "border-border text-muted-foreground hover:bg-muted/50"
                             )}
                             title={
@@ -722,7 +722,7 @@ export function AdminPortal({ open, onOpenChange }: AdminPortalProps) {
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => void handleDeleteVisitor()}
-              className="bg-rose-500 text-white hover:bg-primary"
+              className="bg-muted text-foreground hover:bg-primary"
             >
               Delete
             </AlertDialogAction>
@@ -747,7 +747,7 @@ export function AdminPortal({ open, onOpenChange }: AdminPortalProps) {
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => void handleDeleteChat()}
-              className="bg-rose-500 text-white hover:bg-primary"
+              className="bg-muted text-foreground hover:bg-primary"
             >
               Delete
             </AlertDialogAction>
@@ -825,7 +825,7 @@ function ChatLogRow({
       className={cn(
         "group relative flex w-full flex-col gap-1 rounded-lg border px-3 py-2 text-xs",
         isDeleted
-          ? "border-rose-500/30 bg-rose-500/5 opacity-70"
+          ? "border-muted bg-muted opacity-70"
           : isUserHidden
             ? "border-amber-500/30 bg-amber-500/5 opacity-80"
             : isUser
@@ -846,7 +846,7 @@ function ChatLogRow({
           <span className="shrink-0 text-muted-foreground/60">·</span>
           <span className="shrink-0">{formatTime(log.createdAt)}</span>
           {isDeleted && (
-            <span className="ml-1 shrink-0 rounded bg-rose-500/20 px-1.5 py-0.5 text-[9px] font-bold uppercase text-foreground">
+            <span className="ml-1 shrink-0 rounded bg-muted px-1.5 py-0.5 text-[9px] font-bold uppercase text-foreground">
               Deleted
             </span>
           )}
@@ -871,7 +871,7 @@ function ChatLogRow({
               <button
                 type="button"
                 onClick={onPermanentDelete}
-                className="hidden h-6 w-6 items-center justify-center rounded text-muted-foreground hover:bg-rose-500/15 hover:text-foreground group-hover:flex"
+                className="hidden h-6 w-6 items-center justify-center rounded text-muted-foreground hover:bg-muted hover:text-foreground group-hover:flex"
                 aria-label="Permanently delete"
                 title="Permanently delete (cannot be undone)"
               >
@@ -882,7 +882,7 @@ function ChatLogRow({
             <button
               type="button"
               onClick={onDelete}
-              className="hidden h-6 w-6 items-center justify-center rounded text-muted-foreground hover:bg-rose-500/15 hover:text-foreground group-hover:flex"
+              className="hidden h-6 w-6 items-center justify-center rounded text-muted-foreground hover:bg-muted hover:text-foreground group-hover:flex"
               aria-label="Delete message"
               title="Delete this message (soft-delete, can be restored)"
             >

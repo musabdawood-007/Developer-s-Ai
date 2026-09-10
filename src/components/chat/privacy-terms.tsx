@@ -31,10 +31,10 @@ export function PrivacyTerms({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-2xl w-[95vw] max-w-[95vw] max-h-[85vh] p-0 overflow-hidden gap-0">
-        <div className="border-b border-border bg-emerald-500/5 px-5 py-4">
+        <div className="border-b border-border bg-muted px-5 py-4">
           <DialogHeader>
             <div className="flex items-center gap-2.5">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-400 to-emerald-600 text-emerald-950 shadow-sm">
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-muted-foreground/20 to-muted-foreground/40 text-foreground shadow-sm">
                 <Shield className="h-4.5 w-4.5" />
               </div>
               <div>
@@ -58,14 +58,14 @@ export function PrivacyTerms({
             <TabsList className="grid w-full grid-cols-2 bg-muted/40">
               <TabsTrigger
                 value="privacy"
-                className="gap-1.5 text-xs data-[state=active]:bg-emerald-500/15 data-[state=active]:text-emerald-300"
+                className="gap-1.5 text-xs data-[state=active]:bg-muted data-[state=active]:text-muted-foreground"
               >
                 <Lock className="h-3.5 w-3.5" />
                 Privacy Policy
               </TabsTrigger>
               <TabsTrigger
                 value="terms"
-                className="gap-1.5 text-xs data-[state=active]:bg-emerald-500/15 data-[state=active]:text-emerald-300"
+                className="gap-1.5 text-xs data-[state=active]:bg-muted data-[state=active]:text-muted-foreground"
               >
                 <FileText className="h-3.5 w-3.5" />
                 Terms of Use

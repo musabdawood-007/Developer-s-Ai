@@ -229,11 +229,11 @@ export function ProjectsPortal({
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
-      <div className="flex h-[85vh] w-full max-w-5xl flex-col rounded-2xl border border-emerald-500/30 bg-card shadow-2xl">
+      <div className="flex h-[85vh] w-full max-w-5xl flex-col rounded-2xl border border-border bg-card shadow-2xl">
         <div className="flex items-center justify-between border-b border-border px-6 py-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-500/20 to-teal-500/20">
-              <Folder className="h-5 w-5 text-emerald-400" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-muted-foreground/20 to-muted-foreground/40">
+              <Folder className="h-5 w-5 text-muted-foreground" />
             </div>
             <div>
               <h2 className="text-lg font-bold">Developer's Projects</h2>
@@ -244,7 +244,7 @@ export function ProjectsPortal({
           </div>
           <div className="flex items-center gap-2">
             {driveConnected && (
-              <span className="flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-3 py-1 text-xs text-emerald-400">
+              <span className="flex items-center gap-1.5 rounded-full bg-muted px-3 py-1 text-xs text-muted-foreground">
                 <HardDrive className="h-3 w-3" />
                 {driveName}
               </span>
@@ -350,7 +350,7 @@ export function ProjectsPortal({
                         onClick={() => setSelectedFile(file)}
                         className={`group flex w-full items-center gap-2 px-3 py-2 text-left text-xs transition-colors ${
                           selectedFile?.name === file.name
-                            ? "bg-emerald-500/10 text-emerald-300"
+                            ? "bg-muted text-muted-foreground"
                             : "hover:bg-muted/50"
                         }`}
                       >
@@ -366,7 +366,7 @@ export function ProjectsPortal({
                             e.stopPropagation();
                             downloadFile(file);
                           }}
-                          className="hidden h-6 w-6 items-center justify-center rounded text-muted-foreground hover:bg-muted hover:text-emerald-400 group-hover:flex"
+                          className="hidden h-6 w-6 items-center justify-center rounded text-muted-foreground hover:bg-muted hover:text-foreground group-hover:flex"
                           title="Download"
                         >
                           <Download className="h-3 w-3" />
@@ -376,7 +376,7 @@ export function ProjectsPortal({
                             e.stopPropagation();
                             deleteFile(file.name);
                           }}
-                          className="hidden h-6 w-6 items-center justify-center rounded text-muted-foreground hover:bg-rose-500/10 hover:text-rose-400 group-hover:flex"
+                          className="hidden h-6 w-6 items-center justify-center rounded text-muted-foreground hover:bg-muted hover:text-foreground group-hover:flex"
                           title="Delete"
                         >
                           <Trash2 className="h-3 w-3" />
@@ -394,7 +394,7 @@ export function ProjectsPortal({
               <>
                 <div className="flex items-center justify-between border-b border-border px-4 py-2">
                   <div className="flex items-center gap-2">
-                    <FileCode className="h-4 w-4 text-emerald-400" />
+                    <FileCode className="h-4 w-4 text-muted-foreground" />
                     <span className="text-sm font-medium">{selectedFile.name}</span>
                     <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] text-muted-foreground">
                       {selectedFile.language}
@@ -413,7 +413,7 @@ export function ProjectsPortal({
                     <Button
                       size="sm"
                       onClick={saveFile}
-                      className="h-7 gap-1.5 bg-emerald-500 text-xs hover:bg-emerald-600"
+                      className="h-7 gap-1.5 bg-muted text-xs hover:bg-muted"
                     >
                       <Save className="h-3 w-3" />
                       Save
@@ -430,7 +430,7 @@ export function ProjectsPortal({
                   spellCheck={false}
                 />
                 {driveConnected && (
-                  <div className="border-t border-border px-4 py-1.5 text-[10px] text-emerald-400">
+                  <div className="border-t border-border px-4 py-1.5 text-[10px] text-muted-foreground">
                     💾 Changes will also save to your <strong>{driveName}</strong> folder
                   </div>
                 )}

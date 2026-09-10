@@ -889,93 +889,44 @@ export default function Home() {
   }
 
   return (
-    <div className="flex flex-col overflow-hidden overflow-x-hidden bg-background text-foreground" style={{ height: "100dvh" }}>
+    <div className="flex h-[100dvh] overflow-hidden bg-background text-foreground">
       {sidebarOpen && (
-        <div className="fixed inset-0 z-40 flex">
-          <div
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-            onClick={() => setSidebarOpen(false)}
-            aria-hidden
-          />
-          <div className="relative flex h-full w-80 max-w-[85vw] flex-col border-r border-border glass-card shadow-2xl animate-slide-in-right">
+        <div className="fixed inset-0 z-40 flex lg:hidden">
+          <div className="absolute inset-0 bg-black/50" onClick={() => setSidebarOpen(false)} aria-hidden />
+          <div className="relative flex h-full w-72 flex-col bg-background border-r border-border animate-slide-in-right">
             <div className="flex items-center justify-between border-b border-border px-4 py-3">
-              <h2 className="text-sm font-bold text-foreground">Chat History</h2>
-              <button
-                type="button"
-                onClick={() => setSidebarOpen(false)}
-                className="flex h-7 w-7 items-center justify-center rounded text-muted-foreground hover:bg-muted hover:text-foreground"
-                aria-label="Close sidebar"
-              >
+              <img src="/custom-logo.png" alt="Developer's Ai" className="h-8 w-8 rounded-lg object-cover" />
+              <button type="button" onClick={() => setSidebarOpen(false)} className="flex h-7 w-7 items-center justify-center rounded text-muted-foreground hover:bg-muted hover:text-foreground" aria-label="Close sidebar">
                 <X className="h-4 w-4" />
               </button>
             </div>
-
-            <div className="p-3">
-              <button
-                type="button"
-                onClick={() => void createNewSession()}
-                className="flex w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-rose-500 to-red-600 px-4 py-2.5 text-sm font-semibold text-white transition-all hover:from-rose-400 hover:to-red-500 hover:scale-[1.02]"
-              >
-                <Plus className="h-4 w-4" />
-                New Chat
+            <div className="p-3 space-y-1">
+              <button type="button" onClick={() => { void createNewSession(); setSidebarOpen(false); }} className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
+                <Plus className="h-4 w-4" /> New Chat
+              </button>
+              <button type="button" onClick={() => { setImageGenOpen(true); setSidebarOpen(false); }} className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
+                <Sparkle className="h-4 w-4" /> Image Gen
+              </button>
+              <button type="button" onClick={() => { setAdminOpen(true); setSidebarOpen(false); }} className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
+                <ShieldCheck className="h-4 w-4" /> Customize
               </button>
             </div>
-
-            <div className="chat-scroll min-h-0 flex-1 overflow-y-auto px-2 pb-2">
+            <div className="chat-scroll min-h-0 flex-1 overflow-y-auto border-t border-border px-2 py-2">
               {sessions.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-10 text-center">
-                  <MessageCircle className="mb-2 h-8 w-8 text-muted-foreground" />
-                  <p className="text-xs text-muted-foreground">
-                    No previous chats yet.
-                    <br />
-                    Start a new one above!
-                  </p>
-                </div>
+                <p className="px-3 py-6 text-center text-xs text-muted-foreground">No chats yet.</p>
               ) : (
-                <ul className="space-y-1">
+                <ul className="space-y-0.5">
                   {sessions.map((s) => (
                     <li key={s.id} className="group relative">
-                      <button
-                        type="button"
-                        onClick={() => switchSession(s.id)}
-                        className={cn(
-                          "flex w-full items-start gap-2 rounded-lg px-3 py-2.5 text-left transition-colors",
-                          s.id === currentSessionId
-                            ? "bg-rose-500/15 text-rose-300"
-                            : "text-foreground/80 hover:bg-muted/50"
-                        )}
-                      >
-                        <MessageCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-                        <div className="min-w-0 flex-1 pr-6">
-                          <p className="truncate text-xs font-medium">
-                            {s.title}
+                      <button type="button" onClick={() => { switchSession(s.id); setSidebarOpen(false); }} className={cn("flex w-full items-start gap-2 rounded-lg px-3 py-2 text-left text-xs transition-colors hover:bg-muted", s.id === currentSessionId && "bg-muted text-foreground")}>
+                        <div className="min-w-0 flex-1 pr-5">
+                          <p className="truncate font-medium">{s.title}</p>
+                          <p className="mt-0.5 text-[10px] text-muted-foreground">
+                            {new Date(s.updatedAt).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
                           </p>
-                          <div className="mt-0.5 flex items-center gap-1 text-[10px] text-muted-foreground">
-                            <Clock className="h-2.5 w-2.5" />
-                            {new Date(s.updatedAt).toLocaleDateString(undefined, {
-                              month: "short",
-                              day: "numeric",
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })}
-                            {s._count?.chats !== undefined && (
-                              <span className="ml-1">· {s._count.chats} msg</span>
-                            )}
-                          </div>
                         </div>
                       </button>
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (confirm(`Delete "${s.title}"? This will remove all messages in this chat.`)) {
-                            void deleteSession(s.id);
-                          }
-                        }}
-                        className="absolute right-2 top-2 hidden h-6 w-6 items-center justify-center rounded text-muted-foreground transition-colors hover:bg-rose-500/15 hover:text-rose-400 group-hover:flex"
-                        aria-label="Delete chat"
-                        title="Delete this chat"
-                      >
+                      <button type="button" onClick={(e) => { e.stopPropagation(); if (confirm(`Delete "${s.title}"?`)) void deleteSession(s.id); }} className="absolute right-2 top-2 hidden h-5 w-5 items-center justify-center rounded text-muted-foreground transition-colors hover:bg-muted hover:text-foreground group-hover:flex" aria-label="Delete">
                         <Trash2 className="h-3 w-3" />
                       </button>
                     </li>
@@ -983,349 +934,197 @@ export default function Home() {
                 </ul>
               )}
             </div>
-
-            <div className="border-t border-border px-4 py-2 text-center text-[10px] text-muted-foreground">
-              {BOT_NAME} · Built by {DEVELOPER_INFO.name}
+            <div className="border-t border-border p-3">
+              <button type="button" onClick={() => { setAccountOpen(true); setSidebarOpen(false); }} className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
+                <UserCircle className="h-4 w-4" /> Sign In
+              </button>
             </div>
           </div>
         </div>
       )}
 
-      <header className="shrink-0 border-b border-border bg-background">
-        <div className="mx-auto flex max-w-3xl items-center justify-between gap-2 px-3 py-2.5 sm:px-4 sm:py-3 sm:gap-3">
-          <div className="flex min-w-0 items-center gap-2 sm:gap-2.5">
-            <button
-              type="button"
-              onClick={() => {
-                setSidebarOpen(true);
-                void refreshSessions();
-              }}
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground active:scale-95"
-              aria-label="Open chat history"
-            >
-              <Menu className="h-5 w-5" />
-            </button>
-            <img src="/custom-logo.png" alt="Developer's Ai" className="h-9 w-9 shrink-0 rounded-lg object-cover" />
-            <div className="min-w-0 leading-tight">
-              <button
-                type="button"
-                onClick={() => setAdminOpen(true)}
-                className="text-sm sm:text-base font-bold tracking-tight hover:opacity-80 transition-opacity cursor-default truncate"
-                title={BOT_NAME}
-                aria-label={BOT_NAME}
-              >
-                {BOT_NAME}
-              </button>
-              <p className="text-[10px] sm:text-[11px] text-muted-foreground truncate">
-                Hi, {visitor.name}!
-              </p>
-            </div>
-          </div>
-
-          <div className="flex shrink-0 items-center gap-1">
-            <button
-              type="button"
-              onClick={clearChat}
-              className="flex h-10 w-10 items-center justify-center rounded-lg text-muted-foreground transition-all hover:bg-muted hover:text-foreground active:scale-95"
-              aria-label="New chat"
-              title="Start a new chat"
-            >
-              <Plus className="h-4 w-4" />
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setAccountOpen(true)}
-              className="flex h-10 w-10 items-center justify-center rounded-lg text-muted-foreground transition-all hover:bg-muted hover:text-foreground active:scale-95"
-              aria-label="Account"
-              title="Account settings"
-            >
-              <UserCircle className="h-5 w-5" />
-            </button>
-          </div>
+      <aside className="hidden lg:flex lg:w-72 lg:shrink-0 lg:flex-col border-r border-border bg-background">
+        <div className="flex items-center gap-2 border-b border-border px-4 py-3">
+          <img src="/custom-logo.png" alt="Developer's Ai" className="h-8 w-8 rounded-lg object-cover" />
+          <span className="text-sm font-semibold">Developer's Ai</span>
         </div>
-      </header>
-
-      {showDevCard && <DeveloperCard onClose={() => setShowDevCard(false)} />}
-
-      <main
-        ref={scrollRef}
-        className="chat-scroll min-h-0 flex-1 scroll-smooth pb-4"
-      >
-        <div className="mx-auto max-w-3xl">
-          {messages.map((m) => (
-            <ChatMessage
-              key={m.id}
-              message={m}
-              isStreaming={
-                streaming &&
-                m.id === messages[messages.length - 1]?.id &&
-                m.role === "assistant"
-              }
-              isThinking={
-                thinking &&
-                m.id === messages[messages.length - 1]?.id &&
-                m.role === "assistant"
-              }
-              onHide={m.id === "welcome" ? undefined : handleHideMessage}
-            />
-          ))}
-
-          {loading && messages[messages.length - 1]?.role !== "assistant" && (
-            <div className="flex w-full py-4">
-              <div className="w-full max-w-3xl mx-auto px-4">
-                <div className="flex items-center gap-3">
-                  <div className="relative flex h-6 w-6 items-center justify-center">
-                    <div className="absolute inset-0 rounded-full border-2 border-muted-foreground/20 border-t-foreground animate-spin" />
-                    <div className="h-1.5 w-1.5 rounded-full bg-foreground animate-pulse" />
-                  </div>
-                  <span className="text-sm text-muted-foreground">Thinking…</span>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {messages.length <= 1 && !loading && (
-            <div className="px-4 pt-6 pb-4">
-              <div className="flex flex-col gap-0">
-                {SUGGESTIONS.map((s) => (
-                  <button
-                    key={s.label}
-                    type="button"
-                    onClick={() => void send(s.prompt)}
-                    className={cn(
-                      "w-full text-left px-3 py-3 rounded-lg",
-                      "text-sm text-muted-foreground transition-colors",
-                      "hover:bg-muted hover:text-foreground",
-                      "flex items-center gap-3"
-                    )}
-                  >
-                    <span className="text-muted-foreground/50 text-xs">↗</span>
-                    <span>{s.label}</span>
+        <div className="p-3 space-y-1">
+          <button type="button" onClick={() => void createNewSession()} className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
+            <Plus className="h-4 w-4" /> New Chat
+          </button>
+          <button type="button" onClick={() => setImageGenOpen(true)} className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
+            <Sparkle className="h-4 w-4" /> Image Gen
+          </button>
+          <button type="button" onClick={() => setAdminOpen(true)} className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
+            <ShieldCheck className="h-4 w-4" /> Customize
+          </button>
+        </div>
+        <div className="chat-scroll min-h-0 flex-1 overflow-y-auto border-t border-border px-2 py-2">
+          {sessions.length === 0 ? (
+            <p className="px-3 py-6 text-center text-xs text-muted-foreground">No chats yet.</p>
+          ) : (
+            <ul className="space-y-0.5">
+              {sessions.map((s) => (
+                <li key={s.id} className="group relative">
+                  <button type="button" onClick={() => switchSession(s.id)} className={cn("flex w-full items-start gap-2 rounded-lg px-3 py-2 text-left text-xs transition-colors hover:bg-muted", s.id === currentSessionId && "bg-muted text-foreground")}>
+                    <div className="min-w-0 flex-1 pr-5">
+                      <p className="truncate font-medium">{s.title}</p>
+                      <p className="mt-0.5 text-[10px] text-muted-foreground">
+                        {new Date(s.updatedAt).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
+                      </p>
+                    </div>
                   </button>
-                ))}
-              </div>
-            </div>
+                  <button type="button" onClick={(e) => { e.stopPropagation(); if (confirm(`Delete "${s.title}"?`)) void deleteSession(s.id); }} className="absolute right-2 top-2 hidden h-5 w-5 items-center justify-center rounded text-muted-foreground transition-colors hover:bg-muted hover:text-foreground group-hover:flex" aria-label="Delete">
+                    <Trash2 className="h-3 w-3" />
+                  </button>
+                </li>
+              ))}
+            </ul>
           )}
         </div>
-      </main>
+        <div className="border-t border-border p-3">
+          <button type="button" onClick={() => setAccountOpen(true)} className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
+            <UserCircle className="h-4 w-4" /> Sign In
+          </button>
+        </div>
+      </aside>
 
-      <div className="shrink-0 border-t border-border bg-background">
-        <div className="mx-auto max-w-3xl px-3 sm:px-4 py-3">
-          <div className="mb-2 flex items-center justify-between gap-2">
-            <div className="relative">
-              <button
-                type="button"
-                onClick={() => setModelDropdownOpen((v) => !v)}
-                className="flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-1.5 text-[11px] font-medium text-muted-foreground transition-all hover:bg-muted hover:text-foreground active:scale-95"
-                title="Switch model"
-              >
-                <span className="text-sm">{getModel(selectedModelId)?.badge}</span>
-                <span>{getModel(selectedModelId)?.label}</span>
-                <ChevronDown className={cn("h-3 w-3 transition-transform duration-200", modelDropdownOpen && "rotate-180")} />
+      <div className="flex flex-1 flex-col min-w-0">
+        <header className="shrink-0 border-b border-border bg-background">
+          <div className="flex items-center justify-between gap-2 px-3 py-2 sm:px-4">
+            <div className="flex items-center gap-2">
+              <button type="button" onClick={() => { setSidebarOpen(true); void refreshSessions(); }} className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground lg:hidden" aria-label="Open sidebar">
+                <Menu className="h-5 w-5" />
               </button>
-              {modelDropdownOpen && (
-                <>
-                  <div
-                    className="fixed inset-0 z-40"
-                    onClick={() => setModelDropdownOpen(false)}
-                  />
-                  <div className="absolute left-0 bottom-full z-50 mb-1 w-72 rounded-xl border border-border bg-popover shadow-lg overflow-hidden animate-scale-in">
-                    {MODELS.map((m) => {
-                      const isSelected = m.id === selectedModelId;
-                      return (
-                        <button
-                          key={m.id}
-                          type="button"
-                          onClick={() => {
-                            setSelectedModelId(m.id);
-                            setModelDropdownOpen(false);
-                          }}
-                          className={cn(
-                            "w-full px-3 py-2.5 text-left flex items-start gap-2 transition-colors",
-                            "hover:bg-muted",
-                            isSelected && "bg-muted/50"
-                          )}
-                        >
-                          <span className="text-base mt-0.5">{m.badge}</span>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-1.5">
-                              <span className="text-xs font-semibold">{m.label}</span>
-                              {isSelected && (
-                                <span className="ml-auto text-[10px] text-primary">●</span>
-                              )}
-                            </div>
-                            <p className="text-[10px] text-muted-foreground truncate">{m.tagline}</p>
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </>
-              )}
+              <button type="button" onClick={() => void createNewSession()} className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground" aria-label="New chat" title="New chat">
+                <Plus className="h-4 w-4" />
+              </button>
             </div>
-
             <div className="flex items-center gap-1">
               <ThemeToggle />
-              <button
-                type="button"
-                onClick={() => setShowPatchNotes(true)}
-                className="flex items-center gap-1 rounded-full px-2.5 py-1.5 text-[10px] text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                title="View patch notes"
-              >
-                <Sparkles className="h-3 w-3" />
-                <span className="hidden sm:inline">What's New</span>
+              <button type="button" onClick={() => setAccountOpen(true)} className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground" aria-label="Account">
+                <UserCircle className="h-5 w-5" />
               </button>
             </div>
           </div>
+        </header>
 
-          {imageGenOpen && (
-            <div className="mb-2 rounded-xl border border-border bg-card p-3">
-              <div className="mb-2 flex items-center gap-2">
-                <Sparkle className="h-4 w-4 text-muted-foreground" />
-                <span className="text-xs font-medium text-foreground">
-                  AI Image Generation
-                </span>
-              </div>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={imagePrompt}
-                  onChange={(e) => setImagePrompt(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && !e.shiftKey) {
-                      e.preventDefault();
-                      void handleGenerateImage();
-                    }
-                  }}
-                  placeholder="Describe the image you want to generate…"
-                  className="h-11 flex-1 rounded-lg border border-border bg-background px-3 text-sm focus:border-foreground/30 focus:outline-none"
-                  autoFocus
-                  disabled={generatingImage}
-                />
-                <Button
-                  type="button"
-                  size="sm"
-                  onClick={() => void handleGenerateImage()}
-                  disabled={!imagePrompt.trim() || generatingImage}
-                  className="h-11 gap-1.5 rounded-lg bg-foreground text-background hover:bg-foreground/90 active:scale-95 disabled:opacity-50 transition-all"
-                >
-                  {generatingImage ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Sparkle className="h-4 w-4" />
-                  )}
-                  Generate
-                </Button>
-              </div>
-              <p className="mt-1.5 text-[11px] text-muted-foreground">
-                Press Enter to generate. The image will appear in the chat.
-              </p>
-            </div>
-          )}
-
-          {pendingImages.length > 0 && (
-            <div className="mb-2 flex flex-wrap gap-2 rounded-lg border border-border bg-card p-2">
-              {pendingImages.map((img, idx) => (
-                <div key={idx} className="group relative">
-                  <img
-                    src={img}
-                    alt={`Pending ${idx + 1}`}
-                    className="h-16 w-16 rounded-md border border-border object-cover"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => removePendingImage(idx)}
-                    className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-rose-500 text-white shadow-md transition-transform hover:scale-110"
-                    aria-label="Remove image"
-                  >
-                    <X className="h-3 w-3" />
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-
-          <div className="flex items-end gap-2 rounded-xl border border-border bg-card p-2 focus-within:border-muted-foreground/30 transition-all">
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              multiple
-              onChange={(e) => void handleFileSelect(e)}
-              className="hidden"
-            />
-
-            <TooltipProvider delayDuration={300}>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <button
-                    type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    disabled={streaming || pendingImages.length >= 4}
-                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-all hover:bg-muted hover:text-foreground active:scale-95 disabled:opacity-40"
-                    aria-label="Attach image"
-                  >
+        <main ref={scrollRef} className="chat-scroll min-h-0 flex-1 scroll-smooth">
+          {messages.length <= 1 && !loading ? (
+            <div className="flex flex-col items-center justify-center px-4 pt-[15vh]">
+              <h1 className="text-3xl sm:text-4xl font-bold tracking-tight mb-2">What can I help you with?</h1>
+              <p className="text-sm text-muted-foreground mb-8">Ask anything — coding, writing, brainstorming, and more.</p>
+              <div className="w-full max-w-2xl">
+                <div className="flex items-end gap-2 rounded-xl border border-border bg-card p-2 focus-within:border-muted-foreground/30 transition-all">
+                  <input ref={fileInputRef} type="file" accept="image/*" multiple onChange={(e) => void handleFileSelect(e)} className="hidden" />
+                  <button type="button" onClick={() => fileInputRef.current?.click()} disabled={streaming || pendingImages.length >= 4} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-all hover:bg-muted hover:text-foreground active:scale-95 disabled:opacity-40" aria-label="Attach image">
                     <Paperclip className="h-4 w-4" />
                   </button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  Attach image (max 4, 5MB each)
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+                  <Textarea ref={textareaRef} value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={onKeyDown} placeholder="Message Developer's Ai..." rows={1} className="min-h-[36px] resize-none border-0 bg-transparent px-1 py-1.5 text-sm shadow-none focus-visible:ring-0 focus-visible:ring-offset-0" disabled={streaming} />
+                  <Button type="button" size="icon" onClick={() => void send()} disabled={!input.trim() && pendingImages.length === 0} className="h-9 w-9 shrink-0 rounded-lg bg-foreground text-background hover:bg-foreground/90 disabled:opacity-30 transition-all" aria-label="Send message">
+                    <Send className="h-4 w-4" />
+                  </Button>
+                </div>
+                <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <button type="button" onClick={() => textareaRef.current?.focus()} className="flex items-start gap-3 rounded-xl border border-border bg-card p-4 text-left transition-all hover:bg-muted">
+                    <MessageCircle className="h-5 w-5 mt-0.5 shrink-0 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm font-medium text-foreground">Chat</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">Get fast and accurate answers from Developer's Ai.</p>
+                    </div>
+                  </button>
+                  <button type="button" onClick={() => setImageGenOpen(true)} className="flex items-start gap-3 rounded-xl border border-border bg-card p-4 text-left transition-all hover:bg-muted">
+                    <Sparkle className="h-5 w-5 mt-0.5 shrink-0 text-muted-foreground" />
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-medium text-foreground">Image Generation</p>
+                        <span className="text-[10px] font-medium bg-muted px-1.5 py-0.5 rounded text-muted-foreground">NEW</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-0.5">Create images with AI from text descriptions.</p>
+                    </div>
+                  </button>
+                </div>
+                {pendingImages.length > 0 && (
+                  <div className="mt-3 flex flex-wrap gap-2 rounded-lg border border-border bg-card p-2">
+                    {pendingImages.map((img, idx) => (
+                      <div key={idx} className="group relative">
+                        <img src={img} alt={`Pending ${idx + 1}`} className="h-16 w-16 rounded-md border border-border object-cover" />
+                        <button type="button" onClick={() => removePendingImage(idx)} className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-muted border border-border text-foreground shadow-sm transition-transform hover:scale-110" aria-label="Remove image">
+                          <X className="h-3 w-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div className="mx-auto max-w-3xl">
+              {messages.map((m) => (
+                <ChatMessage key={m.id} message={m} isStreaming={streaming && m.id === messages[messages.length - 1]?.id && m.role === "assistant"} isThinking={thinking && m.id === messages[messages.length - 1]?.id && m.role === "assistant"} onHide={m.id === "welcome" ? undefined : handleHideMessage} />
+              ))}
+              {loading && messages[messages.length - 1]?.role !== "assistant" && (
+                <div className="flex w-full py-4">
+                  <div className="w-full max-w-3xl mx-auto px-4">
+                    <div className="flex items-center gap-3">
+                      <div className="relative flex h-6 w-6 items-center justify-center">
+                        <div className="absolute inset-0 rounded-full border-2 border-muted-foreground/20 border-t-foreground animate-spin" />
+                        <div className="h-1.5 w-1.5 rounded-full bg-foreground animate-pulse" />
+                      </div>
+                      <span className="text-sm text-muted-foreground">Thinking…</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </main>
 
-            <Textarea
-              ref={textareaRef}
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={onKeyDown}
-              placeholder={
-                pendingImages.length > 0
-                  ? "Describe what you want to know about the image…"
-                  : "Ask a follow-up"
-              }
-              rows={1}
-              className="min-h-[36px] resize-none border-0 bg-transparent px-1 py-1.5 text-sm shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
-              disabled={streaming}
-            />
-            {streaming ? (
-              <Button
-                type="button"
-                size="icon"
-                onClick={stopGeneration}
-                className="h-9 w-9 shrink-0 rounded-lg bg-destructive text-destructive-foreground hover:bg-destructive/90 active:scale-95 transition-all"
-                aria-label="Stop generating"
-              >
-                <Square className="h-4 w-4 fill-current" />
-              </Button>
-            ) : (
-              <Button
-                type="button"
-                size="icon"
-                onClick={() => void send()}
-                disabled={!input.trim() && pendingImages.length === 0}
-                className="h-9 w-9 shrink-0 rounded-lg bg-foreground text-background hover:bg-foreground/90 disabled:opacity-30 disabled:hover:bg-foreground transition-all"
-                aria-label="Send message"
-              >
-                <Send className="h-4 w-4" />
-              </Button>
-            )}
+        {messages.length > 1 && (
+          <div className="shrink-0 border-t border-border bg-background">
+            <div className="mx-auto max-w-3xl px-3 py-2">
+              {imageGenOpen && (
+                <div className="mb-2 rounded-xl border border-border bg-card p-3">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Sparkle className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-xs font-medium text-foreground">Image Generation</span>
+                  </div>
+                  <div className="flex gap-2">
+                    <input type="text" value={imagePrompt} onChange={(e) => setImagePrompt(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); void handleGenerateImage(); } }} placeholder="Describe the image you want..." className="h-10 flex-1 rounded-lg border border-border bg-background px-3 text-sm focus:outline-none" autoFocus disabled={generatingImage} />
+                    <Button type="button" size="sm" onClick={() => void handleGenerateImage()} disabled={!imagePrompt.trim() || generatingImage} className="h-10 gap-1.5 rounded-lg bg-foreground text-background hover:bg-foreground/90 disabled:opacity-50 transition-all">
+                      {generatingImage ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkle className="h-4 w-4" />}
+                      Generate
+                    </Button>
+                  </div>
+                </div>
+              )}
+              <div className="flex items-end gap-2 rounded-xl border border-border bg-card p-2 focus-within:border-muted-foreground/30 transition-all">
+                <input ref={fileInputRef} type="file" accept="image/*" multiple onChange={(e) => void handleFileSelect(e)} className="hidden" />
+                <button type="button" onClick={() => fileInputRef.current?.click()} disabled={streaming || pendingImages.length >= 4} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-all hover:bg-muted hover:text-foreground active:scale-95 disabled:opacity-40" aria-label="Attach image">
+                  <Paperclip className="h-4 w-4" />
+                </button>
+                <Textarea ref={textareaRef} value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={onKeyDown} placeholder="Ask a follow-up" rows={1} className="min-h-[36px] resize-none border-0 bg-transparent px-1 py-1.5 text-sm shadow-none focus-visible:ring-0 focus-visible:ring-offset-0" disabled={streaming} />
+                {streaming ? (
+                  <Button type="button" size="icon" onClick={stopGeneration} className="h-9 w-9 shrink-0 rounded-lg bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-all" aria-label="Stop">
+                    <Square className="h-4 w-4 fill-current" />
+                  </Button>
+                ) : (
+                  <Button type="button" size="icon" onClick={() => void send()} disabled={!input.trim() && pendingImages.length === 0} className="h-9 w-9 shrink-0 rounded-lg bg-foreground text-background hover:bg-foreground/90 disabled:opacity-30 transition-all" aria-label="Send">
+                    <Send className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
+              <p className="mt-1 px-1 text-[10px] text-muted-foreground">
+                {streaming ? (
+                  <span className="inline-flex items-center gap-1.5 text-foreground/70">
+                    <span className="h-1 w-1 animate-pulse rounded-full bg-foreground/70" />
+                    {thinking ? "Thinking…" : "Generating…"}
+                  </span>
+                ) : "Press Enter to send"}
+              </p>
+            </div>
           </div>
-          <p className="mt-1.5 px-1 text-[11px] text-muted-foreground">
-            {streaming ? (
-              <span className="inline-flex items-center gap-1.5 text-foreground/70">
-                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-foreground/70" />
-                {thinking ? "Thinking…" : "Generating…"}
-              </span>
-            ) : (
-              <>
-                Press <kbd className="rounded bg-muted px-1 font-mono text-[10px]">Enter</kbd> to send,{" "}
-                <kbd className="rounded bg-muted px-1 font-mono text-[10px]">Shift+Enter</kbd> for a new line.
-              </>
-            )}
-          </p>
-        </div>
+        )}
       </div>
 
       <AdminPortal open={adminOpen} onOpenChange={setAdminOpen} />
@@ -1429,8 +1228,8 @@ export default function Home() {
 
       {showInstallToast && (
         <div className="fixed bottom-20 left-1/2 z-50 -translate-x-1/2 animate-float-up">
-          <div className="flex items-start gap-3 rounded-xl border border-rose-500/40 bg-card px-4 py-3 shadow-2xl max-w-sm">
-            <Smartphone className="h-5 w-5 shrink-0 text-rose-400 mt-0.5" />
+          <div className="flex items-start gap-3 rounded-xl border border-border bg-card px-4 py-3 shadow-2xl max-w-sm">
+            <Smartphone className="h-5 w-5 shrink-0 text-muted-foreground mt-0.5" />
             <div className="text-xs">
               <p className="font-semibold text-foreground mb-1">
                 Install Developer's Ai
