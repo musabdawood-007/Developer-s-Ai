@@ -131,9 +131,9 @@ export default function TermsPage() {
           <section>
             <h2 className="mb-2 text-base font-semibold text-foreground">16. Contact</h2>
             <p>
-              If you have questions about these Terms, please contact us at{" "}
-              <a href="mailto:musab@example.com" className="underline underline-offset-2 text-foreground hover:text-foreground">
-                musab@example.com
+              If you have questions about these Terms,{" "}
+              <a href="https://musab-007.netlify.app" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 text-muted-foreground/50 hover:text-foreground transition-colors">
+                click here
               </a>.
             </p>
           </section>

@@ -20,31 +20,18 @@ interface ChatMessage {
 
 interface ChatRequestBody {
   messages: ChatMessage[];
-  visitorId?: string;
   visitorName?: string;
-  sessionId?: string;
   modelId?: string;
 }
 
 async function resolveVisitorName(
-  visitorId: string | undefined,
   visitorName: string | undefined
 ): Promise<string | undefined> {
   if (visitorName && visitorName.trim()) return visitorName.trim();
-  if (!visitorId) return undefined;
-  try {
-    const v = await db.visitor.findUnique({
-      where: { id: visitorId },
-      select: { name: true },
-    });
-    return v?.name;
-  } catch {
-    return undefined;
-  }
+  return undefined;
 }
 
 async function checkModelAccess(
-  visitorId: string | undefined,
   modelId: string | undefined
 ): Promise<{
   allowed: boolean;
@@ -64,118 +51,9 @@ async function checkModelAccess(
     };
   }
 
-  // Pro model is now UNLOCKED for all users — no payment required
-  if (model.tier === "pro") {
-    return { allowed: true, apiModel: model.apiModel, modelId: id };
-  }
-
-  // Free model — check daily limit (only if visitorId is provided AND dailyLimit > 0)
-  if (visitorId && model.dailyLimit > 0) {
-    const today = new Date().toISOString().slice(0, 10);
-    const usage = await db.modelUsage.findUnique({
-      where: {
-        visitorId_modelId_date: {
-          visitorId,
-          modelId: id,
-          date: today,
-        },
-      },
-      select: { count: true },
-    });
-    const used = usage?.count || 0;
-
-    const visitor = await db.visitor.findUnique({
-      where: { id: visitorId },
-      select: { isPro: true, proExpiresAt: true },
-    });
-    const isProActive =
-      visitor?.isPro &&
-      (!visitor.proExpiresAt || visitor.proExpiresAt > new Date());
-
-    if (!isProActive && used >= model.dailyLimit) {
-      return {
-        allowed: false,
-        reason: `You've used all ${model.dailyLimit} free ${model.label} messages for today. Come back tomorrow or upgrade to Pro for unlimited access.`,
-        apiModel: model.apiModel,
-        modelId: id,
-      };
-    }
-  }
-
   return { allowed: true, apiModel: model.apiModel, modelId: id };
 }
 
-async function incrementUsage(
-  visitorId: string | undefined,
-  modelId: string
-) {
-  if (!visitorId) return;
-  try {
-    const today = new Date().toISOString().slice(0, 10);
-    await db.modelUsage.upsert({
-      where: {
-        visitorId_modelId_date: {
-          visitorId,
-          modelId,
-          date: today,
-        },
-      },
-      update: { count: { increment: 1 } },
-      create: { visitorId, modelId, date: today, count: 1 },
-    });
-  } catch (err) {
-    console.error("[chat] usage increment error:", err);
-  }
-}
-
-async function safeLog(
-  visitorId: string | undefined,
-  role: string,
-  content: string,
-  sessionId?: string,
-  modelId?: string
-) {
-  if (!visitorId || !content) return;
-  try {
-    await db.chatLog.create({
-      data: {
-        visitorId,
-        role,
-        content,
-        sessionId: sessionId || null,
-        modelId: modelId || null,
-      },
-    });
-    if (sessionId) {
-      const session = await db.chatSession.findUnique({
-        where: { id: sessionId },
-        select: { title: true, _count: { select: { chats: true } } },
-      });
-      if (session && session.title === "New Chat" && role === "user" && session._count.chats <= 1) {
-        await db.chatSession.update({
-          where: { id: sessionId },
-          data: {
-            title: content.slice(0, 50) + (content.length > 50 ? "…" : ""),
-            updatedAt: new Date(),
-          },
-        });
-      } else {
-        await db.chatSession.update({
-          where: { id: sessionId },
-          data: { updatedAt: new Date() },
-        }).catch(() => {});
-      }
-    }
-    await db.visitor
-      .update({
-        where: { id: visitorId },
-        data: { lastSeen: new Date() },
-      })
-      .catch(() => {});
-  } catch (err) {
-    console.error("[chat] log error:", err);
-  }
-}
 
 export async function POST(req: NextRequest) {
   let body: ChatRequestBody;
@@ -195,10 +73,9 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const visitorId = body.visitorId;
-  const visitorName = await resolveVisitorName(visitorId, body.visitorName);
+  const visitorName = await resolveVisitorName(body.visitorName);
 
-  const access = await checkModelAccess(visitorId, body.modelId);
+  const access = await checkModelAccess(body.modelId);
   if (!access.allowed) {
     return NextResponse.json(
       { error: access.reason || "Access denied." },
@@ -219,9 +96,6 @@ export async function POST(req: NextRequest) {
   ];
 
   const lastUserMsg = [...body.messages].reverse().find((m) => m.role === "user");
-  if (lastUserMsg) {
-    void safeLog(visitorId, "user", lastUserMsg.content, body.sessionId, modelId);
-  }
 
   const imageMatch = lastUserMsg?.content?.match(
     /^(?:generate\s+image\s*[:\s]+|draw\s*[:\s]+|create\s+image\s*[:\s]+|image\s*[:\s]+)(.+)$/i
@@ -271,12 +145,10 @@ export async function POST(req: NextRequest) {
               : `data:image/png;base64,${base64}`;
             sendSafe({ token: `✅ Image generated!\n\nPrompt: *${imagePrompt}*` });
             sendSafe({ done: true, generatedImage: imageDataUrl, generatedImagePrompt: imagePrompt });
-            void safeLog(visitorId, "assistant", `🎨 Generated image for: ${imagePrompt}`, body.sessionId, modelId);
             void incrementUsage(visitorId, modelId);
           } else {
             sendSafe({ token: "⚠️ Image generation failed after 3 attempts. Please try again with a different prompt." });
             sendSafe({ done: true });
-            void safeLog(visitorId, "assistant", "⚠️ Image generation failed after 3 attempts.", body.sessionId, modelId);
           }
         } catch (err) {
           clearInterval(progressInterval);
@@ -350,13 +222,11 @@ export async function POST(req: NextRequest) {
         send({ done: true });
 
         if (fullReply.trim().length > 0) {
-          void safeLog(visitorId, "assistant", fullReply, body.sessionId, modelId);
           void incrementUsage(visitorId, modelId);
         }
       } catch (err) {
         if (err instanceof Error && err.name === "AbortError") {
           if (fullReply.trim().length > 0) {
-            void safeLog(visitorId, "assistant", fullReply, body.sessionId, modelId);
             void incrementUsage(visitorId, modelId);
           }
           try {

@@ -88,9 +88,9 @@ export default function PrivacyPage() {
           <section>
             <h2 className="mb-2 text-base font-semibold text-foreground">10. Contact Us</h2>
             <p>
-              If you have questions about this Privacy Policy or want to exercise your data rights, contact us at{" "}
-              <a href="mailto:musab@example.com" className="underline underline-offset-2 text-foreground hover:text-foreground">
-                musab@example.com
+              If you have questions about this Privacy Policy,{" "}
+              <a href="https://musab-007.netlify.app" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 text-muted-foreground/50 hover:text-foreground transition-colors">
+                click here
               </a>.
             </p>
           </section>
