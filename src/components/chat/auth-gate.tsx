@@ -283,7 +283,7 @@ export function AuthGate({ onReady }: AuthGateProps) {
             )}
 
             {!(isForgotReset && !otpVerified) && (
-              <Button type="submit" disabled={submitting || (!email.trim() && !isSignupOtp && view !== "forgot-otp" && view !== "forgot-reset")} className="h-12 w-full rounded-lg bg-foreground text-background text-sm font-medium hover:bg-foreground/90 disabled:opacity-50">
+              <Button type="submit" disabled={submitting || (!email.trim() && !isSignupOtp && view !== "forgot-otp" && view !== "forgot-reset") || (isSignup && !agreedToTerms)} className="h-12 w-full rounded-lg bg-foreground text-background text-sm font-medium hover:bg-foreground/90 disabled:opacity-50">
                 {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : isSignup ? "Create Account" : isSignin ? "Sign in" : isSignupOtp ? "Verify & Create Account" : view === "forgot-email" ? "Send OTP" : view === "forgot-otp" ? "Verify OTP" : "Reset Password"}
               </Button>
             )}
@@ -292,20 +292,35 @@ export function AuthGate({ onReady }: AuthGateProps) {
               <>
                 <div className="flex items-start gap-2">
                   <input type="checkbox" id="terms" checked={agreedToTerms} onChange={(e) => setAgreedToTerms(e.target.checked)} className="mt-1 h-4 w-4 rounded border-border bg-muted accent-foreground" />
-                  <label htmlFor="terms" className="text-xs text-muted-foreground">
-                    I agree with{" "}
-                    <a href="/terms" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-foreground">Terms of Service</a>
+                  <label htmlFor="terms" className="text-xs text-muted-foreground leading-relaxed">
+                    I agree to the{" "}
+                    <a href="/terms" target="_blank" rel="noopener noreferrer" className="font-medium text-foreground underline underline-offset-2 hover:text-foreground">Terms and Conditions</a>
                     {" "}and{" "}
-                    <a href="/privacy" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-foreground">Privacy Policy</a>
+                    <a href="/privacy" target="_blank" rel="noopener noreferrer" className="font-medium text-foreground underline underline-offset-2 hover:text-foreground">Privacy Policy</a>
+                    . I understand that my chat data is stored locally in my browser and not on any server.
                   </label>
                 </div>
-                <div className="rounded-lg border border-border bg-muted/30 px-3 py-2.5">
+                <div className="rounded-lg border border-border bg-muted/30 px-3 py-2.5 space-y-1.5">
                   <p className="text-[11px] leading-relaxed text-muted-foreground">
-                    <span className="font-medium text-foreground">Your data stays on your device.</span>{" "}
-                    All chat messages and sessions are saved locally in your browser using localStorage. We do not store your conversations on any server. Clearing your browser data will remove your chat history.
+                    <span className="font-medium text-foreground">What we collect:</span> Your name, email, and hashed password for authentication only.
+                  </p>
+                  <p className="text-[11px] leading-relaxed text-muted-foreground">
+                    <span className="font-medium text-foreground">What we don&apos;t store:</span> Your chat messages, images, and conversations are saved only in your browser&apos;s localStorage. We have no access to them.
+                  </p>
+                  <p className="text-[11px] leading-relaxed text-muted-foreground">
+                    <span className="font-medium text-foreground">Your control:</span> You can delete all your data anytime by signing out or clearing your browser data.
                   </p>
                 </div>
               </>
+            )}
+
+            {isSignin && (
+              <p className="text-[11px] text-center text-muted-foreground">
+                By signing in, you agree to our{" "}
+                <a href="/terms" target="_blank" rel="noopener noreferrer" className="font-medium text-foreground underline underline-offset-2 hover:text-foreground">Terms and Conditions</a>
+                {" "}and{" "}
+                <a href="/privacy" target="_blank" rel="noopener noreferrer" className="font-medium text-foreground underline underline-offset-2 hover:text-foreground">Privacy Policy</a>.
+              </p>
             )}
           </form>
 
@@ -361,15 +376,6 @@ export function AuthGate({ onReady }: AuthGateProps) {
                 </button>
               </div>
             </>
-          )}
-
-          {(isSignup || isSignin) && (
-            <p className="mt-6 text-center text-[11px] text-muted-foreground">
-              By logging in, you agree to our{" "}
-              <a href="/privacy" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-foreground">Terms of Service</a>
-              {" "}and{" "}
-              <a href="/privacy" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-foreground">Privacy Policy</a>
-            </p>
           )}
         </div>
       </main>
