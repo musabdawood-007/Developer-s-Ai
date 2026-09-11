@@ -289,178 +289,101 @@ export default function Home() {
 
   useEffect(() => {
     if (!visitor) return;
-
-    let cancelled = false;
-
-    (async () => {
-      try {
-        const sessRes = await fetch(
-          `/api/sessions?visitorId=${encodeURIComponent(visitor.visitorId)}`
-        );
-        if (sessRes.ok) {
-          const sessData = await sessRes.json();
-          if (!cancelled && sessData.sessions?.length > 0) {
-            setSessions(sessData.sessions);
-            setCurrentSessionId(sessData.sessions[0].id);
-          } else if (!cancelled) {
-            await createNewSession();
+    const storageKey = `devai:chat-sessions:${visitor.visitorId}`;
+    try {
+      const saved = localStorage.getItem(storageKey);
+      if (saved) {
+        const parsed = JSON.parse(saved) as { sessions: SessionInfo[]; currentSessionId: string; messages: Record<string, Message[]> };
+        if (parsed.sessions?.length > 0) {
+          setSessions(parsed.sessions);
+          setCurrentSessionId(parsed.currentSessionId || parsed.sessions[0].id);
+          const msgs = parsed.messages?.[parsed.currentSessionId || parsed.sessions[0].id];
+          if (msgs && msgs.length > 0) {
+            setMessages(msgs);
+          } else {
+            setMessages([{ id: "welcome", role: "assistant", content: buildWelcomeMessage(visitor.name), createdAt: Date.now() }]);
           }
+          return;
         }
-      } catch {
-        // ignore
       }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
+    } catch {}
+    createNewSession();
   }, [visitor]);
 
-  useEffect(() => {
+  const saveToLocalStorage = useCallback(() => {
     if (!visitor || !currentSessionId) return;
-
-    let cancelled = false;
-    (async () => {
-      try {
-        const res = await fetch("/api/visitors/me/chats", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            visitorId: visitor.visitorId,
-            sessionId: currentSessionId,
-          }),
-        });
-        if (!res.ok) throw new Error("Failed to load history");
-        const data = (await res.json()) as {
-          chats: Array<{
-            id: string;
-            role: string;
-            content: string;
-            createdAt: string;
-          }>;
-        };
-
-        if (cancelled) return;
-
-        if (data.chats && data.chats.length > 0) {
-          setMessages([
-            {
-              id: "welcome",
-              role: "assistant",
-              content: buildWelcomeMessage(visitor.name),
-              createdAt: new Date(data.chats[0].createdAt).getTime() - 1000,
-            },
-            ...data.chats.map((c) => ({
-              id: c.id,
-              role: (c.role === "user" ? "user" : "assistant") as ChatRole,
-              content: c.content,
-              createdAt: new Date(c.createdAt).getTime(),
-              asMarkdownFile:
-                c.role === "assistant" && looksLikeMarkdownFile(c.content),
-            })),
-          ]);
-        } else {
-          setMessages([
-            {
-              id: "welcome",
-              role: "assistant",
-              content: buildWelcomeMessage(visitor.name),
-              createdAt: Date.now(),
-            },
-          ]);
-        }
-      } catch {
-        if (cancelled) return;
-        setMessages([
-          {
-            id: "welcome",
-            role: "assistant",
-            content: buildWelcomeMessage(visitor.name),
-            createdAt: Date.now(),
-          },
-        ]);
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [visitor, currentSessionId]);
-
-  const createNewSession = async () => {
-    if (!visitor) return;
+    const storageKey = `devai:chat-sessions:${visitor.visitorId}`;
     try {
-      const res = await fetch("/api/sessions", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ visitorId: visitor.visitorId }),
-      });
-      if (!res.ok) throw new Error("Failed to create session");
-      const data = await res.json();
-      const newSession: SessionInfo = {
-        id: data.session.id,
-        title: data.session.title,
-        updatedAt: data.session.createdAt,
-      };
-      setSessions((prev) => [newSession, ...prev]);
-      setCurrentSessionId(newSession.id);
-      setMessages([
-        {
-          id: "welcome",
-          role: "assistant",
-          content: buildWelcomeMessage(visitor.name),
-          createdAt: Date.now(),
-        },
-      ]);
-      setSidebarOpen(false);
+      const data = { sessions, currentSessionId, messages: { [currentSessionId]: messages.filter(m => m.id !== "welcome") } };
+      localStorage.setItem(storageKey, JSON.stringify(data));
     } catch {}
+  }, [visitor, sessions, currentSessionId, messages]);
+
+  useEffect(() => { saveToLocalStorage(); }, [saveToLocalStorage]);
+
+  const createNewSession = () => {
+    if (!visitor) return;
+    const newSession: SessionInfo = {
+      id: uid(),
+      title: "New Chat",
+      updatedAt: new Date().toISOString(),
+    };
+    setSessions((prev) => [newSession, ...prev]);
+    setCurrentSessionId(newSession.id);
+    setMessages([
+      {
+        id: "welcome",
+        role: "assistant",
+        content: buildWelcomeMessage(visitor.name),
+        createdAt: Date.now(),
+      },
+    ]);
+    setSidebarOpen(false);
   };
 
   const switchSession = (sessionId: string) => {
     setCurrentSessionId(sessionId);
+    const storageKey = `devai:chat-sessions:${visitor?.visitorId}`;
+    try {
+      const saved = localStorage.getItem(storageKey);
+      if (saved) {
+        const parsed = JSON.parse(saved) as { messages: Record<string, Message[]> };
+        const msgs = parsed.messages?.[sessionId];
+        if (msgs && msgs.length > 0) {
+          setMessages(msgs);
+        } else {
+          setMessages([{ id: "welcome", role: "assistant", content: buildWelcomeMessage(visitor?.name || "Friend"), createdAt: Date.now() }]);
+        }
+      }
+    } catch {
+      setMessages([{ id: "welcome", role: "assistant", content: buildWelcomeMessage(visitor?.name || "Friend"), createdAt: Date.now() }]);
+    }
     setSidebarOpen(false);
   };
 
-  const refreshSessions = useCallback(async () => {
+  const refreshSessions = useCallback(() => {
     if (!visitor) return;
+    const storageKey = `devai:chat-sessions:${visitor.visitorId}`;
     try {
-      const res = await fetch(
-        `/api/sessions?visitorId=${encodeURIComponent(visitor.visitorId)}`
-      );
-      if (res.ok) {
-        const data = await res.json();
-        setSessions(data.sessions || []);
+      const saved = localStorage.getItem(storageKey);
+      if (saved) {
+        const parsed = JSON.parse(saved) as { sessions: SessionInfo[] };
+        setSessions(parsed.sessions || []);
       }
     } catch {}
   }, [visitor]);
 
-  const deleteSession = async (sessionId: string) => {
-    try {
-      const res = await fetch(
-        `/api/sessions/${encodeURIComponent(sessionId)}`,
-        { method: "DELETE" }
-      );
-      if (!res.ok) throw new Error("Failed to delete session");
-
-      setSessions((prev) => prev.filter((s) => s.id !== sessionId));
-
-      if (sessionId === currentSessionId) {
-        const remaining = sessions.filter((s) => s.id !== sessionId);
-        if (remaining.length > 0) {
-          setCurrentSessionId(remaining[0].id);
-        } else {
-          await createNewSession();
-        }
+  const deleteSession = (sessionId: string) => {
+    setSessions((prev) => prev.filter((s) => s.id !== sessionId));
+    if (sessionId === currentSessionId) {
+      const remaining = sessions.filter((s) => s.id !== sessionId);
+      if (remaining.length > 0) {
+        switchSession(remaining[0].id);
+      } else {
+        createNewSession();
       }
-
-      toast({ title: "Chat deleted." });
-    } catch (e) {
-      toast({
-        title: "Delete failed",
-        description: e instanceof Error ? e.message : "Unknown error",
-        variant: "destructive",
-      });
     }
+    toast({ title: "Chat deleted." });
   };
 
   useEffect(() => {
@@ -536,9 +459,7 @@ export default function Home() {
               content: m.content,
               ...(m.images ? { images: m.images } : {}),
             })),
-            visitorId: visitor?.visitorId,
             visitorName: visitor?.name,
-            sessionId: currentSessionId,
             modelId: selectedModelId,
           }),
         });
@@ -667,7 +588,6 @@ export default function Home() {
         setStreaming(false);
         setThinking(false);
         abortRef.current = null;
-        void refreshSessions();
         void refreshUsage();
       }
     },
@@ -732,35 +652,11 @@ export default function Home() {
   };
 
   const handleHideMessage = useCallback(
-    async (id: string) => {
-      if (!visitor || id === "welcome") return;
+    (id: string) => {
+      if (id === "welcome") return;
       setMessages((prev) => prev.filter((m) => m.id !== id));
-      try {
-        const res = await fetch(
-          `/api/visitors/me/chats/${encodeURIComponent(id)}/hide`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ visitorId: visitor.visitorId }),
-          }
-        );
-        if (!res.ok) throw new Error("Failed to hide message");
-        toast({
-          title: "Message hidden",
-          description: "Removed from your view. Admin can still see it.",
-        });
-      } catch (e) {
-        setMessages((prev) => {
-          return prev;
-        });
-        toast({
-          title: "Couldn't hide message",
-          description: e instanceof Error ? e.message : "Unknown error",
-          variant: "destructive",
-        });
-      }
     },
-    [visitor, toast]
+    []
   );
 
   const onKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -839,7 +735,7 @@ export default function Home() {
   };
 
   const clearChat = () => {
-    void createNewSession();
+    createNewSession();
     setShowDevCard(false);
   };
 
@@ -852,11 +748,14 @@ export default function Home() {
     } catch {
     }
     try {
+      if (visitor) localStorage.removeItem(`devai:chat-sessions:${visitor.visitorId}`);
       localStorage.removeItem(VISITOR_STORAGE_KEY);
     } catch {
     }
     setVisitor(null);
     setMessages([]);
+    setSessions([]);
+    setCurrentSessionId(null);
     setShowDevCard(false);
     setAdminOpen(false);
     setPrivacyOpen(false);
@@ -893,7 +792,7 @@ export default function Home() {
               </button>
             </div>
             <div className="p-3 space-y-1">
-              <button type="button" onClick={() => { void createNewSession(); setSidebarOpen(false); }} className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
+              <button type="button" onClick={() => { createNewSession(); setSidebarOpen(false); }} className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
                 <Plus className="h-4 w-4" /> New Chat
               </button>
               <button type="button" onClick={() => { setImageGenOpen(true); setSidebarOpen(false); }} className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
@@ -941,7 +840,7 @@ export default function Home() {
           <span className="text-sm font-semibold">Developer's Ai</span>
         </div>
         <div className="p-3 space-y-1">
-          <button type="button" onClick={() => void createNewSession()} className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
+          <button type="button" onClick={() => createNewSession()} className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
             <Plus className="h-4 w-4" /> New Chat
           </button>
           <button type="button" onClick={() => setImageGenOpen(true)} className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
@@ -985,10 +884,10 @@ export default function Home() {
         <header className="shrink-0 border-b border-border bg-background">
           <div className="flex items-center justify-between gap-2 px-3 py-2 sm:px-4">
             <div className="flex items-center gap-2">
-              <button type="button" onClick={() => { setSidebarOpen(true); void refreshSessions(); }} className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground lg:hidden" aria-label="Open sidebar">
+              <button type="button" onClick={() => { setSidebarOpen(true); refreshSessions(); }} className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground lg:hidden" aria-label="Open sidebar">
                 <Menu className="h-5 w-5" />
               </button>
-              <button type="button" onClick={() => void createNewSession()} className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground" aria-label="New chat" title="New chat">
+              <button type="button" onClick={() => createNewSession()} className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground" aria-label="New chat" title="New chat">
                 <Plus className="h-4 w-4" />
               </button>
             </div>

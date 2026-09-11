@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Trash2, Download } from "lucide-react";
+import { Trash2, Download, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Markdown } from "./markdown";
 import { watermarkImage } from "@/lib/watermark";
@@ -46,7 +46,7 @@ export function ChatMessage({
       await onHide(message.id);
     } finally {
       setHiding(false);
-      }
+    }
   };
 
   if (isUser) {
@@ -58,22 +58,29 @@ export function ChatMessage({
         className="flex w-full justify-end py-3"
       >
         <div className="w-full max-w-3xl mx-auto px-4 flex justify-end">
-          <div className="max-w-[80%]">
-            {message.images && message.images.length > 0 && (
-              <div className="mb-2 flex flex-wrap gap-2 justify-end">
-                {message.images.map((img, idx) => (
-                  <img
-                    key={idx}
-                    src={img}
-                    alt={`Attachment ${idx + 1}`}
-                    className="max-h-40 max-w-[200px] rounded-lg object-cover"
-                  />
-                ))}
+          <div className="flex items-start gap-2.5 max-w-[80%]">
+            <div className="flex-1">
+              {message.images && message.images.length > 0 && (
+                <div className="mb-2 flex flex-wrap gap-2 justify-end">
+                  {message.images.map((img, idx) => (
+                    <img
+                      key={idx}
+                      src={img}
+                      alt={`Attachment ${idx + 1}`}
+                      className="max-h-40 max-w-[200px] rounded-lg object-cover"
+                    />
+                  ))}
+                </div>
+              )}
+              <div className="rounded-2xl rounded-tr-md bg-muted px-4 py-2.5">
+                <p className="text-sm leading-relaxed text-foreground whitespace-pre-wrap break-words">
+                  {message.content}
+                </p>
               </div>
-            )}
-            <p className="text-sm leading-relaxed text-foreground whitespace-pre-wrap break-words text-right">
-              {message.content}
-            </p>
+            </div>
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground mt-0.5">
+              <User className="h-4 w-4" />
+            </div>
           </div>
         </div>
       </motion.div>

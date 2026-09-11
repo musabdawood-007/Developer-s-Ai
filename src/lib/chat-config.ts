@@ -120,13 +120,14 @@ export function buildWelcomeMessage(visitorName?: string) {
     if (special) return special.message;
   }
   const greet = visitorName ? `Hey **${visitorName}**! 👋` : "Hey there! 👋";
-  return `${greet} I'm **Developer's Ai**, a friendly little chatbot built by **Musab Dawood**.
+  return `${greet} Welcome to **Developer's Ai**.
 
-I can do two things really well:
-- 💬 Have a casual chat about almost anything
-- 💡 Share practical development & coding tips
+I can help you with:
+- 💬 **Chat** — Ask me anything, from coding questions to general knowledge
+- 💻 **Code** — Get code examples, debugging help, and best practices
+- 📝 **Files** — Generate Markdown files (READMEs, docs, project templates)
 
-So — do you wanna know more about my developer, or just want some coding tips? You can also ask me to **generate a Markdown file** (like a README, a docs page, or a project template) and I'll let you download it as a \`.md\` file. 😊`;
+How can I help you today?`;
 }
 
 /** @deprecated use buildWelcomeMessage() — kept for backward compat */

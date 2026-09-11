@@ -289,15 +289,23 @@ export function AuthGate({ onReady }: AuthGateProps) {
             )}
 
             {isSignup && (
-              <div className="flex items-start gap-2">
-                <input type="checkbox" id="terms" checked={agreedToTerms} onChange={(e) => setAgreedToTerms(e.target.checked)} className="mt-1 h-4 w-4 rounded border-border bg-muted accent-foreground" />
-                <label htmlFor="terms" className="text-xs text-muted-foreground">
-                  I agree with{" "}
-                  <a href="/privacy" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-foreground">Terms of Service</a>
-                  {" "}and{" "}
-                  <a href="/privacy" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-foreground">Privacy Policy</a>
-                </label>
-              </div>
+              <>
+                <div className="flex items-start gap-2">
+                  <input type="checkbox" id="terms" checked={agreedToTerms} onChange={(e) => setAgreedToTerms(e.target.checked)} className="mt-1 h-4 w-4 rounded border-border bg-muted accent-foreground" />
+                  <label htmlFor="terms" className="text-xs text-muted-foreground">
+                    I agree with{" "}
+                    <a href="/terms" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-foreground">Terms of Service</a>
+                    {" "}and{" "}
+                    <a href="/privacy" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-foreground">Privacy Policy</a>
+                  </label>
+                </div>
+                <div className="rounded-lg border border-border bg-muted/30 px-3 py-2.5">
+                  <p className="text-[11px] leading-relaxed text-muted-foreground">
+                    <span className="font-medium text-foreground">Your data stays on your device.</span>{" "}
+                    All chat messages and sessions are saved locally in your browser using localStorage. We do not store your conversations on any server. Clearing your browser data will remove your chat history.
+                  </p>
+                </div>
+              </>
             )}
           </form>
 
