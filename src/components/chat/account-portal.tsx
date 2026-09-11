@@ -37,7 +37,7 @@ import { cn } from "@/lib/utils";
 interface AccountPortalProps {
   open: boolean;
   onOpenChange: (v: boolean) => void;
-  visitor: { name: string; visitorId: string } | null;
+  visitor: { name: string; visitorId: string; email?: string } | null;
   onSignOut: () => void;
   onPrivacyOpen: () => void;
   onInstallApp: () => void;
@@ -74,6 +74,8 @@ export function AccountPortal({
   const [theme, setTheme] = useState<"dark" | "light">("dark");
   const [sandboxData, setSandboxData] = useState<StoredChat[]>([]);
   const [selectedChat, setSelectedChat] = useState<StoredChat | null>(null);
+  const [renamingId, setRenamingId] = useState<string | null>(null);
+  const [renameValue, setRenameValue] = useState("");
   const fileRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
@@ -169,6 +171,23 @@ export function AccountPortal({
         localStorage.setItem(storageKey, JSON.stringify(parsed));
         loadSandboxData();
         setSelectedChat(null);
+      }
+    } catch {}
+  };
+
+  const renameChat = (sessionId: string, newTitle: string) => {
+    if (!visitor || !newTitle.trim()) return;
+    const storageKey = `devai:chat-sessions:${visitor.visitorId}`;
+    try {
+      const saved = localStorage.getItem(storageKey);
+      if (saved) {
+        const parsed = JSON.parse(saved) as { sessions: { id: string; title: string }[]; messages: Record<string, unknown> };
+        const session = parsed.sessions.find((s) => s.id === sessionId);
+        if (session) session.title = newTitle.trim();
+        localStorage.setItem(storageKey, JSON.stringify(parsed));
+        loadSandboxData();
+        setRenamingId(null);
+        setSelectedChat((prev) => prev && prev.sessionId === sessionId ? { ...prev, title: newTitle.trim() } : prev);
       }
     } catch {}
   };
@@ -277,7 +296,6 @@ export function AccountPortal({
               <MenuItem icon={<Info className="h-4 w-4" />} label="About" onClick={() => setTab("about")} />
               <MenuItem icon={<Smartphone className="h-4 w-4" />} label="Download App" onClick={() => { onInstallApp(); closeAll(); }} />
               <MenuItem icon={<ShieldCheck className="h-4 w-4" />} label="Privacy Policy" onClick={() => { onPrivacyOpen(); closeAll(); }} />
-              <MenuItem icon={<FileText className="h-4 w-4" />} label="Terms & Conditions" onClick={() => window.open("/terms", "_blank")} />
               <MenuItem icon={<Mail className="h-4 w-4" />} label="Contact" onClick={() => setTab("contact")} />
               <div className="my-2 border-t border-border" />
               <MenuItem
@@ -331,7 +349,7 @@ export function AccountPortal({
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
-                  value="(saved in account)"
+                  value={visitor?.email || "(not set)"}
                   disabled
                   className="h-11 pl-10 bg-muted/50 border-0 opacity-50"
                 />
@@ -439,24 +457,59 @@ export function AccountPortal({
                 ) : (
                   <div className="space-y-2 max-h-80 overflow-y-auto">
                     {sandboxData.map((chat) => (
-                      <button
+                      <div
                         key={chat.sessionId}
-                        type="button"
-                        onClick={() => setSelectedChat(chat)}
-                        className="flex w-full items-start gap-3 rounded-lg border border-border bg-muted/10 p-3 text-left transition-colors hover:bg-muted/30"
+                        className="rounded-lg border border-border bg-muted/10 p-3 transition-colors hover:bg-muted/30"
                       >
-                        <MessageSquare className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
-                        <div className="min-w-0 flex-1">
-                          <p className="truncate text-xs font-medium text-foreground">{chat.title}</p>
-                          <div className="mt-1 flex items-center gap-2 text-[10px] text-muted-foreground">
-                            <span>{chat.messageCount} messages</span>
-                            <span>·</span>
-                            <Clock className="h-2.5 w-2.5" />
-                            <span>{new Date(chat.lastActive).toLocaleDateString()}</span>
+                        {renamingId === chat.sessionId ? (
+                          <div className="flex items-center gap-2">
+                            <Input
+                              value={renameValue}
+                              onChange={(e) => setRenameValue(e.target.value)}
+                              className="h-7 text-xs bg-muted/50 border-0"
+                              autoFocus
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter") renameChat(chat.sessionId, renameValue);
+                                if (e.key === "Escape") setRenamingId(null);
+                              }}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => renameChat(chat.sessionId, renameValue)}
+                              className="h-7 px-2 rounded-md bg-foreground text-background text-[10px] font-medium hover:bg-foreground/90"
+                            >
+                              Save
+                            </button>
                           </div>
-                        </div>
-                        <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
-                      </button>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => setSelectedChat(chat)}
+                            className="flex w-full items-start gap-3 text-left"
+                          >
+                            <MessageSquare className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
+                            <div className="min-w-0 flex-1">
+                              <p className="truncate text-xs font-medium text-foreground">{chat.title}</p>
+                              <div className="mt-1 flex items-center gap-2 text-[10px] text-muted-foreground">
+                                <span>{chat.messageCount} messages</span>
+                                <span>·</span>
+                                <Clock className="h-2.5 w-2.5" />
+                                <span>{new Date(chat.lastActive).toLocaleDateString()}</span>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <button
+                                type="button"
+                                onClick={(e) => { e.stopPropagation(); setRenamingId(chat.sessionId); setRenameValue(chat.title); }}
+                                className="h-6 px-1.5 rounded text-[10px] text-muted-foreground hover:text-foreground hover:bg-muted"
+                              >
+                                Rename
+                              </button>
+                              <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+                            </div>
+                          </button>
+                        )}
+                      </div>
                     ))}
                   </div>
                 )}
@@ -465,16 +518,51 @@ export function AccountPortal({
               <>
                 <div className="flex items-center justify-between">
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-semibold text-foreground">{selectedChat.title}</p>
-                    <p className="text-[10px] text-muted-foreground">{selectedChat.messageCount} messages</p>
+                    {renamingId === selectedChat.sessionId ? (
+                      <div className="flex items-center gap-2">
+                        <Input
+                          value={renameValue}
+                          onChange={(e) => setRenameValue(e.target.value)}
+                          className="h-7 text-sm bg-muted/50 border-0"
+                          autoFocus
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") renameChat(selectedChat.sessionId, renameValue);
+                            if (e.key === "Escape") setRenamingId(null);
+                          }}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => renameChat(selectedChat.sessionId, renameValue)}
+                          className="h-7 px-2 rounded-md bg-foreground text-background text-[10px] font-medium hover:bg-foreground/90"
+                        >
+                          Save
+                        </button>
+                      </div>
+                    ) : (
+                      <>
+                        <p className="truncate text-sm font-semibold text-foreground">{selectedChat.title}</p>
+                        <p className="text-[10px] text-muted-foreground">{selectedChat.messageCount} messages</p>
+                      </>
+                    )}
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => deleteSingleChat(selectedChat.sessionId)}
-                    className="flex h-7 items-center gap-1 rounded-md bg-destructive/20 px-2 text-[10px] font-medium text-foreground hover:bg-destructive/30"
-                  >
-                    <Trash2 className="h-3 w-3" /> Delete
-                  </button>
+                  <div className="flex items-center gap-2">
+                    {renamingId !== selectedChat.sessionId && (
+                      <button
+                        type="button"
+                        onClick={() => { setRenamingId(selectedChat.sessionId); setRenameValue(selectedChat.title); }}
+                        className="flex h-7 items-center gap-1 rounded-md bg-muted px-2 text-[10px] font-medium text-foreground hover:bg-muted/80"
+                      >
+                        Rename
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => deleteSingleChat(selectedChat.sessionId)}
+                      className="flex h-7 items-center gap-1 rounded-md bg-destructive/20 px-2 text-[10px] font-medium text-foreground hover:bg-destructive/30"
+                    >
+                      <Trash2 className="h-3 w-3" /> Delete
+                    </button>
+                  </div>
                 </div>
 
                 <div className="space-y-2 max-h-80 overflow-y-auto rounded-lg border border-border bg-muted/10 p-3">
@@ -549,9 +637,8 @@ export function AccountPortal({
         {tab === "contact" && (
           <div className="p-4 space-y-4">
             <div className="space-y-3">
-              <ContactItem icon={<Mail className="h-4 w-4" />} label="Email" value={DEVELOPER_INFO.email} href={`mailto:${DEVELOPER_INFO.email}`} />
-              <ContactItem icon={<Smartphone className="h-4 w-4" />} label="Phone" value={DEVELOPER_INFO.phone} href={`tel:${DEVELOPER_INFO.phone}`} />
-              <ContactItem icon={<ShieldCheck className="h-4 w-4" />} label="Portfolio" value="musab-007.netlify.app" href={DEVELOPER_INFO.portfolio} />
+              <ContactItem icon={<Mail className="h-4 w-4" />} label="Help Email" value="developer.bot.ai@gmail.com" sublabel="Approx. reply within 7 days" href="mailto:developer.bot.ai@gmail.com" />
+              <ContactItem icon={<ExternalLink className="h-4 w-4" />} label="Developer Site" value="musab-007.netlify.app" sublabel="Portfolio & more info" href={DEVELOPER_INFO.portfolio} />
             </div>
             <div className="rounded-lg border border-border bg-muted/20 p-3 text-xs text-muted-foreground">
               <p className="mb-1 font-semibold text-foreground">About {BOT_NAME}</p>
@@ -601,11 +688,13 @@ function ContactItem({
   label,
   value,
   href,
+  sublabel,
 }: {
   icon: React.ReactNode;
   label: string;
   value: string;
   href: string;
+  sublabel?: string;
 }) {
   return (
     <a
@@ -618,6 +707,7 @@ function ContactItem({
       <div>
         <p className="text-[10px] uppercase tracking-wider text-muted-foreground">{label}</p>
         <p className="text-sm font-medium">{value}</p>
+        {sublabel && <p className="text-[10px] text-muted-foreground">{sublabel}</p>}
       </div>
     </a>
   );

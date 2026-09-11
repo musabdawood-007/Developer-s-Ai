@@ -116,6 +116,7 @@ export async function POST(req: NextRequest) {
       const res = NextResponse.json({
         visitorId: visitor.id,
         name: visitor.name,
+        email: visitor.email,
       });
       res.cookies.set("devai_session", visitor.id, {
         httpOnly: true,

@@ -7,7 +7,7 @@ import { Loader2, Mail, User, Lock, Eye, EyeOff, KeyRound, ChevronLeft, ShieldCh
 import { BOT_NAME, DEVELOPER_INFO } from "@/lib/chat-config";
 
 interface AuthGateProps {
-  onReady: (info: { name: string; visitorId: string }) => void;
+  onReady: (info: { name: string; visitorId: string; email?: string }) => void;
 }
 
 const STORAGE_KEY = "devai:auth";
@@ -74,9 +74,9 @@ export function AuthGate({ onReady }: AuthGateProps) {
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data?.error || "Verification failed.");
-        localStorage.setItem(STORAGE_KEY, JSON.stringify({ name: data.name, visitorId: data.visitorId }));
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({ name: data.name, visitorId: data.visitorId, email: data.email }));
         try { sessionStorage.setItem("devai:just-logged-in", "1"); } catch {}
-        onReady({ name: data.name, visitorId: data.visitorId });
+        onReady({ name: data.name, visitorId: data.visitorId, email: data.email });
       }
       else if (view === "signin") {
         const res = await fetch("/api/auth/signin", {
@@ -86,9 +86,9 @@ export function AuthGate({ onReady }: AuthGateProps) {
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data?.error || "Sign in failed.");
-        localStorage.setItem(STORAGE_KEY, JSON.stringify({ name: data.name, visitorId: data.visitorId }));
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({ name: data.name, visitorId: data.visitorId, email: data.email }));
         try { sessionStorage.setItem("devai:just-logged-in", "1"); } catch {}
-        onReady({ name: data.name, visitorId: data.visitorId });
+        onReady({ name: data.name, visitorId: data.visitorId, email: data.email });
       }
       else if (view === "forgot-email") {
         const res = await fetch("/api/auth/forgot-password/send-otp", {

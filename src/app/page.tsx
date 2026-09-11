@@ -66,6 +66,7 @@ interface SessionInfo {
 interface VisitorCtx {
   name: string;
   visitorId: string;
+  email?: string;
 }
 
 const VISITOR_STORAGE_KEY = "devai:auth";
@@ -253,6 +254,7 @@ export default function Home() {
           setVisitor({
             name: parsed.name,
             visitorId: parsed.visitorId,
+            email: parsed.email,
           });
         }
       }
