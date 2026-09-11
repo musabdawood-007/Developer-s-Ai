@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { buildSystemPrompt } from "@/lib/chat-config";
-import { db } from "@/lib/db";
 import { getModel, DEFAULT_MODEL_ID, getModelChain } from "@/lib/models";
 import {
   streamChatCompletion,
@@ -145,7 +144,6 @@ export async function POST(req: NextRequest) {
               : `data:image/png;base64,${base64}`;
             sendSafe({ token: `✅ Image generated!\n\nPrompt: *${imagePrompt}*` });
             sendSafe({ done: true, generatedImage: imageDataUrl, generatedImagePrompt: imagePrompt });
-            void incrementUsage(visitorId, modelId);
           } else {
             sendSafe({ token: "⚠️ Image generation failed after 3 attempts. Please try again with a different prompt." });
             sendSafe({ done: true });
@@ -220,15 +218,8 @@ export async function POST(req: NextRequest) {
         }
 
         send({ done: true });
-
-        if (fullReply.trim().length > 0) {
-          void incrementUsage(visitorId, modelId);
-        }
       } catch (err) {
         if (err instanceof Error && err.name === "AbortError") {
-          if (fullReply.trim().length > 0) {
-            void incrementUsage(visitorId, modelId);
-          }
           try {
             send({ done: true });
           } catch {}

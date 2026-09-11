@@ -41,7 +41,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { ChatMessage, type Message, type ChatRole } from "@/components/chat/chat-message";
 import { AuthGate } from "@/components/chat/auth-gate";
-import { AdminPortal } from "@/components/chat/admin-portal";
+
 import { PrivacyTerms } from "@/components/chat/privacy-terms";
 import { AccountPortal } from "@/components/chat/account-portal";
 import { WelcomeScreen } from "@/components/chat/welcome-screen";
@@ -167,7 +167,7 @@ export default function Home() {
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showDevCard, setShowDevCard] = useState(false);
-  const [adminOpen, setAdminOpen] = useState(false);
+
   const [privacyOpen, setPrivacyOpen] = useState(false);
   const [visitor, setVisitor] = useState<VisitorCtx | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
@@ -757,7 +757,6 @@ export default function Home() {
     setSessions([]);
     setCurrentSessionId(null);
     setShowDevCard(false);
-    setAdminOpen(false);
     setPrivacyOpen(false);
     toast({
       title: "Signed out",
@@ -1018,8 +1017,6 @@ export default function Home() {
         )}
       </div>
 
-      <AdminPortal open={adminOpen} onOpenChange={setAdminOpen} />
-
       <PatchNotesModal open={showPatchNotes} onOpenChange={setShowPatchNotes} />
 
       {showUpgradeModal && (
@@ -1104,7 +1101,6 @@ export default function Home() {
           setSessions([]);
           setCurrentSessionId(null);
           setShowDevCard(false);
-          setAdminOpen(false);
           setPrivacyOpen(false);
           setAccountOpen(false);
           try { localStorage.removeItem(VISITOR_STORAGE_KEY); } catch {}
