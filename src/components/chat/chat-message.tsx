@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Trash2, Download, User } from "lucide-react";
+import { Trash2, Download, User, Copy, Check, RotateCcw, Bot } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Markdown } from "./markdown";
 import { watermarkImage } from "@/lib/watermark";
@@ -26,6 +26,7 @@ interface ChatMessageProps {
   isStreaming?: boolean;
   isThinking?: boolean;
   onHide?: (id: string) => void | Promise<void>;
+  onRetry?: (id: string) => void;
 }
 
 export function ChatMessage({
@@ -33,10 +34,12 @@ export function ChatMessage({
   isStreaming,
   isThinking,
   onHide,
+  onRetry,
 }: ChatMessageProps) {
   const isUser = message.role === "user";
   const isEmpty = !isUser && message.content.trim().length === 0;
   const [hiding, setHiding] = useState(false);
+  const [copied, setCopied] = useState(false);
   const canHide = typeof onHide === "function" && !isStreaming;
 
   const handleHide = async () => {
@@ -47,6 +50,12 @@ export function ChatMessage({
     } finally {
       setHiding(false);
     }
+  };
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(message.content);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   if (isUser) {
@@ -95,40 +104,69 @@ export function ChatMessage({
       className="group flex w-full py-3"
     >
       <div className="w-full max-w-3xl mx-auto px-4">
-        {isEmpty && isThinking ? (
-          <ThinkingDots />
-        ) : message.imageProgress !== undefined && message.imageProgress < 100 ? (
-          <ImageProgressBar progress={message.imageProgress} content={message.content} />
-        ) : message.generatedImage ? (
-          <GeneratedImageDisplay
-            src={message.generatedImage}
-            prompt={message.generatedImagePrompt}
-            caption={message.content}
-          />
-        ) : (
-          <div className="text-sm leading-relaxed text-foreground">
-            <Markdown
-              content={message.content}
-              asMarkdownFile={message.asMarkdownFile}
-            />
+        <div className="flex items-start gap-3">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground mt-0.5">
+            <Bot className="h-4 w-4" />
           </div>
-        )}
-        {isStreaming && !isEmpty && (
-          <span className="inline-block ml-0.5 h-4 w-0.5 animate-pulse bg-foreground align-middle rounded-full" />
-        )}
-        <div className="mt-2 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-          {canHide && (
-            <button
-              type="button"
-              onClick={handleHide}
-              disabled={hiding}
-              className="flex h-6 w-6 items-center justify-center rounded-md text-muted-foreground/50 transition-colors hover:bg-muted hover:text-foreground"
-              aria-label="Hide message"
-              title="Hide this message"
-            >
-              <Trash2 className={cn("h-3.5 w-3.5", hiding && "animate-pulse")} />
-            </button>
-          )}
+          <div className="flex-1 min-w-0">
+            {isEmpty && isThinking ? (
+              <ThinkingDots />
+            ) : message.imageProgress !== undefined && message.imageProgress < 100 ? (
+              <ImageProgressBar progress={message.imageProgress} content={message.content} />
+            ) : message.generatedImage ? (
+              <GeneratedImageDisplay
+                src={message.generatedImage}
+                prompt={message.generatedImagePrompt}
+                caption={message.content}
+              />
+            ) : (
+              <div className="text-sm leading-relaxed text-foreground">
+                <Markdown
+                  content={message.content}
+                  asMarkdownFile={message.asMarkdownFile}
+                />
+              </div>
+            )}
+            {isStreaming && !isEmpty && (
+              <span className="inline-block ml-0.5 h-4 w-0.5 animate-pulse bg-foreground align-middle rounded-full" />
+            )}
+            {!isStreaming && !isEmpty && message.content.trim().length > 0 && (
+              <div className="mt-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button
+                  type="button"
+                  onClick={handleCopy}
+                  className="flex h-7 items-center gap-1.5 rounded-md px-2 text-[11px] text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                  title="Copy message"
+                >
+                  {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+                  {copied ? "Copied" : "Copy"}
+                </button>
+                {onRetry && (
+                  <button
+                    type="button"
+                    onClick={() => onRetry(message.id)}
+                    className="flex h-7 items-center gap-1.5 rounded-md px-2 text-[11px] text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                    title="Retry"
+                  >
+                    <RotateCcw className="h-3.5 w-3.5" />
+                    Retry
+                  </button>
+                )}
+                {canHide && (
+                  <button
+                    type="button"
+                    onClick={handleHide}
+                    disabled={hiding}
+                    className="flex h-7 items-center gap-1.5 rounded-md px-2 text-[11px] text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                    title="Delete"
+                  >
+                    <Trash2 className={cn("h-3.5 w-3.5", hiding && "animate-pulse")} />
+                    Delete
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </motion.div>

@@ -60,6 +60,7 @@ interface SessionInfo {
   id: string;
   title: string;
   updatedAt: string;
+  preview?: string;
   _count?: { chats: number };
 }
 
@@ -74,6 +75,15 @@ const VISITOR_STORAGE_KEY = "devai:auth";
 function uid() {
   return Math.random().toString(36).slice(2) + Date.now().toString(36);
 }
+
+const SUGGESTIONS = [
+  "Explain React hooks",
+  "Write a Python function",
+  "Debug my code",
+  "Generate a logo",
+  "Compare SQL vs NoSQL",
+  "Create a REST API",
+];
 
 const MD_TRIGGERS = [
   "generate a markdown",
@@ -271,6 +281,17 @@ export default function Home() {
     return () => window.removeEventListener("beforeinstallprompt", handler);
   }, []);
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "k") {
+        e.preventDefault();
+        createNewSession();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
   const handleInstallApp = async () => {
     if (!installPromptEvent) {
       setShowInstallToast(true);
@@ -297,7 +318,12 @@ export default function Home() {
       if (saved) {
         const parsed = JSON.parse(saved) as { sessions: SessionInfo[]; currentSessionId: string; messages: Record<string, Message[]> };
         if (parsed.sessions?.length > 0) {
-          setSessions(parsed.sessions);
+          const sessionsWithPreview = parsed.sessions.map((s) => {
+            const msgs = parsed.messages?.[s.id];
+            const lastMsg = msgs?.filter((m) => m.role === "user").pop();
+            return { ...s, preview: lastMsg?.content?.slice(0, 50) || "" };
+          });
+          setSessions(sessionsWithPreview);
           setCurrentSessionId(parsed.currentSessionId || parsed.sessions[0].id);
           const msgs = parsed.messages?.[parsed.currentSessionId || parsed.sessions[0].id];
           if (msgs && msgs.length > 0) {
@@ -316,7 +342,14 @@ export default function Home() {
     if (!visitor || !currentSessionId) return;
     const storageKey = `devai:chat-sessions:${visitor.visitorId}`;
     try {
-      const data = { sessions, currentSessionId, messages: { [currentSessionId]: messages.filter(m => m.id !== "welcome") } };
+      const sessionsWithPreview = sessions.map((s) => {
+        if (s.id === currentSessionId) {
+          const lastMsg = messages.filter((m) => m.role === "user").pop();
+          return { ...s, preview: lastMsg?.content?.slice(0, 50) || s.preview };
+        }
+        return s;
+      });
+      const data = { sessions: sessionsWithPreview, currentSessionId, messages: { [currentSessionId]: messages.filter(m => m.id !== "welcome") } };
       localStorage.setItem(storageKey, JSON.stringify(data));
     } catch {}
   }, [visitor, sessions, currentSessionId, messages]);
@@ -329,6 +362,7 @@ export default function Home() {
       id: uid(),
       title: "New Chat",
       updatedAt: new Date().toISOString(),
+      preview: "",
     };
     setSessions((prev) => [newSession, ...prev]);
     setCurrentSessionId(newSession.id);
@@ -786,7 +820,7 @@ export default function Home() {
         <div className="fixed inset-0 z-40 flex lg:hidden">
           <div className="absolute inset-0 bg-black/50" onClick={() => setSidebarOpen(false)} aria-hidden />
           <div className="relative flex h-full w-72 flex-col bg-background border-r border-border animate-slide-in-right">
-            <div className="flex items-center justify-between border-b border-border px-4 py-3">
+            <div className="flex items-center justify-between border-b border-border bg-background/80 backdrop-blur-xl px-4 py-3">
               <img src="/custom-logo.png" alt="Developer's Ai" className="h-8 w-8 rounded-lg object-cover" />
               <button type="button" onClick={() => setSidebarOpen(false)} className="flex h-7 w-7 items-center justify-center rounded text-muted-foreground hover:bg-muted hover:text-foreground" aria-label="Close sidebar">
                 <X className="h-4 w-4" />
@@ -813,8 +847,8 @@ export default function Home() {
                       <button type="button" onClick={() => { switchSession(s.id); setSidebarOpen(false); }} className={cn("flex w-full items-start gap-2 rounded-lg px-3 py-2 text-left text-xs transition-colors hover:bg-muted", s.id === currentSessionId && "bg-muted text-foreground")}>
                         <div className="min-w-0 flex-1 pr-5">
                           <p className="truncate font-medium">{s.title}</p>
-                          <p className="mt-0.5 text-[10px] text-muted-foreground">
-                            {new Date(s.updatedAt).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
+                          <p className="mt-0.5 text-[10px] text-muted-foreground truncate">
+                            {s.preview || new Date(s.updatedAt).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
                           </p>
                         </div>
                       </button>
@@ -836,7 +870,7 @@ export default function Home() {
       )}
 
       <aside className="hidden lg:flex lg:w-72 lg:shrink-0 lg:flex-col border-r border-border bg-background">
-        <div className="flex items-center gap-2 border-b border-border px-4 py-3">
+        <div className="flex items-center gap-2 border-b border-border bg-background/80 backdrop-blur-xl px-4 py-3">
           <img src="/custom-logo.png" alt="Developer's Ai" className="h-8 w-8 rounded-lg object-cover" />
           <span className="text-sm font-semibold">Developer's Ai</span>
         </div>
@@ -855,17 +889,17 @@ export default function Home() {
           {sessions.length === 0 ? (
             <p className="px-3 py-6 text-center text-xs text-muted-foreground">No chats yet.</p>
           ) : (
-            <ul className="space-y-0.5">
-              {sessions.map((s) => (
-                <li key={s.id} className="group relative">
-                  <button type="button" onClick={() => switchSession(s.id)} className={cn("flex w-full items-start gap-2 rounded-lg px-3 py-2 text-left text-xs transition-colors hover:bg-muted", s.id === currentSessionId && "bg-muted text-foreground")}>
-                    <div className="min-w-0 flex-1 pr-5">
-                      <p className="truncate font-medium">{s.title}</p>
-                      <p className="mt-0.5 text-[10px] text-muted-foreground">
-                        {new Date(s.updatedAt).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
-                      </p>
-                    </div>
-                  </button>
+                <ul className="space-y-0.5">
+                  {sessions.map((s) => (
+                    <li key={s.id} className="group relative">
+                      <button type="button" onClick={() => switchSession(s.id)} className={cn("flex w-full items-start gap-2 rounded-lg px-3 py-2 text-left text-xs transition-colors hover:bg-muted", s.id === currentSessionId && "bg-muted text-foreground")}>
+                        <div className="min-w-0 flex-1 pr-5">
+                          <p className="truncate font-medium">{s.title}</p>
+                          <p className="mt-0.5 text-[10px] text-muted-foreground truncate">
+                            {s.preview || new Date(s.updatedAt).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
+                          </p>
+                        </div>
+                      </button>
                   <button type="button" onClick={(e) => { e.stopPropagation(); if (confirm(`Delete "${s.title}"?`)) void deleteSession(s.id); }} className="absolute right-2 top-2 hidden h-5 w-5 items-center justify-center rounded text-muted-foreground transition-colors hover:bg-muted hover:text-foreground group-hover:flex" aria-label="Delete">
                     <Trash2 className="h-3 w-3" />
                   </button>
@@ -882,17 +916,20 @@ export default function Home() {
       </aside>
 
       <div className="flex flex-1 flex-col min-w-0">
-        <header className="shrink-0 border-b border-border bg-background">
+        <header className="shrink-0 border-b border-border bg-background/80 backdrop-blur-xl sticky top-0 z-10">
           <div className="flex items-center justify-between gap-2 px-3 py-2 sm:px-4">
             <div className="flex items-center gap-2">
               <button type="button" onClick={() => { setSidebarOpen(true); refreshSessions(); }} className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground lg:hidden" aria-label="Open sidebar">
                 <Menu className="h-5 w-5" />
               </button>
-              <button type="button" onClick={() => createNewSession()} className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground" aria-label="New chat" title="New chat">
+              <button type="button" onClick={() => createNewSession()} className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground" aria-label="New chat" title="New chat (Ctrl+K)">
                 <Plus className="h-4 w-4" />
               </button>
             </div>
             <div className="flex items-center gap-1">
+              <span className="hidden sm:inline-flex items-center gap-1 rounded-md bg-muted px-2 py-1 text-[10px] text-muted-foreground mr-1">
+                <kbd className="font-mono">Ctrl+K</kbd> New
+              </span>
               <ThemeToggle />
               <button type="button" onClick={() => setAccountOpen(true)} className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground" aria-label="Account">
                 <UserCircle className="h-5 w-5" />
@@ -916,6 +953,18 @@ export default function Home() {
                   <Button type="button" size="icon" onClick={() => void send()} disabled={!input.trim() && pendingImages.length === 0} className="h-9 w-9 shrink-0 rounded-lg bg-foreground text-background hover:bg-foreground/90 disabled:opacity-30 transition-all" aria-label="Send message">
                     <Send className="h-4 w-4" />
                   </Button>
+                </div>
+                <div className="mt-4 flex flex-wrap gap-2 justify-center">
+                  {SUGGESTIONS.map((s) => (
+                    <button
+                      key={s}
+                      type="button"
+                      onClick={() => { setInput(s); textareaRef.current?.focus(); }}
+                      className="rounded-full border border-border bg-card px-3.5 py-1.5 text-xs text-muted-foreground transition-all hover:bg-muted hover:text-foreground hover:border-muted-foreground/30"
+                    >
+                      {s}
+                    </button>
+                  ))}
                 </div>
                 <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <button type="button" onClick={() => textareaRef.current?.focus()} className="flex items-start gap-3 rounded-xl border border-border bg-card p-4 text-left transition-all hover:bg-muted">
