@@ -334,8 +334,6 @@ export function AuthGate({ onReady }: AuthGateProps) {
             </p>
           </div>
 
-          {isSignin && !isForgot && (
-            <>
         </div>
       </main>
     </div>
