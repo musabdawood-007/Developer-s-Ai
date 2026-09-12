@@ -262,15 +262,15 @@ export function AccountPortal({
         </div>
 
         {tab === "menu" && (
-          <div className="p-4 space-y-3">
-            <div className="flex items-center gap-3 rounded-xl border border-border bg-muted/20 p-3">
+          <div className="p-4 space-y-4">
+            <div className="flex items-center gap-4 rounded-xl border border-border bg-muted/20 p-4">
               <div className="relative">
-                <div className="h-14 w-14 shrink-0 overflow-hidden rounded-full border border-border bg-muted">
+                <div className="h-16 w-16 shrink-0 overflow-hidden rounded-full border border-border bg-muted">
                   {profilePic ? (
                     <img src={profilePic} alt={visitor?.name} className="h-full w-full object-cover" />
                   ) : (
                     <div className="flex h-full w-full items-center justify-center text-foreground">
-                      <User className="h-6 w-6" />
+                      <User className="h-7 w-7" />
                     </div>
                   )}
                 </div>
@@ -285,25 +285,39 @@ export function AccountPortal({
               </div>
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-semibold">{visitor?.name}</p>
-                <p className="truncate text-xs text-muted-foreground">Signed in</p>
+                <p className="truncate text-xs text-muted-foreground">{visitor?.email || "Signed in"}</p>
               </div>
             </div>
 
-            <div className="space-y-1">
-              <MenuItem icon={<User className="h-4 w-4" />} label="Edit Profile" onClick={() => setTab("profile")} />
-              <MenuItem icon={<Settings className="h-4 w-4" />} label="Settings" onClick={() => setTab("settings")} />
-              <MenuItem icon={<Database className="h-4 w-4" />} label="Sandbox" badge={`${sandboxData.length} chats`} onClick={() => { loadSandboxData(); setTab("sandbox"); }} />
-              <MenuItem icon={<Info className="h-4 w-4" />} label="About" onClick={() => setTab("about")} />
-              <MenuItem icon={<Smartphone className="h-4 w-4" />} label="Download App" onClick={() => { onInstallApp(); closeAll(); }} />
-              <MenuItem icon={<ShieldCheck className="h-4 w-4" />} label="Privacy Policy" onClick={() => { onPrivacyOpen(); closeAll(); }} />
-              <MenuItem icon={<Mail className="h-4 w-4" />} label="Contact" onClick={() => setTab("contact")} />
-              <div className="my-2 border-t border-border" />
-              <MenuItem
-                icon={<LogOut className="h-4 w-4" />}
-                label="Sign Out"
-                onClick={() => { onSignOut(); closeAll(); }}
-                danger
-              />
+            <div>
+              <p className="mb-1.5 px-1 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Account</p>
+              <div className="space-y-0.5">
+                <MenuItem icon={<User className="h-4 w-4" />} label="Edit Profile" onClick={() => setTab("profile")} />
+                <MenuItem icon={<Database className="h-4 w-4" />} label="Sandbox" badge={`${sandboxData.length} chats`} onClick={() => { loadSandboxData(); setTab("sandbox"); }} />
+                <MenuItem icon={<Settings className="h-4 w-4" />} label="Settings" onClick={() => setTab("settings")} />
+              </div>
+            </div>
+
+            <div>
+              <p className="mb-1.5 px-1 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Info</p>
+              <div className="space-y-0.5">
+                <MenuItem icon={<Info className="h-4 w-4" />} label="About" onClick={() => setTab("about")} />
+                <MenuItem icon={<ShieldCheck className="h-4 w-4" />} label="Privacy Policy" onClick={() => { onPrivacyOpen(); closeAll(); }} />
+                <MenuItem icon={<Mail className="h-4 w-4" />} label="Contact" onClick={() => setTab("contact")} />
+              </div>
+            </div>
+
+            <div>
+              <p className="mb-1.5 px-1 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Actions</p>
+              <div className="space-y-0.5">
+                <MenuItem icon={<Smartphone className="h-4 w-4" />} label="Download App" onClick={() => { onInstallApp(); closeAll(); }} />
+                <MenuItem
+                  icon={<LogOut className="h-4 w-4" />}
+                  label="Sign Out"
+                  onClick={() => { onSignOut(); closeAll(); }}
+                  danger
+                />
+              </div>
             </div>
           </div>
         )}
