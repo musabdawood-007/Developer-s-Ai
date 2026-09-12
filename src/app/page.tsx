@@ -141,6 +141,7 @@ export default function Home() {
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const abortRef = useRef<AbortController | null>(null);
+  const syncingFromSandbox = useRef(false);
   const { toast } = useToast();
 
   const [selectedModelId, setSelectedModelId] = useState<string>(DEFAULT_MODEL_ID);
@@ -295,18 +296,71 @@ export default function Home() {
     createNewSession();
   }, [visitor]);
 
+  useEffect(() => {
+    const handleSessionsChanged = () => {
+      if (!visitor) return;
+      syncingFromSandbox.current = true;
+      const storageKey = `devai:chat-sessions:${visitor.visitorId}`;
+      try {
+        const saved = localStorage.getItem(storageKey);
+        if (saved) {
+          const parsed = JSON.parse(saved) as { sessions: SessionInfo[]; currentSessionId: string; messages: Record<string, Message[]> };
+          if (parsed.sessions) {
+            const sessionsWithPreview = parsed.sessions.map((s) => {
+              const msgs = parsed.messages?.[s.id];
+              const lastMsg = msgs?.filter((m) => m.role === "user").pop();
+              return { ...s, preview: lastMsg?.content?.slice(0, 50) || "" };
+            });
+            setSessions(sessionsWithPreview);
+            if (parsed.currentSessionId && parsed.currentSessionId !== currentSessionId) {
+              setCurrentSessionId(parsed.currentSessionId);
+              const msgs = parsed.messages?.[parsed.currentSessionId];
+              if (msgs && msgs.length > 0) {
+                setMessages(msgs);
+              }
+            } else if (!parsed.sessions.find((s) => s.id === currentSessionId)) {
+              if (parsed.sessions.length > 0) {
+                setCurrentSessionId(parsed.sessions[0].id);
+                const msgs = parsed.messages?.[parsed.sessions[0].id];
+                setMessages(msgs && msgs.length > 0 ? msgs : [{ id: "welcome", role: "assistant", content: buildWelcomeMessage(visitor.name), createdAt: Date.now() }]);
+              } else {
+                createNewSession();
+              }
+            }
+          }
+        } else {
+          setSessions([]);
+          createNewSession();
+        }
+      } catch {}
+      setTimeout(() => { syncingFromSandbox.current = false; }, 100);
+    };
+    window.addEventListener("devai:sessions-changed", handleSessionsChanged);
+    return () => window.removeEventListener("devai:sessions-changed", handleSessionsChanged);
+  }, [visitor, currentSessionId]);
+
   const saveToLocalStorage = useCallback(() => {
-    if (!visitor || !currentSessionId) return;
+    if (!visitor || !currentSessionId || syncingFromSandbox.current) return;
     const storageKey = `devai:chat-sessions:${visitor.visitorId}`;
     try {
-      const sessionsWithPreview = sessions.map((s) => {
-        if (s.id === currentSessionId) {
-          const lastMsg = messages.filter((m) => m.role === "user").pop();
-          return { ...s, preview: lastMsg?.content?.slice(0, 50) || s.preview };
+      let allMessages: Record<string, Message[]> = {};
+      try {
+        const existing = localStorage.getItem(storageKey);
+        if (existing) {
+          const parsed = JSON.parse(existing) as { messages?: Record<string, Message[]> };
+          if (parsed.messages) allMessages = { ...parsed.messages };
         }
-        return s;
+      } catch {}
+
+      allMessages[currentSessionId] = messages.filter(m => m.id !== "welcome");
+
+      const sessionsWithPreview = sessions.map((s) => {
+        const msgs = allMessages[s.id];
+        const lastMsg = msgs?.filter((m) => m.role === "user").pop();
+        return { ...s, preview: lastMsg?.content?.slice(0, 50) || s.preview || "" };
       });
-      const data = { sessions: sessionsWithPreview, currentSessionId, messages: { [currentSessionId]: messages.filter(m => m.id !== "welcome") } };
+
+      const data = { sessions: sessionsWithPreview, currentSessionId, messages: allMessages };
       localStorage.setItem(storageKey, JSON.stringify(data));
     } catch {}
   }, [visitor, sessions, currentSessionId, messages]);

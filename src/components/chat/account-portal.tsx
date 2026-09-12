@@ -155,6 +155,7 @@ export function AccountPortal({
     if (!visitor) return;
     if (!confirm("Delete ALL chats? This cannot be undone.")) return;
     localStorage.removeItem(`devai:chat-sessions:${visitor.visitorId}`);
+    window.dispatchEvent(new Event("devai:sessions-changed"));
     setSandboxData([]);
     setSelectedChat(null);
   };
@@ -169,6 +170,7 @@ export function AccountPortal({
         parsed.sessions = parsed.sessions.filter((s) => s.id !== sessionId);
         delete parsed.messages[sessionId];
         localStorage.setItem(storageKey, JSON.stringify(parsed));
+        window.dispatchEvent(new Event("devai:sessions-changed"));
         loadSandboxData();
         setSelectedChat(null);
       }
@@ -185,6 +187,7 @@ export function AccountPortal({
         const session = parsed.sessions.find((s) => s.id === sessionId);
         if (session) session.title = newTitle.trim();
         localStorage.setItem(storageKey, JSON.stringify(parsed));
+        window.dispatchEvent(new Event("devai:sessions-changed"));
         loadSandboxData();
         setRenamingId(null);
         setSelectedChat((prev) => prev && prev.sessionId === sessionId ? { ...prev, title: newTitle.trim() } : prev);

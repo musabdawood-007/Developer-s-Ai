@@ -17,7 +17,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Visitor ID required." }, { status: 400 });
     }
 
-    // Delete all chat logs first (manual cleanup for MongoDB)
+    const sessionVisitorId = req.cookies.get("devai_session")?.value;
+    if (sessionVisitorId && sessionVisitorId !== visitorId) {
+      return NextResponse.json({ error: "Unauthorized." }, { status: 403 });
+    }
+
     await db.chatLog.deleteMany({ where: { visitorId } }).catch(() => {});
     await db.chatSession.deleteMany({ where: { visitorId } }).catch(() => {});
     await db.visitor.delete({ where: { id: visitorId } });

@@ -21,7 +21,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Visitor ID required." }, { status: 400 });
     }
 
-    const data: any = {};
+    const sessionVisitorId = req.cookies.get("devai_session")?.value;
+    if (sessionVisitorId && sessionVisitorId !== visitorId) {
+      return NextResponse.json({ error: "Unauthorized." }, { status: 403 });
+    }
+
+    const data: Record<string, unknown> = {};
     if (name && name.length >= 2) data.name = name;
     if (profilePicture !== undefined) data.profilePicture = profilePicture || null;
 

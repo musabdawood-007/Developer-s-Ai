@@ -88,7 +88,7 @@ export async function POST(req: NextRequest) {
   const systemPrompt = buildSystemPrompt(visitorName);
 
   const messagesForModel: ChatMessage[] = [
-    { role: "assistant", content: systemPrompt },
+    { role: "system", content: systemPrompt },
     ...body.messages
       .filter((m) => typeof m?.content === "string" && m.content.trim().length > 0)
       .slice(-10),
@@ -226,7 +226,10 @@ export async function POST(req: NextRequest) {
         } else {
           console.error("[chat/stream] error:", err);
           const message = err instanceof Error ? err.message : "Unknown error";
-          send({ error: message });
+          try {
+            send({ error: message });
+            send({ done: true });
+          } catch {}
         }
       } finally {
         try {
