@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
   const code = req.nextUrl.searchParams.get("code");
-  const baseUrl = process.env.NEXTAUTH_URL || req.nextUrl.origin;
+  const baseUrl = (process.env.NEXTAUTH_URL || req.nextUrl.origin).replace(/\/+$/, "");
 
   if (!code) {
     return NextResponse.redirect(`${baseUrl}?error=No+code+received`);
