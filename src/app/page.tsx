@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import {
   Send,
-  Sparkles,
   Trash2,
   Loader2,
   FileText,
@@ -11,8 +10,6 @@ import {
   Phone,
   Globe,
   Github,
-  Code2,
-  Wand2,
   Square,
   LogOut,
   Paperclip,
@@ -119,46 +116,6 @@ function looksLikeMarkdownFile(content: string) {
   if (trimmed.startsWith("#") && trimmed.length > 200) return true;
   return false;
 }
-
-const SUGGESTIONS: {
-  label: string;
-  prompt: string;
-  icon: React.ReactNode;
-}[] = [
-  {
-    label: "About the developer",
-    prompt: "Tell me more about your developer Musab Dawood",
-    icon: <Sparkles className="h-3.5 w-3.5" />,
-  },
-  {
-    label: "Coding tips",
-    prompt: "Give me 5 practical coding tips for cleaner code",
-    icon: <Code2 className="h-3.5 w-3.5" />,
-  },
-  {
-    label: "MERN stack tips",
-    prompt: "Share 5 best practices for building MERN stack apps (MongoDB, Express, React, Node).",
-    icon: <Code2 className="h-3.5 w-3.5" />,
-  },
-  {
-    label: "Generate a README.md",
-    prompt:
-      "Generate a complete README.md file for a Next.js todo app with TypeScript, Tailwind, and Prisma. Include badges, install steps, usage, and folder structure.",
-    icon: <FileText className="h-3.5 w-3.5" />,
-  },
-  {
-    label: "Markdown docs",
-    prompt:
-      "Create a markdown documentation file explaining REST API best practices with examples.",
-    icon: <Wand2 className="h-3.5 w-3.5" />,
-  },
-  {
-    label: "Project plan (.md)",
-    prompt:
-      "Generate a markdown project plan for building a full-stack e-commerce app with milestones, tech stack, and risk assessment.",
-    icon: <FileText className="h-3.5 w-3.5" />,
-  },
-];
 
 export default function Home() {
   const [messages, setMessages] = useState<Message[]>([]);
