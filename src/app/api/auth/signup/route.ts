@@ -7,9 +7,6 @@ import { sendOtpEmail } from "@/lib/email";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-// In-memory store for pending signups: { email: { name, password, otp, expires } }
-const pendingSignups = new Map<string, { name: string; hashedPassword: string; otp: string; expires: number }>();
-
 interface Body {
   email?: string;
   name?: string;
@@ -56,18 +53,21 @@ export async function POST(req: NextRequest) {
 
       const hashedPassword = await bcrypt.hash(password, 10);
       const otp = crypto.randomInt(100000, 999999).toString();
-      const expires = Date.now() + 10 * 60 * 1000; // 10 min
+      const expires = new Date(Date.now() + 10 * 60 * 1000);
 
-      pendingSignups.set(email, { name, hashedPassword, otp, expires });
+      await db.otpToken.deleteMany({ where: { email, type: "signup" } });
 
-      const result = await sendOtpEmail(email, otp);
-      if (!result.success) {
-        return NextResponse.json({
-          ok: true,
-          step: "otp-sent",
-          message: "OTP sent to your email. Check inbox and spam/junk folder.",
-        });
-      }
+      await db.otpToken.create({
+        data: {
+          email,
+          otp,
+          type: "signup",
+          metadata: JSON.stringify({ name, hashedPassword }),
+          expires,
+        },
+      });
+
+      await sendOtpEmail(email, otp);
 
       return NextResponse.json({
         ok: true,
@@ -83,34 +83,38 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "OTP is required." }, { status: 400 });
       }
 
-      const pending = pendingSignups.get(email);
-      if (!pending) {
+      const record = await db.otpToken.findFirst({
+        where: { email, type: "signup" },
+        orderBy: { createdAt: "desc" },
+      });
+
+      if (!record) {
         return NextResponse.json({ error: "No pending signup. Please start again." }, { status: 400 });
       }
 
-      if (Date.now() > pending.expires) {
-        pendingSignups.delete(email);
+      if (new Date() > record.expires) {
+        await db.otpToken.deleteMany({ where: { email, type: "signup" } });
         return NextResponse.json({ error: "OTP expired. Please start again." }, { status: 400 });
       }
 
-      if (pending.otp !== otp) {
+      if (record.otp !== otp) {
         return NextResponse.json({ error: "Incorrect OTP. Please try again." }, { status: 401 });
       }
 
-      const sessionId =
-        "v-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 10);
+      const metadata = record.metadata ? JSON.parse(record.metadata) : {};
+      const sessionId = "v-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 10);
 
       const visitor = await db.visitor.create({
         data: {
           email,
-          name: pending.name,
-          password: pending.hashedPassword,
+          name: metadata.name,
+          password: metadata.hashedPassword,
           sessionId,
         },
         select: { id: true, name: true, email: true },
       });
 
-      pendingSignups.delete(email);
+      await db.otpToken.deleteMany({ where: { email, type: "signup" } });
 
       const res = NextResponse.json({
         visitorId: visitor.id,

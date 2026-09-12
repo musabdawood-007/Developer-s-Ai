@@ -6,8 +6,6 @@ import { sendOtpEmail } from "@/lib/email";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const otpStore = new Map<string, { otp: string; expires: number }>();
-
 interface Body {
   email?: string;
 }
@@ -34,11 +32,20 @@ export async function POST(req: NextRequest) {
     }
 
     const otp = crypto.randomInt(100000, 999999).toString();
-    const expires = Date.now() + 10 * 60 * 1000;
+    const expires = new Date(Date.now() + 10 * 60 * 1000);
 
-    otpStore.set(email, { otp, expires });
+    await db.otpToken.deleteMany({ where: { email, type: "reset" } });
 
-    const result = await sendOtpEmail(email, otp);
+    await db.otpToken.create({
+      data: {
+        email,
+        otp,
+        type: "reset",
+        expires,
+      },
+    });
+
+    await sendOtpEmail(email, otp);
 
     return NextResponse.json({
       ok: true,
@@ -52,5 +59,3 @@ export async function POST(req: NextRequest) {
     );
   }
 }
-
-export { otpStore };

@@ -76,3 +76,16 @@ model ModelUsage {
   @@index([visitorId, date])
   @@map("model_usages")
 }
+
+model OtpToken {
+  id        String   @id @map("_id") @default(cuid())
+  email     String
+  otp       String
+  type      String   // "signup" or "reset"
+  metadata  String?  // JSON string for extra data (name, hashedPassword for signup)
+  expires   DateTime
+  createdAt DateTime @default(now())
+
+  @@index([email, type])
+  @@map("otp_tokens")
+}

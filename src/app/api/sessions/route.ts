@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { validateSession } from "@/lib/auth";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -9,11 +10,16 @@ interface Body {
 }
 
 export async function GET(req: NextRequest) {
+  const sessionVisitorId = await validateSession(req);
+  if (!sessionVisitorId) {
+    return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
+  }
+
   try {
     const url = new URL(req.url);
     const visitorId = url.searchParams.get("visitorId");
-    if (!visitorId) {
-      return NextResponse.json({ error: "Missing visitorId" }, { status: 400 });
+    if (!visitorId || visitorId !== sessionVisitorId) {
+      return NextResponse.json({ error: "Missing or invalid visitorId" }, { status: 400 });
     }
 
     const sessions = await db.chatSession.findMany({
@@ -36,11 +42,16 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  const sessionVisitorId = await validateSession(req);
+  if (!sessionVisitorId) {
+    return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
+  }
+
   try {
     const body = (await req.json()) as Body;
     const visitorId = body?.visitorId?.trim();
-    if (!visitorId) {
-      return NextResponse.json({ error: "Missing visitorId" }, { status: 400 });
+    if (!visitorId || visitorId !== sessionVisitorId) {
+      return NextResponse.json({ error: "Missing or invalid visitorId" }, { status: 400 });
     }
 
     const session = await db.chatSession.create({

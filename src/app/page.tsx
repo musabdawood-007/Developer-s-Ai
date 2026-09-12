@@ -266,6 +266,38 @@ export default function Home() {
   };
 
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("google_login") === "1") {
+      fetch("/api/auth/me").then((r) => r.json()).then((data) => {
+        if (data.visitorId && data.name) {
+          const authData = { name: data.name, visitorId: data.visitorId, email: data.email };
+          localStorage.setItem(VISITOR_STORAGE_KEY, JSON.stringify(authData));
+          setVisitor(authData);
+          try { sessionStorage.setItem("devai:just-logged-in", "1"); } catch {}
+          window.history.replaceState({}, "", window.location.pathname);
+        }
+      }).catch(() => {});
+    }
+  }, []);
+
+  useEffect(() => {
+    if (visitor) return;
+    try {
+      const cached = localStorage.getItem(VISITOR_STORAGE_KEY);
+      if (cached) {
+        const parsed = JSON.parse(cached) as Partial<VisitorCtx>;
+        if (parsed?.name && parsed?.visitorId) {
+          setVisitor({
+            name: parsed.name,
+            visitorId: parsed.visitorId,
+            email: parsed.email,
+          });
+        }
+      }
+    } catch {}
+  }, []);
+
+  useEffect(() => {
     if (!visitor) return;
     const storageKey = `devai:chat-sessions:${visitor.visitorId}`;
     try {

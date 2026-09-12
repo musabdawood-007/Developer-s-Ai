@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { buildSystemPrompt } from "@/lib/chat-config";
 import { getModel, DEFAULT_MODEL_ID, getModelChain } from "@/lib/models";
+import { validateSession } from "@/lib/auth";
 import {
   streamChatCompletion,
   createVisionChatCompletion,
@@ -55,6 +56,11 @@ async function checkModelAccess(
 
 
 export async function POST(req: NextRequest) {
+  const sessionVisitorId = await validateSession(req);
+  if (!sessionVisitorId) {
+    return NextResponse.json({ error: "Unauthorized. Please sign in." }, { status: 401 });
+  }
+
   let body: ChatRequestBody;
   try {
     body = (await req.json()) as ChatRequestBody;

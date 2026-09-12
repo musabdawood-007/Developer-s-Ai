@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { generateImage } from "@/lib/zai-client";
+import { validateSession } from "@/lib/auth";
 import { db } from "@/lib/db";
 
 export const runtime = "nodejs";
@@ -13,6 +14,11 @@ interface GenerateImageBody {
 }
 
 export async function POST(req: NextRequest) {
+  const sessionVisitorId = await validateSession(req);
+  if (!sessionVisitorId) {
+    return NextResponse.json({ error: "Unauthorized. Please sign in." }, { status: 401 });
+  }
+
   let body: GenerateImageBody;
   try {
     body = (await req.json()) as GenerateImageBody;
