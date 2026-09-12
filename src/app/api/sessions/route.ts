@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
 
     const session = await db.chatSession.create({
       data: { visitorId, title: "New Chat" },
-      select: { id: true, title: true, createdAt: true, updatedAt: true },
+      select: { id: true, title: true, createdAt: true },
     });
 
     return NextResponse.json({ session });
