@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import crypto from "crypto";
 import { db } from "@/lib/db";
 import { sendOtpEmail } from "@/lib/email";
 
@@ -32,24 +33,16 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otp = crypto.randomInt(100000, 999999).toString();
     const expires = Date.now() + 10 * 60 * 1000;
 
     otpStore.set(email, { otp, expires });
 
     const result = await sendOtpEmail(email, otp);
 
-    if (result.success) {
-      return NextResponse.json({
-        ok: true,
-        message: "OTP sent to your email. Check your inbox (and spam folder).",
-      });
-    }
-
     return NextResponse.json({
       ok: true,
       message: "OTP sent to your email. Check your inbox (and spam folder).",
-      devOtp: otp,
     });
   } catch (err) {
     console.error("[send-otp] error:", err);

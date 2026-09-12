@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
+import crypto from "crypto";
 import { db } from "@/lib/db";
 import { sendOtpEmail } from "@/lib/email";
 
@@ -54,19 +55,17 @@ export async function POST(req: NextRequest) {
       }
 
       const hashedPassword = await bcrypt.hash(password, 10);
-      const otp = Math.floor(100000 + Math.random() * 900000).toString();
+      const otp = crypto.randomInt(100000, 999999).toString();
       const expires = Date.now() + 10 * 60 * 1000; // 10 min
 
       pendingSignups.set(email, { name, hashedPassword, otp, expires });
 
       const result = await sendOtpEmail(email, otp);
       if (!result.success) {
-        // Fallback: return OTP in response if email fails
         return NextResponse.json({
           ok: true,
           step: "otp-sent",
           message: "OTP sent to your email. Check inbox and spam/junk folder.",
-          devOtp: otp,
         });
       }
 

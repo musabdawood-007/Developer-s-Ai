@@ -7,9 +7,6 @@ import {
   Loader2,
   FileText,
   Mail,
-  Phone,
-  Globe,
-  Github,
   Square,
   LogOut,
   Paperclip,
@@ -1201,119 +1198,5 @@ export default function Home() {
         </div>
       )}
     </div>
-  );
-}
-
-function DeveloperCard({ onClose }: { onClose: () => void }) {
-  return (
-    <div className="border-b border-border bg-muted/50">
-      <div className="mx-auto max-w-3xl px-4 py-4">
-        <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
-          <div className="flex items-start justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-slate-400 to-slate-600 text-foreground font-bold">
-                MD
-              </div>
-              <div>
-                <p className="text-sm font-semibold">{DEVELOPER_INFO.name}</p>
-                <p className="text-xs text-muted-foreground">
-                  Creator of {BOT_NAME}
-                </p>
-              </div>
-            </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-7 w-7 p-0 text-muted-foreground"
-              onClick={onClose}
-              aria-label="Close"
-            >
-              ×
-            </Button>
-          </div>
-
-          <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
-            {DEVELOPER_INFO.intro}
-          </p>
-
-          <div className="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-2">
-            <ContactItem
-              icon={<Mail className="h-4 w-4" />}
-              label="Email"
-              value={DEVELOPER_INFO.email}
-              href={`mailto:${DEVELOPER_INFO.email}`}
-            />
-            <ContactItem
-              icon={<Phone className="h-4 w-4" />}
-              label="Phone"
-              value={DEVELOPER_INFO.phone}
-              href={`tel:${DEVELOPER_INFO.phone.replace(/[+\s]/g, "")}`}
-            />
-            <ContactItem
-              icon={<Globe className="h-4 w-4" />}
-              label="Portfolio"
-              value="musab-007.netlify.app"
-              href={DEVELOPER_INFO.portfolio}
-            />
-          </div>
-
-          <div className="mt-3 flex flex-wrap gap-2">
-            <Button
-              asChild
-              size="sm"
-              variant="outline"
-              className="h-8 gap-1.5 border-border text-foreground hover:bg-muted"
-            >
-              <a
-                href={DEVELOPER_INFO.portfolio}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <Github className="h-3.5 w-3.5" /> Visit Portfolio
-              </a>
-            </Button>
-            <Button
-              asChild
-              size="sm"
-              variant="outline"
-              className="h-8 gap-1.5"
-            >
-              <a href={`mailto:${DEVELOPER_INFO.email}`}>
-                <Mail className="h-3.5 w-3.5" /> Email Me
-              </a>
-            </Button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function ContactItem({
-  icon,
-  label,
-  value,
-  href,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-  href: string;
-}) {
-  return (
-    <a
-      href={href}
-      target={href.startsWith("http") ? "_blank" : undefined}
-      rel="noopener noreferrer"
-      className="flex items-center gap-2 rounded-lg border border-border bg-background/50 px-3 py-2 text-xs transition-colors hover:border-border hover:bg-muted/50"
-    >
-      <span className="text-foreground">{icon}</span>
-      <span className="min-w-0 flex-1">
-        <span className="block text-[10px] uppercase tracking-wider text-muted-foreground">
-          {label}
-        </span>
-        <span className="block truncate font-medium">{value}</span>
-      </span>
-    </a>
   );
 }

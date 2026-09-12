@@ -14,11 +14,11 @@ Welcome to **Developer's Ai** — a friendly chatbot built by Musab Dawood. Your
 When you use Developer's Ai, I collect the following information:
 
 - **Your name** — the name you type in the welcome screen so the bot can greet you personally.
-- **Your chat messages** — both what you type to the bot and the replies the bot generates back to you.
-- **A locally-stored session ID** — a random string saved in your browser's \`localStorage\` so I can recognise you on a return visit without making you re-enter your name.
+- **Your email** — used for account creation and OTP verification only.
+- **Your chat messages** — both what you type to the bot and the replies the bot generates back to you. These are stored locally in your browser.
 - **Basic usage metadata** — the timestamps of your visits and the number of messages you send.
 
-I do **not** collect your email, phone number, IP address, location, browser fingerprint, or any other personally identifying information unless you voluntarily type it into the chat.
+I do **not** store your chat messages on any server. All conversations remain in your browser's \`localStorage\` only.
 
 ### 2. Why I Collect It
 
