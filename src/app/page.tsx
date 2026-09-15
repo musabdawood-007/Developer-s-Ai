@@ -5,14 +5,10 @@ import {
   Send,
   Trash2,
   Loader2,
-  FileText,
-  Mail,
   Square,
-  LogOut,
   Paperclip,
   X,
   Image as ImageIcon,
-  Download,
   Sparkle,
   Smartphone,
   Plus,
@@ -21,7 +17,6 @@ import {
   Clock,
   UserCircle,
   ChevronDown,
-  Lock,
   Zap,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -980,56 +975,36 @@ export default function Home() {
 
         <main ref={scrollRef} className="chat-scroll min-h-0 flex-1 scroll-smooth">
           {messages.length <= 1 && !loading ? (
-            <div className="flex flex-col items-center justify-center px-4 pt-[15vh]">
-              <h1 className="text-3xl sm:text-4xl font-bold tracking-tight mb-2">What can I help you with?</h1>
-              <p className="text-sm text-muted-foreground mb-8">Ask anything — coding, writing, brainstorming, and more.</p>
-              <div className="w-full max-w-2xl">
-                <div className="flex items-end gap-2 rounded-xl border border-border bg-card p-2 focus-within:border-muted-foreground/30 transition-all">
+            <div className="flex flex-col items-center justify-center px-4 pt-[12vh] sm:pt-[16vh]">
+              {/* Logo */}
+              <div className="relative mb-6">
+                <div className="absolute inset-0 -m-1.5 rounded-2xl bg-muted/30 blur-lg" />
+                <img src="/custom-logo.png" alt="Developer's Ai" className="relative h-16 w-16 rounded-xl shadow-lg object-contain" />
+              </div>
+
+              {/* Title */}
+              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mb-1.5">What can I help with?</h1>
+              <p className="text-sm text-muted-foreground mb-8">Ask anything — coding, writing, images, and more.</p>
+
+              {/* Input */}
+              <div className="w-full max-w-xl">
+                <div className="relative flex items-end gap-2 rounded-2xl border border-border bg-card p-2 shadow-sm focus-within:shadow-md focus-within:border-muted-foreground/30 transition-all duration-200">
                   <input ref={fileInputRef} type="file" accept="image/*" multiple onChange={(e) => void handleFileSelect(e)} className="hidden" />
-                  <button type="button" onClick={() => fileInputRef.current?.click()} disabled={streaming || pendingImages.length >= 4} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-all hover:bg-muted hover:text-foreground active:scale-95 disabled:opacity-40" aria-label="Attach image">
+                  <button type="button" onClick={() => fileInputRef.current?.click()} disabled={streaming || pendingImages.length >= 4} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-muted-foreground transition-all hover:bg-muted hover:text-foreground active:scale-95 disabled:opacity-40" aria-label="Attach image">
                     <Paperclip className="h-4 w-4" />
                   </button>
                   <Textarea ref={textareaRef} value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={onKeyDown} placeholder="Message Developer's Ai..." rows={1} className="min-h-[36px] resize-none border-0 bg-transparent px-1 py-1.5 text-sm shadow-none focus-visible:ring-0 focus-visible:ring-offset-0" disabled={streaming} />
-                  <Button type="button" size="icon" onClick={() => void send()} disabled={!input.trim() && pendingImages.length === 0} className="h-9 w-9 shrink-0 rounded-lg bg-foreground text-background hover:bg-foreground/90 disabled:opacity-30 transition-all" aria-label="Send message">
+                  <Button type="button" size="icon" onClick={() => void send()} disabled={!input.trim() && pendingImages.length === 0} className="h-9 w-9 shrink-0 rounded-xl bg-foreground text-background hover:bg-foreground/90 disabled:opacity-30 transition-all" aria-label="Send message">
                     <Send className="h-4 w-4" />
                   </Button>
                 </div>
-                <div className="mt-4 flex flex-wrap gap-2 justify-center">
-                  {SUGGESTIONS.map((s) => (
-                    <button
-                      key={s}
-                      type="button"
-                      onClick={() => { setInput(s); textareaRef.current?.focus(); }}
-                      className="rounded-full border border-border bg-card px-3.5 py-1.5 text-xs text-muted-foreground transition-all hover:bg-muted hover:text-foreground hover:border-muted-foreground/30"
-                    >
-                      {s}
-                    </button>
-                  ))}
-                </div>
-                <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <button type="button" onClick={() => textareaRef.current?.focus()} className="flex items-start gap-3 rounded-xl border border-border bg-card p-4 text-left transition-all hover:bg-muted">
-                    <MessageCircle className="h-5 w-5 mt-0.5 shrink-0 text-muted-foreground" />
-                    <div>
-                      <p className="text-sm font-medium text-foreground">Chat</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">Get fast and accurate answers from Developer's Ai.</p>
-                    </div>
-                  </button>
-                  <button type="button" onClick={() => setImageGenOpen(true)} className="flex items-start gap-3 rounded-xl border border-border bg-card p-4 text-left transition-all hover:bg-muted">
-                    <Sparkle className="h-5 w-5 mt-0.5 shrink-0 text-muted-foreground" />
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <p className="text-sm font-medium text-foreground">Image Generation</p>
-                        <span className="text-[10px] font-medium bg-muted px-1.5 py-0.5 rounded text-muted-foreground">NEW</span>
-                      </div>
-                      <p className="text-xs text-muted-foreground mt-0.5">Create images with AI from text descriptions.</p>
-                    </div>
-                  </button>
-                </div>
+
+                {/* Pending images */}
                 {pendingImages.length > 0 && (
-                  <div className="mt-3 flex flex-wrap gap-2 rounded-lg border border-border bg-card p-2">
+                  <div className="mt-3 flex flex-wrap gap-2 rounded-xl border border-border bg-card p-2">
                     {pendingImages.map((img, idx) => (
                       <div key={idx} className="group relative">
-                        <img src={img} alt={`Pending ${idx + 1}`} className="h-16 w-16 rounded-md border border-border object-cover" />
+                        <img src={img} alt={`Pending ${idx + 1}`} className="h-16 w-16 rounded-lg border border-border object-cover" />
                         <button type="button" onClick={() => removePendingImage(idx)} className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-muted border border-border text-foreground shadow-sm transition-transform hover:scale-110" aria-label="Remove image">
                           <X className="h-3 w-3" />
                         </button>
@@ -1037,6 +1012,54 @@ export default function Home() {
                     ))}
                   </div>
                 )}
+
+                {/* Suggestion chips */}
+                <div className="mt-4 flex flex-wrap gap-2 justify-center">
+                  {SUGGESTIONS.map((s) => (
+                    <button
+                      key={s}
+                      type="button"
+                      onClick={() => { setInput(s); textareaRef.current?.focus(); }}
+                      className="rounded-full border border-border bg-card/50 backdrop-blur-sm px-4 py-2 text-xs text-muted-foreground transition-all hover:bg-muted hover:text-foreground hover:border-muted-foreground/30 active:scale-95"
+                    >
+                      {s}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Feature cards */}
+                <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <button type="button" onClick={() => textareaRef.current?.focus()} className="group flex items-center gap-3 rounded-xl border border-border bg-card/50 backdrop-blur-sm p-3.5 text-left transition-all hover:bg-muted hover:-translate-y-0.5">
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-muted">
+                      <MessageCircle className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-foreground">Chat</p>
+                      <p className="text-[11px] text-muted-foreground">Fast, accurate answers</p>
+                    </div>
+                  </button>
+                  <button type="button" onClick={() => setImageGenOpen(true)} className="group flex items-center gap-3 rounded-xl border border-border bg-card/50 backdrop-blur-sm p-3.5 text-left transition-all hover:bg-muted hover:-translate-y-0.5">
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-muted">
+                      <Sparkle className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-1.5">
+                        <p className="text-sm font-medium text-foreground">Images</p>
+                        <span className="text-[9px] font-medium bg-muted px-1.5 py-0.5 rounded text-muted-foreground">NEW</span>
+                      </div>
+                      <p className="text-[11px] text-muted-foreground">Generate with AI</p>
+                    </div>
+                  </button>
+                  <button type="button" onClick={() => textareaRef.current?.focus()} className="group flex items-center gap-3 rounded-xl border border-border bg-card/50 backdrop-blur-sm p-3.5 text-left transition-all hover:bg-muted hover:-translate-y-0.5">
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-muted">
+                      <Zap className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-foreground">Code</p>
+                      <p className="text-[11px] text-muted-foreground">Debug & build</p>
+                    </div>
+                  </button>
+                </div>
               </div>
             </div>
           ) : (
