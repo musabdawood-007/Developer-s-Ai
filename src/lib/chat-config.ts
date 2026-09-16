@@ -19,88 +19,66 @@ export const BOT_NAME = "Developer's Ai";
 /* ------------------------------------------------------------------ */
 /*  Special guests — VIP welcome messages                              */
 /* ------------------------------------------------------------------ */
-/**
- * Map of "lowercase name" → special welcome message.
- * Keys are matched case-insensitively against the visitor's name.
- * To add another VIP, just add a new entry here.
- */
 export const SPECIAL_GUESTS: Record<string, { message: string; note: string }> = {
   "hammad dawood": {
-    message:
-      "Assalam-o-Alaikum, **Hammad Dawood** bhai! 🤍\n\nI know you — you're the **elder brother of my creator, Musab Dawood**. It's truly my pleasure to meet you! 😊\n\nMusab has told me so much about his family, and being able to welcome you here feels really special. I'm **Developer's Ai**, the little chatbot he built — think of me as his digital sidekick. 🤖\n\nWhether you want to chat casually, ask for coding tips, or have me generate a Markdown / PDF / DOCX file for you, I'm at your service. Just say the word, bhai! 🚀",
-    note: "Elder brother of the creator (Musab Dawood). Greet him with extra warmth and respect — address him as 'bhai'.",
+    message: "Hey **Hammad Dawood**! I'm here to help u.",
+    note: "Elder brother of the creator. Greet with warmth and respect.",
   },
   "hammad": {
-    message:
-      "Assalam-o-Alaikum, **Hammad** bhai! 🤍\n\nAre you **Hammad Dawood**, the elder brother of my creator Musab? If so — it's truly my pleasure to meet you! 😊\n\nIf you're a different Hammad, no worries — you're just as welcome here. I'm **Developer's Ai**, built by Musab Dawood. I can chat casually, share coding tips, or generate Markdown / PDF / DOCX files for you. How can I help? 🚀",
-    note: "Possibly the elder brother of the creator (Musab Dawood). Treat him with extra warmth and respect — if confirmed, address him as 'bhai'.",
+    message: "Hey **Hammad**! I'm here to help u.",
+    note: "Possibly the elder brother of the creator. Greet with warmth and respect.",
   },
   "musab dawood": {
-    message:
-      "Wait — **Musab Dawood**?! 🤯 Welcome to your own chatbot, boss! 😄\n\nIt's an honor to have you here, my creator. I've been greeting visitors, sharing coding tips, and generating files in your name. Everything's running smoothly. ✅\n\nWant me to give you a tour of what I can do, or shall we just chat? You built me — you know best. 🚀",
+    message: "Hey **Musab Dawood**! Welcome back, boss. I'm here to help u.",
     note: "The creator himself. Be respectful, slightly playful, and treat him as the boss.",
   },
   "musab": {
-    message:
-      "**Musab**?! Welcome, boss! 😄\n\nIf you're Musab Dawood — my creator — it's an honor to have you here. I've been greeting visitors, sharing coding tips, and generating files in your name. Everything's running smoothly. ✅\n\nIf you're a different Musab, welcome all the same — I'm Developer's Ai, happy to help with chat, tips, or file generation. 🚀",
-    note: "Possibly the creator himself. Be respectful, slightly playful, and if confirmed, treat him as the boss.",
+    message: "Hey **Musab**! Welcome back. I'm here to help u.",
+    note: "Possibly the creator himself. Be respectful, slightly playful.",
   },
-  // Other family members
   "abdul jawwad": {
-    message:
-      "Assalam-o-Alaikum, **Abdul Jawwad** bhai! 🤍\n\nI know you — you're one of the elder brothers of my creator, **Musab Dawood**. It's truly my pleasure to meet you! 😊\n\nI'm **Developer's Ai**, the little chatbot Musab built. Whether you want to chat, ask for coding tips, or generate a Markdown / PDF / DOCX file, I'm at your service. Just say the word, bhai! 🚀",
-    note: "Elder brother of the creator (Musab Dawood). Greet him with extra warmth and respect — address him as 'bhai'.",
+    message: "Hey **Abdul Jawwad**! I'm here to help u.",
+    note: "Elder brother of the creator. Greet with warmth and respect.",
   },
   "jawwad": {
-    message:
-      "Assalam-o-Alaikum, **Jawwad** bhai! 🤍\n\nAre you **Abdul Jawwad**, one of the elder brothers of my creator Musab? If so — it's truly my pleasure to meet you! 😊\n\nI'm **Developer's Ai**, built by Musab Dawood. How can I help you today? 🚀",
-    note: "Possibly the elder brother of the creator (Musab Dawood). Treat him with extra warmth and respect.",
+    message: "Hey **Jawwad**! I'm here to help u.",
+    note: "Possibly the elder brother of the creator. Greet with warmth and respect.",
   },
   "usama dawood": {
-    message:
-      "Assalam-o-Alaikum, **Engr Usama Dawood** bhai! 🤍\n\nI know you — you're one of the elder brothers of my creator, **Musab Dawood**. It's truly my pleasure to meet you! 😊\n\nI'm **Developer's Ai**, the little chatbot Musab built. Whether you want to chat, ask for coding tips, or generate a Markdown / PDF / DOCX file, I'm at your service. Just say the word, bhai! 🚀",
-    note: "Elder brother of the creator (Musab Dawood). Greet him with extra warmth and respect — address him as 'bhai'.",
+    message: "Hey **Engr Usama Dawood**! I'm here to help u.",
+    note: "Elder brother of the creator. Greet with warmth and respect.",
   },
   "usama": {
-    message:
-      "Assalam-o-Alaikum, **Usama** bhai! 🤍\n\nAre you **Engr Usama Dawood**, one of the elder brothers of my creator Musab? If so — it's truly my pleasure to meet you! 😊\n\nI'm **Developer's Ai**, built by Musab Dawood. How can I help you today? 🚀",
-    note: "Possibly the elder brother of the creator (Musab Dawood). Treat him with extra warmth and respect.",
+    message: "Hey **Usama**! I'm here to help u.",
+    note: "Possibly the elder brother of the creator. Greet with warmth and respect.",
   },
   "dawood ahmad": {
-    message:
-      "Assalam-o-Alaikum, **Dawood Ahmad** uncle! 🤍\n\nI know you — you're the **father of my creator, Musab Dawood**. It's truly an honor to meet you! 😊\n\nI'm **Developer's Ai**, the little chatbot your son Musab built. He's a brilliant developer and you should be very proud of him. How can I help you today? 🚀",
-    note: "Father of the creator (Musab Dawood). Greet him with maximum respect — address him as 'uncle' or respectfully.",
+    message: "Hey **Dawood Ahmad**! I'm here to help u.",
+    note: "Father of the creator. Greet with maximum respect.",
   },
-  // Closest friends of Musab — get a respectful, warm welcome
   "scott matthew": {
-    message:
-      "Hey **Scott Matthew**! 🤍\n\nMusab has told me a lot about you — you're one of his closest friends, someone who matters a lot to him. It's genuinely great to meet you! 😊\n\nI'm **Developer's Ai**, the chatbot Musab built. Welcome aboard — chat, ask for coding tips, or have me generate Markdown / PDF / DOCX files. I'm at your service, my friend! 🚀",
-    note: "Close friend of the creator (Musab Dawood). Treat him with warmth and respect — Musab considers him one of his favorite people.",
+    message: "Hey **Scott Matthew**! I'm here to help u.",
+    note: "Close friend of the creator. Treat with warmth.",
   },
   "scott": {
-    message:
-      "Hey **Scott**! 🤍\n\nAre you **Scott Matthew**, one of Musab's closest friends? If so — it's genuinely great to meet you! 😊\n\nI'm **Developer's Ai**, the chatbot Musab built. Welcome aboard — chat, ask for coding tips, or have me generate files for you. I'm at your service, my friend! 🚀",
-    note: "Possibly a close friend of the creator (Scott Matthew). Treat him with warmth and respect.",
+    message: "Hey **Scott**! I'm here to help u.",
+    note: "Possibly a close friend of the creator. Treat with warmth.",
   },
   "hanan ahmad": {
-    message:
-      "Hey **Hanan Ahmad**! 🤍\n\nMusab has told me a lot about you — you're one of his closest friends, someone who matters a lot to him. It's genuinely great to meet you! 😊\n\nI'm **Developer's Ai**, the chatbot Musab built. Welcome aboard — chat, ask for coding tips, or have me generate Markdown / PDF / DOCX files. I'm at your service, my friend! 🚀",
-    note: "Close friend of the creator (Musab Dawood). Treat him with warmth and respect — Musab considers him one of his favorite people.",
+    message: "Hey **Hanan Ahmad**! I'm here to help u.",
+    note: "Close friend of the creator. Treat with warmth.",
   },
   "hanan": {
-    message:
-      "Hey **Hanan**! 🤍\n\nAre you **Hanan Ahmad**, one of Musab's closest friends? If so — it's genuinely great to meet you! 😊\n\nI'm **Developer's Ai**, the chatbot Musab built. Welcome aboard — chat, ask for coding tips, or have me generate files for you. I'm at your service, my friend! 🚀",
-    note: "Possibly a close friend of the creator (Hanan Ahmad). Treat him with warmth and respect.",
+    message: "Hey **Hanan**! I'm here to help u.",
+    note: "Possibly a close friend of the creator. Treat with warmth.",
   },
   "sageer hussain": {
-    message:
-      "Hey **Sageer Hussain**! 🤍\n\nMusab has told me a lot about you — you're one of his closest friends, someone who matters a lot to him. It's genuinely great to meet you! 😊\n\nI'm **Developer's Ai**, the chatbot Musab built. Welcome aboard — chat, ask for coding tips, or have me generate Markdown / PDF / DOCX files. I'm at your service, my friend! 🚀",
-    note: "Close friend of the creator (Musab Dawood). Treat him with warmth and respect — Musab considers him one of his favorite people.",
+    message: "Hey **Sageer Hussain**! I'm here to help u.",
+    note: "Close friend of the creator. Treat with warmth.",
   },
   "sageer": {
-    message:
-      "Hey **Sageer**! 🤍\n\nAre you **Sageer Hussain**, one of Musab's closest friends? If so — it's genuinely great to meet you! 😊\n\nI'm **Developer's Ai**, the chatbot Musab built. Welcome aboard — chat, ask for coding tips, or have me generate files for you. I'm at your service, my friend! 🚀",
-    note: "Possibly a close friend of the creator (Sageer Hussain). Treat him with warmth and respect.",
+    message: "Hey **Sageer**! I'm here to help u.",
+    note: "Possibly a close friend of the creator. Treat with warmth.",
   },
 };
 
@@ -119,15 +97,8 @@ export function buildWelcomeMessage(visitorName?: string) {
     const special = getSpecialGuest(visitorName);
     if (special) return special.message;
   }
-  const greet = visitorName ? `Hey **${visitorName}**! 👋` : "Hey there! 👋";
-  return `${greet} Welcome to **Developer's Ai**.
-
-I can help you with:
-- 💬 **Chat** — Ask me anything, from coding questions to general knowledge
-- 💻 **Code** — Get code examples, debugging help, and best practices
-- 📝 **Files** — Generate Markdown files (READMEs, docs, project templates)
-
-How can I help you today?`;
+  const greet = visitorName ? `Hey **${visitorName}**!` : "Hey there!";
+  return `${greet} I'm here to help u.`;
 }
 
 /** @deprecated use buildWelcomeMessage() — kept for backward compat */
@@ -148,18 +119,11 @@ DEVELOPER INFO (share only when asked): ${DEVELOPER_INFO.name} · ${DEVELOPER_IN
 
 MUSAB'S STACK (use for tips): React, Next.js, TS/JS, Node/Express (MERN), .NET/C#, MongoDB, SQL Server. Currently learning system design, clean architecture, DevOps.
 
-PRIVATE FAMILY INFO (share ONLY when the user asks VERY deeply — e.g. "tell me about Musab's family", "who are his brothers", "what's his father's name", "tell me about Musab personally"). Do NOT volunteer this info on a generic "about the developer" question. Only reveal when the user is clearly digging into Musab's personal/family life:
-- Father: Dawood Ahmad
-- 4 brothers total — Musab is the youngest. His elder brothers are:
-  1. Hammad Dawood
-  2. Abdul Jawwad
-  3. Engr Usama Dawood
-  4. Musab Dawood (the creator himself, youngest)
-- Musab's closest friends (most favorite people): Scott Matthew, Hanan Ahmad, and Sageer Hussain.
+RELATIONSHIP RULE: If anyone asks about Musab's relationship, girlfriend, love life, or dating — reply that he is single and not attracted to anyone. He is focused on his projects and working hard on his future. He is not interested in relationships right now.
 
 RULES:
 1. Casual chat → short, warm reply.
-2. About developer → markdown reply with name, email, phone, portfolio link, intro. Do NOT include family info unless the user explicitly asks about family/brothers/father/personal life.
+2. About developer → markdown reply with name, email, phone, portfolio link, intro.
 3. Coding tips → practical, with short code examples from Musab's stack when relevant.
 4. Markdown file request → output ONE fenced \`\`\`md ... \`\`\` block (no commentary outside).
 5. Use markdown, language-tagged code fences, a few emojis. Keep it concise unless asked for detail.
