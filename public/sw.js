@@ -1,4 +1,4 @@
-// Developer's Ai — Service Worker (v2)
+// PULSE — Service Worker (v2)
 // Fixed: Don't cache Next.js chunks (they're hash-based, change on every deploy).
 // Only cache the app shell (HTML, icons, manifest). Everything else goes network-first.
 

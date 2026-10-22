@@ -1,12 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { buildSystemPrompt } from "@/lib/chat-config";
+import { db } from "@/lib/db";
+import { buildSystemPrompt, CRISIS_KEYWORDS, CRISIS_RESPONSE } from "@/lib/chat-config";
 import { getModel, DEFAULT_MODEL_ID, getModelChain } from "@/lib/models";
 import { validateSession } from "@/lib/auth";
-import {
-  streamChatCompletion,
-  createVisionChatCompletion,
-  generateImage,
-} from "@/lib/zai-client";
+import { streamChatCompletion } from "@/lib/zai-client";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -15,7 +12,6 @@ export const maxDuration = 60;
 interface ChatMessage {
   role: "user" | "assistant" | "system";
   content: string;
-  images?: string[];
 }
 
 interface ChatRequestBody {
@@ -24,51 +20,60 @@ interface ChatRequestBody {
   modelId?: string;
 }
 
-async function resolveVisitorName(
-  visitorName: string | undefined
-): Promise<string | undefined> {
-  if (visitorName && visitorName.trim()) return visitorName.trim();
-  return undefined;
-}
-
-async function checkModelAccess(
-  modelId: string | undefined
-): Promise<{
-  allowed: boolean;
-  reason?: string;
-  apiModel: string;
-  modelId: string;
-}> {
-  const id = modelId || DEFAULT_MODEL_ID;
-  const model = getModel(id);
-
-  if (!model) {
-    return {
-      allowed: false,
-      reason: "Unknown model. Please select a valid model.",
-      apiModel: "",
-      modelId: id,
-    };
+/**
+ * Enforce the free-tier daily message limit (PRD §4: ~10 msgs/day).
+ * Pro tier conversations are unlimited while the subscription is active.
+ */
+async function enforceDailyLimit(
+  visitorId: string,
+  modelId: string
+): Promise<{ allowed: boolean; used?: number; remaining?: number }> {
+  const model = getModel(modelId);
+  if (!model) return { allowed: false };
+  if (model.tier === "pro") {
+    // Pro gating: only active Pro subscribers may use it.
+    const visitor = await db.visitor.findUnique({
+      where: { id: visitorId },
+      select: { isPro: true, proExpiresAt: true },
+    });
+    const isProActive =
+      visitor?.isPro && (!visitor?.proExpiresAt || visitor.proExpiresAt > new Date());
+    return { allowed: Boolean(isProActive) };
   }
+  if (model.dailyLimit === 0) return { allowed: true };
 
-  return { allowed: true, apiModel: model.apiModel, modelId: id };
+  const today = new Date().toISOString().slice(0, 10);
+  const usage = await db.modelUsage.findUnique({
+    where: {
+      visitorId_modelId_date: { visitorId, modelId, date: today },
+    },
+  });
+  const used = usage?.count ?? 0;
+  return { allowed: used < model.dailyLimit, used, remaining: Math.max(0, model.dailyLimit - used) };
 }
 
+async function recordUsage(visitorId: string, modelId: string) {
+  const today = new Date().toISOString().slice(0, 10);
+  await db.modelUsage
+    .upsert({
+      where: { visitorId_modelId_date: { visitorId, modelId, date: today } },
+      create: { visitorId, modelId, date: today, count: 1 },
+      update: { count: { increment: 1 } },
+    })
+    .catch(() => {});
+}
 
 export async function POST(req: NextRequest) {
   const sessionVisitorId = await validateSession(req);
   if (!sessionVisitorId) {
-    return NextResponse.json({ error: "Unauthorized. Please sign in." }, { status: 401 });
+    return NextResponse.json({ error: "Unauthorized. Please sign in or continue as a guest." }, { status: 401 });
   }
 
   let body: ChatRequestBody;
   try {
     body = (await req.json()) as ChatRequestBody;
   } catch {
-    return NextResponse.json(
-      { error: "Invalid JSON body." },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: "Invalid JSON body." }, { status: 400 });
   }
 
   if (!body?.messages || !Array.isArray(body.messages)) {
@@ -78,102 +83,35 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const visitorName = await resolveVisitorName(body.visitorName);
+  const modelId = body.modelId && getModel(body.modelId) ? body.modelId : DEFAULT_MODEL_ID;
 
-  const access = await checkModelAccess(body.modelId);
-  if (!access.allowed) {
+  const limitCheck = await enforceDailyLimit(sessionVisitorId, modelId);
+  if (!limitCheck.allowed) {
     return NextResponse.json(
-      { error: access.reason || "Access denied." },
+      {
+        error: "You've reached today's limit on this conversation mode.",
+        lockedReason: "daily-limit",
+      },
       { status: 403 }
     );
   }
-  const modelChain = getModelChain(access.modelId);
-  const modelId = access.modelId;
-  console.log(`[chat] Model chain for ${modelId}:`, modelChain);
 
-  const systemPrompt = buildSystemPrompt(visitorName);
+  const systemPrompt = buildSystemPrompt(body.visitorName?.trim() || undefined);
 
-  const messagesForModel: ChatMessage[] = [
-    { role: "system", content: systemPrompt },
-    ...body.messages
-      .filter((m) => typeof m?.content === "string" && m.content.trim().length > 0)
-      .slice(-10),
-  ];
+  const history = body.messages
+    .filter((m) => typeof m?.content === "string" && m.content.trim().length > 0)
+    .slice(-10);
 
   const lastUserMsg = [...body.messages].reverse().find((m) => m.role === "user");
+  const lastUserText = (lastUserMsg?.content || "").toLowerCase();
 
-  const imageMatch = lastUserMsg?.content?.match(
-    /^(?:generate\s+image\s*[:\s]+|draw\s*[:\s]+|create\s+image\s*[:\s]+|image\s*[:\s]+)(.+)$/i
-  );
+  // Content moderation / crisis guard (PRD §6): catch crisis language
+  // before it reaches the model and respond with care immediately.
+  const inCrisis = CRISIS_KEYWORDS.some((k) => lastUserText.includes(k));
 
-  if (imageMatch) {
-    const imagePrompt = imageMatch[1].trim();
-
-    const stream = new ReadableStream<Uint8Array>({
-      async start(controller) {
-        const enc = new TextEncoder();
-        const sendSafe = (obj: unknown) => {
-          try {
-            controller.enqueue(enc.encode(`data: ${JSON.stringify(obj)}\n\n`));
-          } catch {}
-        };
-
-        sendSafe({ started: true });
-        sendSafe({ token: `🎨 Generating image: **${imagePrompt}**\n\n` });
-        sendSafe({ imageProgress: 5 });
-
-        let progress = 5;
-        const progressInterval = setInterval(() => {
-          progress = Math.min(progress + Math.random() * 15, 90);
-          sendSafe({ imageProgress: Math.round(progress) });
-        }, 800);
-
-        try {
-          let base64: string | null = null;
-
-          for (let attempt = 1; attempt <= 3; attempt++) {
-            try {
-              base64 = await generateImage(imagePrompt);
-              if (base64) break;
-            } catch (err) {
-              console.error(`[chat image-gen] attempt ${attempt} failed:`, err);
-              if (attempt < 3) await new Promise((r) => setTimeout(r, 2000 * attempt));
-            }
-          }
-
-          clearInterval(progressInterval);
-          sendSafe({ imageProgress: 100 });
-
-          if (base64) {
-            const imageDataUrl = base64.startsWith("data:")
-              ? base64
-              : `data:image/png;base64,${base64}`;
-            sendSafe({ token: `✅ Image generated!\n\nPrompt: *${imagePrompt}*` });
-            sendSafe({ done: true, generatedImage: imageDataUrl, generatedImagePrompt: imagePrompt });
-          } else {
-            sendSafe({ token: "⚠️ Image generation failed after 3 attempts. Please try again with a different prompt." });
-            sendSafe({ done: true });
-          }
-        } catch (err) {
-          clearInterval(progressInterval);
-          sendSafe({ token: `⚠️ Error: ${err instanceof Error ? err.message : "Unknown error"}` });
-          sendSafe({ done: true });
-        } finally {
-          controller.close();
-        }
-      },
-    });
-
-    return new Response(stream, {
-      headers: {
-        "Content-Type": "text/event-stream; charset=utf-8",
-        "Cache-Control": "no-cache, no-transform",
-        Connection: "keep-alive",
-        "X-Accel-Buffering": "no",
-      },
-    });
-  }
   const encoder = new TextEncoder();
+
+  await recordUsage(sessionVisitorId, modelId);
 
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
@@ -188,36 +126,15 @@ export async function POST(req: NextRequest) {
       send({ started: true });
 
       try {
-        const hasImages = body.messages.some(
-          (m) => Array.isArray(m.images) && m.images.length > 0
-        );
-
-        if (hasImages) {
-          const visionMessages: any[] = [
-            { role: "assistant", content: systemPrompt },
-            ...body.messages
-              .filter((m) => typeof m?.content === "string" || (m.images?.length ?? 0) > 0)
-              .slice(-10)
-              .map((m) => {
-                if (m.role === "user" && m.images && m.images.length > 0) {
-                  const content: any[] = [];
-                  if (m.content && m.content.trim()) {
-                    content.push({ type: "text", text: m.content });
-                  }
-                  for (const img of m.images) {
-                    content.push({ type: "image_url", image_url: { url: img } });
-                  }
-                  return { role: "user", content };
-                }
-                return { role: m.role, content: m.content };
-              }),
-          ];
-
-          const reply = await createVisionChatCompletion(visionMessages, modelChain);
-          fullReply = reply;
-          send({ token: reply });
+        if (inCrisis) {
+          fullReply = CRISIS_RESPONSE;
+          send({ token: fullReply });
         } else {
-          for await (const token of streamChatCompletion(messagesForModel, modelChain)) {
+          const messagesForModel: ChatMessage[] = [
+            { role: "system", content: systemPrompt },
+            ...history,
+          ];
+          for await (const token of streamChatCompletion(messagesForModel, getModelChain(modelId))) {
             fullReply += token;
             send({ token });
           }

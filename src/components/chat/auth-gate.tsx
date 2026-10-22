@@ -3,14 +3,14 @@
 import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Loader2, Mail, User, Lock, Eye, EyeOff, KeyRound, ChevronLeft, ShieldCheck } from "lucide-react";
-import { BOT_NAME, DEVELOPER_INFO } from "@/lib/chat-config";
+import { Loader2, Mail, User, Lock, Eye, EyeOff, KeyRound, ChevronLeft, ShieldCheck, Heart } from "lucide-react";
+import { BOT_NAME } from "@/lib/chat-config";
 
 interface AuthGateProps {
   onReady: (info: { name: string; visitorId: string; email?: string }) => void;
 }
 
-const STORAGE_KEY = "devai:auth";
+const STORAGE_KEY = "pulse:auth";
 
 type View = "signin" | "signup" | "signup-otp" | "forgot-email" | "forgot-otp" | "forgot-reset";
 
@@ -38,6 +38,24 @@ export function AuthGate({ onReady }: AuthGateProps) {
   }, [resendTimer]);
 
   const startTimer = () => setResendTimer(60);
+
+  // Anonymous first-session chat (PRD §3A): lower the barrier —
+  // no email needed for the first exchanges.
+  const continueAsGuest = async () => {
+    setSubmitting(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/auth/guest", { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || "Guest session failed.");
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ name: data.name, visitorId: data.visitorId }));
+      onReady({ name: data.name, visitorId: data.visitorId });
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Something went wrong.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -75,7 +93,7 @@ export function AuthGate({ onReady }: AuthGateProps) {
         const data = await res.json();
         if (!res.ok) throw new Error(data?.error || "Verification failed.");
         localStorage.setItem(STORAGE_KEY, JSON.stringify({ name: data.name, visitorId: data.visitorId, email: data.email }));
-        try { sessionStorage.setItem("devai:just-logged-in", "1"); } catch {}
+        try { sessionStorage.setItem("pulse:just-logged-in", "1"); } catch {}
         onReady({ name: data.name, visitorId: data.visitorId, email: data.email });
       }
       else if (view === "signin") {
@@ -87,7 +105,7 @@ export function AuthGate({ onReady }: AuthGateProps) {
         const data = await res.json();
         if (!res.ok) throw new Error(data?.error || "Sign in failed.");
         localStorage.setItem(STORAGE_KEY, JSON.stringify({ name: data.name, visitorId: data.visitorId, email: data.email }));
-        try { sessionStorage.setItem("devai:just-logged-in", "1"); } catch {}
+        try { sessionStorage.setItem("pulse:just-logged-in", "1"); } catch {}
         onReady({ name: data.name, visitorId: data.visitorId, email: data.email });
       }
       else if (view === "forgot-email") {
@@ -179,7 +197,7 @@ export function AuthGate({ onReady }: AuthGateProps) {
     <div className="flex min-h-dvh flex-col bg-background">
       <header className="flex items-center justify-between px-6 py-4">
         <div className="flex items-center gap-2">
-          <img src="/custom-logo.png" alt="Developer's Ai" className="h-8 w-8 rounded-lg object-cover" />
+          <img src="/custom-logo.png" alt="PULSE" className="h-8 w-8 rounded-lg object-cover" />
           <span className="text-sm font-semibold">{BOT_NAME}</span>
         </div>
       </header>
@@ -187,7 +205,7 @@ export function AuthGate({ onReady }: AuthGateProps) {
       <main className="flex flex-1 flex-col items-center justify-center px-4 pb-16">
         <div className="w-full max-w-md">
           <h1 className="mb-8 text-center text-2xl font-bold tracking-tight text-foreground">
-            {isSignup ? "Sign up to Developer's Ai" : isSignin ? "Log in to Developer's Ai" : isSignupOtp ? "Verify Your Email" : isForgotEmail ? "Reset Password" : isForgotReset ? "Set New Password" : "Verify OTP"}
+            {isSignup ? "Save your space" : isSignin ? "Welcome back" : isSignupOtp ? "Verify Your Email" : isForgotEmail ? "Reset Password" : isForgotReset ? "Set New Password" : "Verify OTP"}
           </h1>
 
           {(isForgot || isSignupOtp) && (
@@ -203,6 +221,30 @@ export function AuthGate({ onReady }: AuthGateProps) {
           )}
 
           <form onSubmit={submit} className="space-y-3">
+            {(isSignup || isSignin) && (
+              <>
+                <button
+                  type="button"
+                  onClick={continueAsGuest}
+                  disabled={submitting}
+                  className="flex h-14 w-full items-center gap-3 rounded-lg border border-border bg-gradient-to-r from-background to-muted/40 px-4 text-left transition-colors hover:bg-muted/40 disabled:opacity-50"
+                >
+                  <Heart className="h-5 w-5 shrink-0 text-foreground" />
+                  <span className="flex-1">
+                    <span className="block text-sm font-medium text-foreground">Talk anonymously first</span>
+                    <span className="block text-[11px] text-muted-foreground">No email needed — free guest session</span>
+                  </span>
+                  <span className="text-sm text-foreground arrow">→</span>
+                </button>
+                {isSignup && (
+                  <div className="my-2 flex items-center gap-3">
+                    <div className="h-px flex-1 bg-border" />
+                    <span className="text-[10px] text-muted-foreground">or create a saved account</span>
+                    <div className="h-px flex-1 bg-border" />
+                  </div>
+                )}
+              </>
+            )}
             {(isSignup) && (
               <div>
                 <div className="relative">
@@ -305,7 +347,7 @@ export function AuthGate({ onReady }: AuthGateProps) {
                     <span className="font-medium text-foreground">What we collect:</span> Your name, email, and hashed password for authentication only.
                   </p>
                   <p className="text-[11px] leading-relaxed text-muted-foreground">
-                    <span className="font-medium text-foreground">What we don&apos;t store:</span> Your chat messages, images, and conversations are saved only in your browser&apos;s localStorage. We have no access to them.
+                    <span className="font-medium text-foreground">What we don&apos;t store:</span> Your conversations are not saved on PULSE servers. They are sent to our AI provider to generate each reply, and then kept only in your browser&apos;s localStorage. We have no access to them.
                   </p>
                   <p className="text-[11px] leading-relaxed text-muted-foreground">
                     <span className="font-medium text-foreground">Your control:</span> You can delete all your data anytime by signing out or clearing your browser data.

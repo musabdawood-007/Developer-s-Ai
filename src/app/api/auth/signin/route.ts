@@ -62,7 +62,7 @@ export async function POST(req: NextRequest) {
       name: visitor.name,
       email: visitor.email,
     });
-    res.cookies.set("devai_session", visitor.id, {
+    res.cookies.set("pulse_session", visitor.id, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",

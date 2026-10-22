@@ -42,7 +42,7 @@ export function PrivacyTerms({
                   Privacy &amp; Terms
                 </DialogTitle>
                 <DialogDescription className="text-[11px]">
-                  How your data is handled and the rules of using Developer's Ai.
+                  How your data is handled and the rules of using PULSE.
                 </DialogDescription>
               </div>
             </div>

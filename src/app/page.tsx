@@ -4,29 +4,16 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import {
   Send,
   Trash2,
-  Loader2,
   Square,
-  Paperclip,
   X,
-  Image as ImageIcon,
-  Sparkle,
-  Smartphone,
+  Heart,
   Plus,
   MessageCircle,
   Menu,
-  Clock,
   UserCircle,
-  ChevronDown,
-  Zap,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { useToast } from "@/hooks/use-toast";
 import { ChatMessage, type Message, type ChatRole } from "@/components/chat/chat-message";
 import { AuthGate } from "@/components/chat/auth-gate";
@@ -34,14 +21,13 @@ import { AuthGate } from "@/components/chat/auth-gate";
 import { PrivacyTerms } from "@/components/chat/privacy-terms";
 import { AccountPortal } from "@/components/chat/account-portal";
 import { WelcomeScreen } from "@/components/chat/welcome-screen";
-import { PatchNotesModal } from "@/components/chat/patch-notes-modal";
 
 import {
   BOT_NAME,
-  DEVELOPER_INFO,
   buildWelcomeMessage,
+  DISCLAIMER_FOOTER,
 } from "@/lib/chat-config";
-import { MODELS, DEFAULT_MODEL_ID, MODEL_STORAGE_KEY, getModel } from "@/lib/models";
+import { DEFAULT_MODEL_ID } from "@/lib/models";
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "@/components/theme-toggle";
 
@@ -50,7 +36,6 @@ interface SessionInfo {
   title: string;
   updatedAt: string;
   preview?: string;
-  _count?: { chats: number };
 }
 
 interface VisitorCtx {
@@ -59,55 +44,21 @@ interface VisitorCtx {
   email?: string;
 }
 
-const VISITOR_STORAGE_KEY = "devai:auth";
+const VISITOR_STORAGE_KEY = "pulse:auth";
 
 function uid() {
   return Math.random().toString(36).slice(2) + Date.now().toString(36);
 }
 
+/* Emotional-first suggestions (PRD §2: the "First 30 Seconds" experience) */
 const SUGGESTIONS = [
-  "Explain React hooks",
-  "Write a Python function",
-  "Debug my code",
-  "Generate a logo",
-  "Compare SQL vs NoSQL",
-  "Create a REST API",
+  "I'm stressed",
+  "I'm burned out",
+  "I feel alone",
+  "I failed my exam",
+  "I can't focus",
+  "I need motivation",
 ];
-
-const MD_TRIGGERS = [
-  "generate a markdown",
-  "generate a .md",
-  "generate markdown",
-  "create a markdown",
-  "create a .md",
-  "create markdown",
-  "make a markdown",
-  "make a .md",
-  "make markdown",
-  "write a markdown",
-  "write a .md",
-  "write me a readme",
-  "write a readme",
-  "generate a readme",
-  "create a readme",
-  "make a readme",
-  "build a markdown",
-  "produce a markdown",
-  "markdown file",
-];
-
-function isMarkdownRequest(text: string) {
-  const lower = text.toLowerCase();
-  return MD_TRIGGERS.some((t) => lower.includes(t));
-}
-
-function looksLikeMarkdownFile(content: string) {
-  const trimmed = content.trim();
-  const fenceMatch = trimmed.match(/^```(?:md|markdown)\s*\n([\s\S]*?)\n```$/);
-  if (fenceMatch) return true;
-  if (trimmed.startsWith("#") && trimmed.length > 200) return true;
-  return false;
-}
 
 export default function Home() {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -115,18 +66,12 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [streaming, setStreaming] = useState(false);
   const [thinking, setThinking] = useState(false);
-  const [pendingImages, setPendingImages] = useState<string[]>([]);
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const [imageGenOpen, setImageGenOpen] = useState(false);
-  const [imagePrompt, setImagePrompt] = useState("");
-  const [generatingImage, setGeneratingImage] = useState(false);
   const [installPromptEvent, setInstallPromptEvent] = useState<any>(null);
   const [showInstallToast, setShowInstallToast] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
   const [sessions, setSessions] = useState<SessionInfo[]>([]);
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [showDevCard, setShowDevCard] = useState(false);
 
   const [privacyOpen, setPrivacyOpen] = useState(false);
   const [visitor, setVisitor] = useState<VisitorCtx | null>(null);
@@ -136,14 +81,9 @@ export default function Home() {
   const syncingFromSandbox = useRef(false);
   const { toast } = useToast();
 
-  const [selectedModelId, setSelectedModelId] = useState<string>(DEFAULT_MODEL_ID);
-  const [modelDropdownOpen, setModelDropdownOpen] = useState(false);
-  const [usage, setUsage] = useState<Record<string, { used: number; remaining: number; dailyLimit: number; locked: boolean }>>({});
   const [isPro, setIsPro] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [showWelcome, setShowWelcome] = useState(true);
-  const [showPatchNotes, setShowPatchNotes] = useState(false);
-
 
   useEffect(() => {
     const nav = performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming | undefined;
@@ -153,57 +93,19 @@ export default function Home() {
     }
   }, []);
 
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem(MODEL_STORAGE_KEY);
-      if (saved && getModel(saved)) {
-        setSelectedModelId(saved);
-      }
-    } catch {}
-  }, []);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(MODEL_STORAGE_KEY, selectedModelId);
-    } catch {}
-  }, [selectedModelId]);
-
   const refreshUsage = useCallback(async () => {
     if (!visitor?.visitorId) return;
     try {
       const res = await fetch(`/api/usage?visitorId=${visitor.visitorId}`);
       if (!res.ok) return;
       const data = await res.json();
-      setIsPro(data.isPro || false);
-      const map: Record<string, { used: number; remaining: number; dailyLimit: number; locked: boolean }> = {};
-      for (const m of data.models || []) {
-        map[m.id] = {
-          used: m.used,
-          remaining: m.remaining,
-          dailyLimit: m.dailyLimit,
-          locked: m.locked,
-        };
-      }
-      setUsage(map);
+      setIsPro(Boolean(data.isPro));
     } catch {}
   }, [visitor?.visitorId]);
 
   useEffect(() => {
     refreshUsage();
   }, [refreshUsage]);
-
-  // Show patch notes once after login if user hasn't seen the latest version
-  useEffect(() => {
-    if (!visitor) return;
-    try {
-      const seenVersion = localStorage.getItem("devai:patch-version");
-      const currentVersion = "v2.5"; // bump this when shipping new patch
-      if (seenVersion !== currentVersion) {
-        setShowPatchNotes(true);
-        localStorage.setItem("devai:patch-version", currentVersion);
-      }
-    } catch {}
-  }, [visitor]);
 
   useEffect(() => {
     try {
@@ -253,8 +155,8 @@ export default function Home() {
     const choice = await installPromptEvent.userChoice;
     if (choice.outcome === "accepted") {
       toast({
-        title: "App installed!",
-        description: "Find it on your home screen. Thanks for installing!",
+        title: "PULSE is on your home screen",
+        description: "Come back anytime. Thanks for installing!",
       });
     }
     setInstallPromptEvent(null);
@@ -268,7 +170,7 @@ export default function Home() {
           const authData = { name: data.name, visitorId: data.visitorId, email: data.email };
           localStorage.setItem(VISITOR_STORAGE_KEY, JSON.stringify(authData));
           setVisitor(authData);
-          try { sessionStorage.setItem("devai:just-logged-in", "1"); } catch {}
+          try { sessionStorage.setItem("pulse:just-logged-in", "1"); } catch {}
           window.history.replaceState({}, "", window.location.pathname);
         }
       }).catch(() => {});
@@ -290,11 +192,11 @@ export default function Home() {
         }
       }
     } catch {}
-  }, []);
+  }, [visitor]);
 
   useEffect(() => {
     if (!visitor) return;
-    const storageKey = `devai:chat-sessions:${visitor.visitorId}`;
+    const storageKey = `pulse:chat-sessions:${visitor.visitorId}`;
     try {
       const saved = localStorage.getItem(storageKey);
       if (saved) {
@@ -324,7 +226,7 @@ export default function Home() {
     const handleSessionsChanged = () => {
       if (!visitor) return;
       syncingFromSandbox.current = true;
-      const storageKey = `devai:chat-sessions:${visitor.visitorId}`;
+      const storageKey = `pulse:chat-sessions:${visitor.visitorId}`;
       try {
         const saved = localStorage.getItem(storageKey);
         if (saved) {
@@ -359,13 +261,13 @@ export default function Home() {
       } catch {}
       setTimeout(() => { syncingFromSandbox.current = false; }, 100);
     };
-    window.addEventListener("devai:sessions-changed", handleSessionsChanged);
-    return () => window.removeEventListener("devai:sessions-changed", handleSessionsChanged);
+    window.addEventListener("pulse:sessions-changed", handleSessionsChanged);
+    return () => window.removeEventListener("pulse:sessions-changed", handleSessionsChanged);
   }, [visitor, currentSessionId]);
 
   const saveToLocalStorage = useCallback(() => {
     if (!visitor || !currentSessionId || syncingFromSandbox.current) return;
-    const storageKey = `devai:chat-sessions:${visitor.visitorId}`;
+    const storageKey = `pulse:chat-sessions:${visitor.visitorId}`;
     try {
       let allMessages: Record<string, Message[]> = {};
       try {
@@ -385,7 +287,21 @@ export default function Home() {
       });
 
       const data = { sessions: sessionsWithPreview, currentSessionId, messages: allMessages };
-      localStorage.setItem(storageKey, JSON.stringify(data));
+      try {
+        const existing = localStorage.getItem(storageKey);
+        const existingPreview = existing ? JSON.stringify(existing).length : 0;
+        if (existingPreview > 4_500_000) {
+          // History cap for free tier: drop oldest sessions beyond ~4.5MB.
+          const parsed = JSON.parse(existing!) as { sessions: SessionInfo[] };
+          const kept = parsed.sessions.slice(0, Math.max(5, parsed.sessions.length - 3));
+          const keepIds = new Set(kept.map(s => s.id));
+          allMessages = Object.fromEntries(Object.entries(allMessages).filter(([k]) => keepIds.has(k) || k === currentSessionId));
+        }
+      } catch {}
+
+      const sessionsToSave = sessionsWithPreview.filter(s => allMessages[s.id] !== undefined || s.id === currentSessionId);
+      const dataToSave = { sessions: sessionsToSave.length > 0 ? sessionsToSave : sessionsWithPreview, currentSessionId, messages: allMessages };
+      localStorage.setItem(storageKey, JSON.stringify(dataToSave));
     } catch {}
   }, [visitor, sessions, currentSessionId, messages]);
 
@@ -395,7 +311,7 @@ export default function Home() {
     if (!visitor) return;
     const newSession: SessionInfo = {
       id: uid(),
-      title: "New Chat",
+      title: `Feeling heavy?`,
       updatedAt: new Date().toISOString(),
       preview: "",
     };
@@ -414,7 +330,7 @@ export default function Home() {
 
   const switchSession = (sessionId: string) => {
     setCurrentSessionId(sessionId);
-    const storageKey = `devai:chat-sessions:${visitor?.visitorId}`;
+    const storageKey = `pulse:chat-sessions:${visitor?.visitorId}`;
     try {
       const saved = localStorage.getItem(storageKey);
       if (saved) {
@@ -434,7 +350,7 @@ export default function Home() {
 
   const refreshSessions = useCallback(() => {
     if (!visitor) return;
-    const storageKey = `devai:chat-sessions:${visitor.visitorId}`;
+    const storageKey = `pulse:chat-sessions:${visitor.visitorId}`;
     try {
       const saved = localStorage.getItem(storageKey);
       if (saved) {
@@ -454,7 +370,7 @@ export default function Home() {
         createNewSession();
       }
     }
-    toast({ title: "Chat deleted." });
+    toast({ title: "Space deleted." });
   };
 
   useEffect(() => {
@@ -474,44 +390,40 @@ export default function Home() {
     ta.style.height = Math.min(ta.scrollHeight, 160) + "px";
   }, [input]);
 
+  const postFeedback = useCallback(async (messageId: string, rating: "up" | "down") => {
+    try {
+      await fetch("/api/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ modelId: DEFAULT_MODEL_ID, rating }),
+      });
+    } catch {}
+  }, []);
+
   const send = useCallback(
     async (rawText?: string) => {
       const text = (rawText ?? input).trim();
-      const images = [...pendingImages];
-      if ((!text && images.length === 0) || loading) return;
+      if (!text || loading) return;
 
       const userMsg: Message = {
         id: uid(),
-        role: "user",
-        content: text || (images.length > 0 ? "(image attached)" : ""),
-        images: images.length > 0 ? images : undefined,
+        role: "user" as ChatRole,
+        content: text,
         createdAt: Date.now(),
       };
       const history = [...messages, userMsg];
       setMessages(history);
       setInput("");
-      setPendingImages([]);
       setLoading(true);
       setStreaming(true);
 
-      const lower = text.toLowerCase();
-      if (
-        /developer|musab|who (made|built|created)|about you|about your maker/.test(
-          lower
-        )
-      ) {
-        setShowDevCard(true);
-      }
-
       const botId = uid();
-      const wasMarkdownRequest = isMarkdownRequest(text);
       setMessages((prev) => [
         ...prev,
         {
           id: botId,
-          role: "assistant",
+          role: "assistant" as ChatRole,
           content: "",
-          asMarkdownFile: wasMarkdownRequest,
           createdAt: Date.now(),
         },
       ]);
@@ -525,13 +437,9 @@ export default function Home() {
           headers: { "Content-Type": "application/json" },
           signal: controller.signal,
           body: JSON.stringify({
-            messages: history.map((m) => ({
-              role: m.role,
-              content: m.content,
-              ...(m.images ? { images: m.images } : {}),
-            })),
+            messages: history.map((m) => ({ role: m.role, content: m.content })),
             visitorName: visitor?.name,
-            modelId: selectedModelId,
+            modelId: DEFAULT_MODEL_ID,
           }),
         });
 
@@ -564,23 +472,13 @@ export default function Home() {
 
             try {
               const json = JSON.parse(payload) as
-                | { token?: string; done?: boolean; error?: string; started?: boolean; generatedImage?: string; generatedImagePrompt?: string; imageProgress?: number };
+                | { token?: string; done?: boolean; error?: string; started?: boolean };
 
               if (json.error) {
                 throw new Error(json.error);
               }
               if (json.started) {
                 setThinking(true);
-              }
-              if (typeof json.imageProgress === "number") {
-                setThinking(false);
-                setMessages((prev) =>
-                  prev.map((m) =>
-                    m.id === botId
-                      ? { ...m, imageProgress: json.imageProgress }
-                      : m
-                  )
-                );
               }
               if (typeof json.token === "string" && json.token.length > 0) {
                 setThinking(false);
@@ -592,20 +490,6 @@ export default function Home() {
                   )
                 );
               }
-              if (json.generatedImage) {
-                setMessages((prev) =>
-                  prev.map((m) =>
-                    m.id === botId
-                      ? {
-                          ...m,
-                          content: accumulated,
-                          generatedImage: json.generatedImage,
-                          generatedImagePrompt: json.generatedImagePrompt,
-                        }
-                      : m
-                  )
-                );
-              }
             } catch {
             }
           }
@@ -613,16 +497,11 @@ export default function Home() {
 
         const finalText =
           accumulated ||
-          "Sorry, I didn't get a response. Please try again.";
+          "I'm having trouble connecting right now — give me a moment and try again. I'm still here.";
         setMessages((prev) =>
           prev.map((m) =>
             m.id === botId
-              ? {
-                  ...m,
-                  content: finalText,
-                  asMarkdownFile:
-                    wasMarkdownRequest || looksLikeMarkdownFile(finalText),
-                }
+              ? { ...m, content: finalText }
               : m
           )
         );
@@ -631,14 +510,14 @@ export default function Home() {
           setMessages((prev) =>
             prev.map((m) =>
               m.id === botId && m.content.trim().length > 0
-                ? { ...m, content: m.content + "\n\n_…stopped_" }
+                ? { ...m, content: m.content + "\n\n_…paused — pick up whenever you're ready._" }
                 : m
             )
           );
         } else {
           const msg = e instanceof Error ? e.message : "Unknown error";
           toast({
-            title: "Chat error",
+            title: "PULSE couldn't respond",
             description: msg,
             variant: "destructive",
           });
@@ -648,7 +527,7 @@ export default function Home() {
                 ? {
                     ...m,
                     content:
-                      "⚠️ Something went wrong reaching the model. Please try again in a moment.",
+                      "Something went wrong on my end. Your words didn't disappear — try sending that again in a moment.",
                   }
                 : m
             )
@@ -662,73 +541,12 @@ export default function Home() {
         void refreshUsage();
       }
     },
-    [input, loading, messages, toast, visitor, pendingImages, currentSessionId, refreshSessions]
+    [input, loading, messages, toast, visitor, refreshUsage]
   );
 
   const stopGeneration = useCallback(() => {
     abortRef.current?.abort();
   }, []);
-
-  const fileToDataUrl = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
-  };
-
-  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
-
-    const newImages: string[] = [];
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-      if (!file.type.startsWith("image/")) {
-        toast({
-          title: "Unsupported file",
-          description: `${file.name} is not an image. Only images are supported.`,
-          variant: "destructive",
-        });
-        continue;
-      }
-      if (file.size > 5 * 1024 * 1024) {
-        toast({
-          title: "File too large",
-          description: `${file.name} is over 5MB. Please choose a smaller image.`,
-          variant: "destructive",
-        });
-        continue;
-      }
-      try {
-        const dataUrl = await fileToDataUrl(file);
-        newImages.push(dataUrl);
-      } catch {
-        // ignore
-      }
-    }
-
-    if (newImages.length > 0) {
-      setPendingImages((prev) => [...prev, ...newImages].slice(0, 4));
-    }
-
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
-  };
-
-  const removePendingImage = (idx: number) => {
-    setPendingImages((prev) => prev.filter((_, i) => i !== idx));
-  };
-
-  const handleHideMessage = useCallback(
-    (id: string) => {
-      if (id === "welcome") return;
-      setMessages((prev) => prev.filter((m) => m.id !== id));
-    },
-    []
-  );
 
   const onKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -737,77 +555,8 @@ export default function Home() {
     }
   };
 
-  const handleGenerateImage = async () => {
-    const prompt = imagePrompt.trim();
-    if (!prompt || generatingImage) return;
-
-    setGeneratingImage(true);
-
-    const placeholderId = uid();
-    setMessages((prev) => [
-      ...prev,
-      {
-        id: placeholderId,
-        role: "assistant",
-        content: `🎨 Generating image: **${prompt}**…`,
-        createdAt: Date.now(),
-      },
-    ]);
-
-    try {
-      const res = await fetch("/api/generate-image", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt, size: "1024x1024" }),
-      });
-
-      if (!res.ok) {
-        const errBody = await res.json().catch(() => ({}));
-        throw new Error(errBody?.error || "Image generation failed.");
-      }
-
-      const data = (await res.json()) as { imageDataUrl: string };
-
-      setMessages((prev) =>
-        prev.map((m) =>
-          m.id === placeholderId
-            ? {
-                ...m,
-                content: `🎨 **Generated image** for:`,
-                generatedImage: data.imageDataUrl,
-                generatedImagePrompt: prompt,
-              }
-            : m
-        )
-      );
-
-      setImagePrompt("");
-      setImageGenOpen(false);
-      toast({ title: "Image generated!", description: "Check it out in the chat." });
-    } catch (e) {
-      setMessages((prev) =>
-        prev.map((m) =>
-          m.id === placeholderId
-            ? {
-                ...m,
-                content: `⚠️ Couldn't generate that image: ${e instanceof Error ? e.message : "Unknown error"}`,
-              }
-            : m
-        )
-      );
-      toast({
-        title: "Generation failed",
-        description: e instanceof Error ? e.message : "Unknown error",
-        variant: "destructive",
-      });
-    } finally {
-      setGeneratingImage(false);
-    }
-  };
-
   const clearChat = () => {
     createNewSession();
-    setShowDevCard(false);
   };
 
   const signOut = async () => {
@@ -819,7 +568,7 @@ export default function Home() {
     } catch {
     }
     try {
-      if (visitor) localStorage.removeItem(`devai:chat-sessions:${visitor.visitorId}`);
+      if (visitor) localStorage.removeItem(`pulse:chat-sessions:${visitor.visitorId}`);
       localStorage.removeItem(VISITOR_STORAGE_KEY);
     } catch {
     }
@@ -827,11 +576,10 @@ export default function Home() {
     setMessages([]);
     setSessions([]);
     setCurrentSessionId(null);
-    setShowDevCard(false);
     setPrivacyOpen(false);
     toast({
       title: "Signed out",
-      description: "You can sign back in with your name and password.",
+      description: "Your space is waiting whenever you need it.",
     });
   };
 
@@ -849,24 +597,51 @@ export default function Home() {
     );
   }
 
+  const InputBar = (
+    <div className="mx-auto max-w-3xl w-full">
+      <div className="flex items-end gap-2 rounded-xl border border-border bg-card p-2 focus-within:border-muted-foreground/30 transition-all">
+        <Textarea ref={textareaRef} value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={onKeyDown} placeholder="Say what's on your mind…" rows={1} className="min-h-[36px] resize-none border-0 bg-transparent px-1 py-1.5 text-sm shadow-none focus-visible:ring-0 focus-visible:ring-offset-0" disabled={streaming} />
+        {streaming ? (
+          <Button type="button" size="icon" onClick={stopGeneration} className="h-9 w-9 shrink-0 rounded-lg bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-all" aria-label="Stop">
+            <Square className="h-4 w-4 fill-current" />
+          </Button>
+        ) : (
+          <Button type="button" size="icon" onClick={() => void send()} disabled={!input.trim()} className="h-9 w-9 shrink-0 rounded-lg bg-foreground text-background hover:bg-foreground/90 disabled:opacity-30 transition-all" aria-label="Send">
+            <Send className="h-4 w-4" />
+          </Button>
+        )}
+      </div>
+      <p className="mt-1.5 px-1 text-[10px] leading-relaxed text-muted-foreground">
+        {streaming ? (
+          <span className="inline-flex items-center gap-1.5 text-foreground/70">
+            <span className="h-1 w-1 animate-pulse rounded-full bg-foreground/70" />
+            {thinking ? "Typing…" : "Responding…"}
+          </span>
+        ) : (
+          DISCLAIMER_FOOTER
+        )}
+      </p>
+    </div>
+  );
+
   return (
     <div className="flex h-[100dvh] overflow-hidden bg-background text-foreground">
       {sidebarOpen && (
         <div className="fixed inset-0 z-40 flex lg:hidden">
           <div className="absolute inset-0 bg-black/50" onClick={() => setSidebarOpen(false)} aria-hidden />
-          <div className="relative flex h-full w-72 flex-col bg-background border-r border-border animate-slide-in-right">
+          <div className="relative flex h-full w-72 flex-col bg-background border-r border-border">
             <div className="flex items-center justify-between border-b border-border bg-background/80 backdrop-blur-xl px-4 py-3">
-              <img src="/custom-logo.png" alt="Developer's Ai" className="h-8 w-8 rounded-lg object-cover" />
+              <div className="flex items-center gap-2">
+                <img src="/custom-logo.png" alt="PULSE" className="h-8 w-8 rounded-lg object-cover" />
+                <span className="text-sm font-semibold">PULSE</span>
+              </div>
               <button type="button" onClick={() => setSidebarOpen(false)} className="flex h-7 w-7 items-center justify-center rounded text-muted-foreground hover:bg-muted hover:text-foreground" aria-label="Close sidebar">
                 <X className="h-4 w-4" />
               </button>
             </div>
             <div className="p-3 space-y-1">
               <button type="button" onClick={() => { createNewSession(); setSidebarOpen(false); }} className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
-                <Plus className="h-4 w-4" /> New Chat
-              </button>
-              <button type="button" onClick={() => { setImageGenOpen(true); setSidebarOpen(false); }} className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
-                <Sparkle className="h-4 w-4" /> Image Gen
+                <Plus className="h-4 w-4" /> New Space
               </button>
               <button type="button" onClick={() => { setAccountOpen(true); setSidebarOpen(false); }} className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
                 <UserCircle className="h-4 w-4" /> Account
@@ -874,7 +649,7 @@ export default function Home() {
             </div>
             <div className="chat-scroll min-h-0 flex-1 overflow-y-auto border-t border-border px-2 py-2">
               {sessions.length === 0 ? (
-                <p className="px-3 py-6 text-center text-xs text-muted-foreground">No chats yet.</p>
+                <p className="px-3 py-6 text-center text-xs text-muted-foreground">No spaces yet.</p>
               ) : (
                 <ul className="space-y-0.5">
                   {sessions.map((s) => (
@@ -906,15 +681,12 @@ export default function Home() {
 
       <aside className="hidden lg:flex lg:w-72 lg:shrink-0 lg:flex-col border-r border-border bg-background">
         <div className="flex items-center gap-2 border-b border-border bg-background/80 backdrop-blur-xl px-4 py-3">
-          <img src="/custom-logo.png" alt="Developer's Ai" className="h-8 w-8 rounded-lg object-cover" />
-          <span className="text-sm font-semibold">Developer's Ai</span>
+          <img src="/custom-logo.png" alt="PULSE" className="h-8 w-8 rounded-lg object-cover" />
+          <span className="text-sm font-semibold">PULSE</span>
         </div>
         <div className="p-3 space-y-1">
           <button type="button" onClick={() => createNewSession()} className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
-            <Plus className="h-4 w-4" /> New Chat
-          </button>
-          <button type="button" onClick={() => setImageGenOpen(true)} className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
-            <Sparkle className="h-4 w-4" /> Image Gen
+            <Plus className="h-4 w-4" /> New Space
           </button>
           <button type="button" onClick={() => setAccountOpen(true)} className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
             <UserCircle className="h-4 w-4" /> Account
@@ -922,19 +694,19 @@ export default function Home() {
         </div>
         <div className="chat-scroll min-h-0 flex-1 overflow-y-auto border-t border-border px-2 py-2">
           {sessions.length === 0 ? (
-            <p className="px-3 py-6 text-center text-xs text-muted-foreground">No chats yet.</p>
+            <p className="px-3 py-6 text-center text-xs text-muted-foreground">No spaces yet.</p>
           ) : (
-                <ul className="space-y-0.5">
-                  {sessions.map((s) => (
-                    <li key={s.id} className="group relative">
-                      <button type="button" onClick={() => switchSession(s.id)} className={cn("flex w-full items-start gap-2 rounded-lg px-3 py-2 text-left text-xs transition-colors hover:bg-muted", s.id === currentSessionId && "bg-muted text-foreground")}>
-                        <div className="min-w-0 flex-1 pr-5">
-                          <p className="truncate font-medium">{s.title}</p>
-                          <p className="mt-0.5 text-[10px] text-muted-foreground truncate">
-                            {s.preview || new Date(s.updatedAt).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
-                          </p>
-                        </div>
-                      </button>
+            <ul className="space-y-0.5">
+              {sessions.map((s) => (
+                <li key={s.id} className="group relative">
+                  <button type="button" onClick={() => switchSession(s.id)} className={cn("flex w-full items-start gap-2 rounded-lg px-3 py-2 text-left text-xs transition-colors hover:bg-muted", s.id === currentSessionId && "bg-muted text-foreground")}>
+                    <div className="min-w-0 flex-1 pr-5">
+                      <p className="truncate font-medium">{s.title}</p>
+                      <p className="mt-0.5 text-[10px] text-muted-foreground truncate">
+                        {s.preview || new Date(s.updatedAt).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
+                      </p>
+                    </div>
+                  </button>
                   <button type="button" onClick={(e) => { e.stopPropagation(); if (confirm(`Delete "${s.title}"?`)) void deleteSession(s.id); }} className="absolute right-2 top-2 hidden h-5 w-5 items-center justify-center rounded text-muted-foreground transition-colors hover:bg-muted hover:text-foreground group-hover:flex" aria-label="Delete">
                     <Trash2 className="h-3 w-3" />
                   </button>
@@ -957,14 +729,14 @@ export default function Home() {
               <button type="button" onClick={() => { setSidebarOpen(true); refreshSessions(); }} className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground lg:hidden" aria-label="Open sidebar">
                 <Menu className="h-5 w-5" />
               </button>
-              <button type="button" onClick={() => createNewSession()} className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground" aria-label="New chat" title="New chat (Ctrl+K)">
+              <button type="button" onClick={() => createNewSession()} className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground" aria-label="New space" title="New space (Ctrl+K)">
                 <Plus className="h-4 w-4" />
               </button>
+              {isPro ? (
+                <span className="hidden sm:inline-flex items-center gap-1 rounded-md bg-muted px-2 py-1 text-[10px] text-foreground"><Zap className="h-3 w-3" /> PULSE Pro</span>
+              ) : null}
             </div>
             <div className="flex items-center gap-1">
-              <span className="hidden sm:inline-flex items-center gap-1 rounded-md bg-muted px-2 py-1 text-[10px] text-muted-foreground mr-1">
-                <kbd className="font-mono">Ctrl+K</kbd> New
-              </span>
               <ThemeToggle />
               <button type="button" onClick={() => setAccountOpen(true)} className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground" aria-label="Account">
                 <UserCircle className="h-5 w-5" />
@@ -973,47 +745,29 @@ export default function Home() {
           </div>
         </header>
 
-        <main ref={scrollRef} className="chat-scroll min-h-0 flex-1 scroll-smooth">
+        <main ref={scrollRef} className="chat-scroll min-h-0 flex-1 scroll-smooth pb-[120px]">
           {messages.length <= 1 && !loading ? (
-            <div className="flex flex-col items-center justify-center px-4 pt-[12vh] sm:pt-[16vh]">
+            <div className="flex flex-col items-center justify-center px-4 pt-[10vh] sm:pt-[14vh]">
               {/* Logo */}
               <div className="relative mb-6">
                 <div className="absolute inset-0 -m-1.5 rounded-2xl bg-muted/30 blur-lg" />
-                <img src="/custom-logo.png" alt="Developer's Ai" className="relative h-16 w-16 rounded-xl shadow-lg object-contain" />
+                <img src="/custom-logo.png" alt="PULSE" className="relative h-16 w-16 rounded-xl shadow-lg object-contain" />
               </div>
 
-              {/* Title */}
-              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mb-1.5">What can I help with?</h1>
-              <p className="text-sm text-muted-foreground mb-8">Ask anything — coding, writing, images, and more.</p>
+              {/* Value prop (PRD §2: the First 30 Seconds) */}
+              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mb-1.5 text-center">Feeling heavy?</h1>
+              <p className="text-sm text-muted-foreground mb-8 text-center">Let&apos;s lighten the load together.</p>
 
               {/* Input */}
               <div className="w-full max-w-xl">
                 <div className="relative flex items-end gap-2 rounded-2xl border border-border bg-card p-2 shadow-sm focus-within:shadow-md focus-within:border-muted-foreground/30 transition-all duration-200">
-                  <input ref={fileInputRef} type="file" accept="image/*" multiple onChange={(e) => void handleFileSelect(e)} className="hidden" />
-                  <button type="button" onClick={() => fileInputRef.current?.click()} disabled={streaming || pendingImages.length >= 4} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-muted-foreground transition-all hover:bg-muted hover:text-foreground active:scale-95 disabled:opacity-40" aria-label="Attach image">
-                    <Paperclip className="h-4 w-4" />
-                  </button>
-                  <Textarea ref={textareaRef} value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={onKeyDown} placeholder="Message Developer's Ai..." rows={1} className="min-h-[36px] resize-none border-0 bg-transparent px-1 py-1.5 text-sm shadow-none focus-visible:ring-0 focus-visible:ring-offset-0" disabled={streaming} />
-                  <Button type="button" size="icon" onClick={() => void send()} disabled={!input.trim() && pendingImages.length === 0} className="h-9 w-9 shrink-0 rounded-xl bg-foreground text-background hover:bg-foreground/90 disabled:opacity-30 transition-all" aria-label="Send message">
+                  <Textarea ref={textareaRef} value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={onKeyDown} placeholder="What's on your mind?" rows={1} className="min-h-[36px] resize-none border-0 bg-transparent px-1 py-1.5 text-sm shadow-none focus-visible:ring-0 focus-visible:ring-offset-0" disabled={streaming} />
+                  <Button type="button" size="icon" onClick={() => void send()} disabled={!input.trim()} className="h-9 w-9 shrink-0 rounded-xl bg-foreground text-background hover:bg-foreground/90 disabled:opacity-30 transition-all" aria-label="Send message">
                     <Send className="h-4 w-4" />
                   </Button>
                 </div>
 
-                {/* Pending images */}
-                {pendingImages.length > 0 && (
-                  <div className="mt-3 flex flex-wrap gap-2 rounded-xl border border-border bg-card p-2">
-                    {pendingImages.map((img, idx) => (
-                      <div key={idx} className="group relative">
-                        <img src={img} alt={`Pending ${idx + 1}`} className="h-16 w-16 rounded-lg border border-border object-cover" />
-                        <button type="button" onClick={() => removePendingImage(idx)} className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-muted border border-border text-foreground shadow-sm transition-transform hover:scale-110" aria-label="Remove image">
-                          <X className="h-3 w-3" />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {/* Suggestion chips */}
+                {/* Emotional suggestion chips */}
                 <div className="mt-4 flex flex-wrap gap-2 justify-center">
                   {SUGGESTIONS.map((s) => (
                     <button
@@ -1027,55 +781,54 @@ export default function Home() {
                   ))}
                 </div>
 
-                {/* Feature cards */}
+                {/* Trust cards */}
                 <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <button type="button" onClick={() => textareaRef.current?.focus()} className="group flex items-center gap-3 rounded-xl border border-border bg-card/50 backdrop-blur-sm p-3.5 text-left transition-all hover:bg-muted hover:-translate-y-0.5">
+                  <div className="flex items-center gap-3 rounded-xl border border-border bg-card/50 backdrop-blur-sm p-3.5">
                     <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-muted">
-                      <MessageCircle className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+                      <Heart className="h-4 w-4 text-muted-foreground" />
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-foreground">Chat</p>
-                      <p className="text-[11px] text-muted-foreground">Fast, accurate answers</p>
+                      <p className="text-sm font-medium text-foreground">Heard first</p>
+                      <p className="text-[11px] text-muted-foreground">No lectures, no judgment</p>
                     </div>
-                  </button>
-                  <button type="button" onClick={() => setImageGenOpen(true)} className="group flex items-center gap-3 rounded-xl border border-border bg-card/50 backdrop-blur-sm p-3.5 text-left transition-all hover:bg-muted hover:-translate-y-0.5">
+                  </div>
+                  <div className="flex items-center gap-3 rounded-xl border border-border bg-card/50 backdrop-blur-sm p-3.5">
                     <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-muted">
-                      <Sparkle className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+                      <MessageCircle className="h-4 w-4 text-muted-foreground" />
                     </div>
                     <div>
-                      <div className="flex items-center gap-1.5">
-                        <p className="text-sm font-medium text-foreground">Images</p>
-                        <span className="text-[9px] font-medium bg-muted px-1.5 py-0.5 rounded text-muted-foreground">NEW</span>
-                      </div>
-                      <p className="text-[11px] text-muted-foreground">Generate with AI</p>
+                      <p className="text-sm font-medium text-foreground">Then guided</p>
+                      <p className="text-[11px] text-muted-foreground">One tiny step, together</p>
                     </div>
-                  </button>
-                  <button type="button" onClick={() => textareaRef.current?.focus()} className="group flex items-center gap-3 rounded-xl border border-border bg-card/50 backdrop-blur-sm p-3.5 text-left transition-all hover:bg-muted hover:-translate-y-0.5">
+                  </div>
+                  <div className="flex items-center gap-3 rounded-xl border border-border bg-card/50 backdrop-blur-sm p-3.5">
                     <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-muted">
-                      <Zap className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+                      <Sparkle className="h-4 w-4 text-muted-foreground" />
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-foreground">Code</p>
-                      <p className="text-[11px] text-muted-foreground">Debug & build</p>
+                      <p className="text-sm font-medium text-foreground">Stays private</p>
+                      <p className="text-[11px] text-muted-foreground">History lives in your browser</p>
                     </div>
-                  </button>
+                  </div>
                 </div>
               </div>
+              <p className="mt-8 max-w-md text-center text-[10px] text-muted-foreground">{DISCLAIMER_FOOTER}</p>
             </div>
           ) : (
-            <div className="mx-auto max-w-3xl">
+            <div className="mx-auto max-w-3xl pb-4">
               {messages.map((m) => (
-                <ChatMessage key={m.id} message={m} isStreaming={streaming && m.id === messages[messages.length - 1]?.id && m.role === "assistant"} isThinking={thinking && m.id === messages[messages.length - 1]?.id && m.role === "assistant"} onHide={m.id === "welcome" ? undefined : handleHideMessage} />
+                <ChatMessage key={m.id} message={m} isStreaming={streaming && m.id === messages[messages.length - 1]?.id && m.role === "assistant"} isThinking={thinking && m.id === messages[messages.length - 1]?.id && m.role === "assistant"} onHide={m.id === "welcome" ? undefined : (id) => setMessages((prev) => prev.filter(x => x.id !== id))} onFeedback={postFeedback} />
               ))}
               {loading && messages[messages.length - 1]?.role !== "assistant" && (
                 <div className="flex w-full py-4">
                   <div className="w-full max-w-3xl mx-auto px-4">
                     <div className="flex items-center gap-3">
-                      <div className="relative flex h-6 w-6 items-center justify-center">
-                        <div className="absolute inset-0 rounded-full border-2 border-muted-foreground/20 border-t-foreground animate-spin" />
-                        <div className="h-1.5 w-1.5 rounded-full bg-foreground animate-pulse" />
-                      </div>
-                      <span className="text-sm text-muted-foreground">Thinking…</span>
+                      <span className="flex items-center gap-1">
+                        <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground/70 [animation-delay:0ms]" />
+                        <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground/70 [animation-delay:150ms]" />
+                        <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground/70 [animation-delay:300ms]" />
+                      </span>
+                      <span className="text-sm text-muted-foreground">Typing…</span>
                     </div>
                   </div>
                 </div>
@@ -1084,54 +837,13 @@ export default function Home() {
           )}
         </main>
 
+        {/* Sticky bottom input — mobile-first (PRD §7) */}
         {messages.length > 1 && (
-          <div className="shrink-0 border-t border-border bg-background">
-            <div className="mx-auto max-w-3xl px-3 py-2">
-              {imageGenOpen && (
-                <div className="mb-2 rounded-xl border border-border bg-card p-3">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Sparkle className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-xs font-medium text-foreground">Image Generation</span>
-                  </div>
-                  <div className="flex gap-2">
-                    <input type="text" value={imagePrompt} onChange={(e) => setImagePrompt(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); void handleGenerateImage(); } }} placeholder="Describe the image you want..." className="h-10 flex-1 rounded-lg border border-border bg-background px-3 text-sm focus:outline-none" autoFocus disabled={generatingImage} />
-                    <Button type="button" size="sm" onClick={() => void handleGenerateImage()} disabled={!imagePrompt.trim() || generatingImage} className="h-10 gap-1.5 rounded-lg bg-foreground text-background hover:bg-foreground/90 disabled:opacity-50 transition-all">
-                      {generatingImage ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkle className="h-4 w-4" />}
-                      Generate
-                    </Button>
-                  </div>
-                </div>
-              )}
-              <div className="flex items-end gap-2 rounded-xl border border-border bg-card p-2 focus-within:border-muted-foreground/30 transition-all">
-                <input ref={fileInputRef} type="file" accept="image/*" multiple onChange={(e) => void handleFileSelect(e)} className="hidden" />
-                <button type="button" onClick={() => fileInputRef.current?.click()} disabled={streaming || pendingImages.length >= 4} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-all hover:bg-muted hover:text-foreground active:scale-95 disabled:opacity-40" aria-label="Attach image">
-                  <Paperclip className="h-4 w-4" />
-                </button>
-                <Textarea ref={textareaRef} value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={onKeyDown} placeholder="Ask a follow-up" rows={1} className="min-h-[36px] resize-none border-0 bg-transparent px-1 py-1.5 text-sm shadow-none focus-visible:ring-0 focus-visible:ring-offset-0" disabled={streaming} />
-                {streaming ? (
-                  <Button type="button" size="icon" onClick={stopGeneration} className="h-9 w-9 shrink-0 rounded-lg bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-all" aria-label="Stop">
-                    <Square className="h-4 w-4 fill-current" />
-                  </Button>
-                ) : (
-                  <Button type="button" size="icon" onClick={() => void send()} disabled={!input.trim() && pendingImages.length === 0} className="h-9 w-9 shrink-0 rounded-lg bg-foreground text-background hover:bg-foreground/90 disabled:opacity-30 transition-all" aria-label="Send">
-                    <Send className="h-4 w-4" />
-                  </Button>
-                )}
-              </div>
-              <p className="mt-1 px-1 text-[10px] text-muted-foreground">
-                {streaming ? (
-                  <span className="inline-flex items-center gap-1.5 text-foreground/70">
-                    <span className="h-1 w-1 animate-pulse rounded-full bg-foreground/70" />
-                    {thinking ? "Thinking…" : "Generating…"}
-                  </span>
-                ) : "Press Enter to send"}
-              </p>
-            </div>
+          <div className="shrink-0 fixed bottom-0 inset-x-0 lg:static border-t border-border bg-background/95 backdrop-blur-xl">
+            {InputBar}
           </div>
         )}
       </div>
-
-      <PatchNotesModal open={showPatchNotes} onOpenChange={setShowPatchNotes} />
 
       {showUpgradeModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 p-4" onClick={() => setShowUpgradeModal(false)}>
@@ -1141,46 +853,26 @@ export default function Home() {
           >
             <div className="text-center">
               <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-muted">
-                <span className="text-3xl">👑</span>
+                <Moon className="h-7 w-7 text-foreground" />
               </div>
-              <h2 className="text-lg font-bold">Upgrade to Developer's Pro</h2>
+              <h2 className="text-lg font-bold">PULSE Pro</h2>
               <p className="mt-2 text-sm text-muted-foreground">
-                You've hit your free message limit for today. Upgrade to <strong className="text-foreground">Developer's Pro</strong> for:
+                You&apos;ve had today&apos;s free check-ins. Upgrade to <strong className="text-foreground">PULSE Pro</strong> ($5–9/mo) for:
               </p>
               <ul className="mt-4 space-y-2 text-left text-sm">
-                <li className="flex items-start gap-2">
-                  <Zap className="mt-0.5 h-4 w-4 text-foreground shrink-0" />
-                  <span>Unlimited messages on all models</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <Zap className="mt-0.5 h-4 w-4 text-foreground shrink-0" />
-                  <span>Priority access to new models</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <Zap className="mt-0.5 h-4 w-4 text-foreground shrink-0" />
-                  <span>No daily limits, ever</span>
-                </li>
+                <li className="flex items-start gap-2"><Zap className="mt-0.5 h-4 w-4 text-foreground shrink-0" /> Unlimited check-ins, every day</li>
+                <li className="flex items-start gap-2"><Sunrise className="mt-0.5 h-4 w-4 text-foreground shrink-0" /> Deep Dive sessions with longer memory</li>
+                <li className="flex items-start gap-2"><Wind className="mt-0.5 h-4 w-4 text-foreground shrink-0" /> Custom personas: Strict Coach or Gentle Listener</li>
+                <li className="flex items-start gap-2"><Sparkle className="mt-0.5 h-4 w-4 text-foreground shrink-0" /> Journal summaries you can export (PDF)</li>
               </ul>
               <div className="mt-5 rounded-lg border border-border bg-muted/50 p-3 text-xs text-muted-foreground">
-                💡 <strong>Pro is coming soon.</strong> For now, your free messages reset daily at midnight UTC.
+                Free check-ins reset daily at midnight UTC — PULSE will be here.
               </div>
               <div className="mt-5 flex gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="flex-1"
-                  onClick={() => setShowUpgradeModal(false)}
-                >
-                  Maybe later
+                <Button type="button" variant="outline" className="flex-1" onClick={() => setShowUpgradeModal(false)}>
+                  I&apos;ll be back
                 </Button>
-                <Button
-                  type="button"
-                  className="flex-1 bg-gradient-to-r from-slate-500 to-slate-700 text-white"
-                  onClick={() => {
-                    setShowUpgradeModal(false);
-                    setAccountOpen(true);
-                  }}
-                >
+                <Button type="button" className="flex-1 bg-gradient-to-r from-slate-500 to-slate-700 text-white" onClick={() => { setShowUpgradeModal(false); setAccountOpen(true); }}>
                   Notify me
                 </Button>
               </div>
@@ -1214,7 +906,6 @@ export default function Home() {
           setMessages([]);
           setSessions([]);
           setCurrentSessionId(null);
-          setShowDevCard(false);
           setPrivacyOpen(false);
           setAccountOpen(false);
           try { localStorage.removeItem(VISITOR_STORAGE_KEY); } catch {}
@@ -1224,22 +915,17 @@ export default function Home() {
       {showInstallToast && (
         <div className="fixed bottom-20 left-1/2 z-50 -translate-x-1/2 animate-float-up">
           <div className="flex items-start gap-3 rounded-xl border border-border bg-card px-4 py-3 shadow-2xl max-w-sm">
-            <Smartphone className="h-5 w-5 shrink-0 text-muted-foreground mt-0.5" />
+            <Send className="h-5 w-5 shrink-0 text-muted-foreground mt-0.5 rotate-45" />
             <div className="text-xs">
               <p className="font-semibold text-foreground mb-1">
-                Install Developer's Ai
+                Install PULSE
               </p>
-              <p className="text-muted-foreground">
-                To install the app:
-              </p>
+              <p className="text-muted-foreground">To install the app:</p>
               <ul className="mt-1 space-y-0.5 text-muted-foreground">
-                <li>• Chrome: tap the ⋮ menu → "Install app"</li>
-                <li>• Safari: tap Share → "Add to Home Screen"</li>
-                <li>• Edge: tap ⋮ → "Add to phone"</li>
+                <li>• Chrome: tap the ⋮ menu → &quot;Install app&quot;</li>
+                <li>• Safari: tap Share → &quot;Add to Home Screen&quot;</li>
+                <li>• Edge: tap ⋮ → &quot;Add to phone&quot;</li>
               </ul>
-              <p className="mt-1.5 text-muted-foreground">
-                The app will appear on your home screen with the DA logo.
-              </p>
             </div>
             <button
               type="button"

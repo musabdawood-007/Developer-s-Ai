@@ -35,7 +35,7 @@ function buildHeaders(config: ZaiConfig): Record<string, string> {
   return {
     "Content-Type": "application/json",
     Authorization: `Bearer ${config.apiKey}`,
-    "User-Agent": "developers-ai/1.0",
+    "User-Agent": "pulse/1.0",
     Accept: "application/json",
   };
 }

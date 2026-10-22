@@ -5,7 +5,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
-  const visitorId = req.cookies.get("devai_session")?.value;
+  const visitorId = req.cookies.get("pulse_session")?.value;
   if (!visitorId) {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }

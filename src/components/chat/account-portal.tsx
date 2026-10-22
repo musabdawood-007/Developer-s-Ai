@@ -81,7 +81,7 @@ export function AccountPortal({
   useEffect(() => {
     if (visitor) setName(visitor.name);
     try {
-      const savedPic = localStorage.getItem(`devai:profile-pic:${visitor?.visitorId}`);
+      const savedPic = localStorage.getItem(`pulse:profile-pic:${visitor?.visitorId}`);
       if (savedPic) setProfilePic(savedPic);
     } catch {}
   }, [visitor]);
@@ -99,7 +99,7 @@ export function AccountPortal({
       const result = reader.result as string;
       setProfilePic(result);
       try {
-        if (visitor) localStorage.setItem(`devai:profile-pic:${visitor.visitorId}`, result);
+        if (visitor) localStorage.setItem(`pulse:profile-pic:${visitor.visitorId}`, result);
       } catch {}
     };
     reader.readAsDataURL(file);
@@ -131,7 +131,7 @@ export function AccountPortal({
 
   const loadSandboxData = () => {
     if (!visitor) return;
-    const storageKey = `devai:chat-sessions:${visitor.visitorId}`;
+    const storageKey = `pulse:chat-sessions:${visitor.visitorId}`;
     try {
       const saved = localStorage.getItem(storageKey);
       if (saved) {
@@ -154,15 +154,15 @@ export function AccountPortal({
   const clearAllChats = () => {
     if (!visitor) return;
     if (!confirm("Delete ALL chats? This cannot be undone.")) return;
-    localStorage.removeItem(`devai:chat-sessions:${visitor.visitorId}`);
-    window.dispatchEvent(new Event("devai:sessions-changed"));
+    localStorage.removeItem(`pulse:chat-sessions:${visitor.visitorId}`);
+    window.dispatchEvent(new Event("pulse:sessions-changed"));
     setSandboxData([]);
     setSelectedChat(null);
   };
 
   const deleteSingleChat = (sessionId: string) => {
     if (!visitor) return;
-    const storageKey = `devai:chat-sessions:${visitor.visitorId}`;
+    const storageKey = `pulse:chat-sessions:${visitor.visitorId}`;
     try {
       const saved = localStorage.getItem(storageKey);
       if (saved) {
@@ -170,7 +170,7 @@ export function AccountPortal({
         parsed.sessions = parsed.sessions.filter((s) => s.id !== sessionId);
         delete parsed.messages[sessionId];
         localStorage.setItem(storageKey, JSON.stringify(parsed));
-        window.dispatchEvent(new Event("devai:sessions-changed"));
+        window.dispatchEvent(new Event("pulse:sessions-changed"));
         loadSandboxData();
         setSelectedChat(null);
       }
@@ -179,7 +179,7 @@ export function AccountPortal({
 
   const renameChat = (sessionId: string, newTitle: string) => {
     if (!visitor || !newTitle.trim()) return;
-    const storageKey = `devai:chat-sessions:${visitor.visitorId}`;
+    const storageKey = `pulse:chat-sessions:${visitor.visitorId}`;
     try {
       const saved = localStorage.getItem(storageKey);
       if (saved) {
@@ -187,7 +187,7 @@ export function AccountPortal({
         const session = parsed.sessions.find((s) => s.id === sessionId);
         if (session) session.title = newTitle.trim();
         localStorage.setItem(storageKey, JSON.stringify(parsed));
-        window.dispatchEvent(new Event("devai:sessions-changed"));
+        window.dispatchEvent(new Event("pulse:sessions-changed"));
         loadSandboxData();
         setRenamingId(null);
         setSelectedChat((prev) => prev && prev.sessionId === sessionId ? { ...prev, title: newTitle.trim() } : prev);
@@ -214,9 +214,9 @@ export function AccountPortal({
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error || "Failed to delete account");
       try {
-        localStorage.removeItem("devai:auth");
-        localStorage.removeItem(`devai:chat-sessions:${visitor.visitorId}`);
-        localStorage.removeItem(`devai:profile-pic:${visitor.visitorId}`);
+        localStorage.removeItem("pulse:auth");
+        localStorage.removeItem(`pulse:chat-sessions:${visitor.visitorId}`);
+        localStorage.removeItem(`pulse:profile-pic:${visitor.visitorId}`);
       } catch {}
       onAccountDeleted();
       closeAll();
@@ -230,7 +230,7 @@ export function AccountPortal({
   const storageUsed = (() => {
     if (!visitor) return "0 KB";
     try {
-      const data = localStorage.getItem(`devai:chat-sessions:${visitor.visitorId}`);
+      const data = localStorage.getItem(`pulse:chat-sessions:${visitor.visitorId}`);
       if (!data) return "0 KB";
       const bytes = new Blob([data]).size;
       if (bytes < 1024) return `${bytes} B`;
@@ -611,15 +611,15 @@ export function AccountPortal({
 
             <div className="space-y-3">
               <div className="rounded-lg border border-border bg-muted/20 p-3">
-                <p className="text-xs font-semibold text-foreground mb-1">Owner & Developer</p>
+                <p className="text-xs font-semibold text-foreground mb-1">Built by</p>
                 <p className="text-sm text-foreground">{DEVELOPER_INFO.name}</p>
-                <p className="text-xs text-muted-foreground mt-1">{DEVELOPER_INFO.intro}</p>
+                <p className="text-xs text-muted-foreground mt-1">{DEVELOPER_INFO.portfolio.replace("https://", "")}</p>
               </div>
 
               <div className="rounded-lg border border-border bg-muted/20 p-3">
                 <p className="text-xs font-semibold text-foreground mb-1">What is {BOT_NAME}?</p>
                 <p className="text-xs text-muted-foreground">
-                  An AI-powered chatbot that helps you with casual conversations, coding tips, image generation, and file creation. Built with Next.js, Prisma, and AI models.
+                  Your Emotional Compass. PULSE is an AI support companion for when you feel stuck, overwhelmed, or alone. It listens first, then guides you gently — one tiny step at a time.
                 </p>
               </div>
 
@@ -635,7 +635,10 @@ export function AccountPortal({
               <div className="rounded-lg border border-border bg-muted/20 p-3">
                 <p className="text-xs font-semibold text-foreground mb-1">Data Policy</p>
                 <p className="text-xs text-muted-foreground">
-                  Your chat messages are stored locally in your browser. We never see or store your conversations. Only your account info (name, email) is on our servers.
+                  Your conversations are stored locally in your browser — we never see or store them. Each message is sent to our AI provider to generate a reply. Only your account info (name, email) lives on our servers.
+                </p>
+                <p className="text-xs text-muted-foreground mt-2">
+                  PULSE is an AI support tool. It does not replace professional mental health care.
                 </p>
               </div>
 
@@ -654,12 +657,12 @@ export function AccountPortal({
         {tab === "contact" && (
           <div className="p-4 space-y-4">
             <div className="space-y-3">
-              <ContactItem icon={<Mail className="h-4 w-4" />} label="Help Email" value="developer.bot.ai@gmail.com" sublabel="Approx. reply within 7 days" href="mailto:developer.bot.ai@gmail.com" />
+              <ContactItem icon={<Mail className="h-4 w-4" />} label="Help Email" value={DEVELOPER_INFO.email} sublabel="Approx. reply within 7 days" href={`mailto:${DEVELOPER_INFO.email}`} />
               <ContactItem icon={<ExternalLink className="h-4 w-4" />} label="Developer Site" value="musab-007.netlify.app" sublabel="Portfolio & more info" href={DEVELOPER_INFO.portfolio} />
             </div>
             <div className="rounded-lg border border-border bg-muted/20 p-3 text-xs text-muted-foreground">
               <p className="mb-1 font-semibold text-foreground">About {BOT_NAME}</p>
-              <p>A friendly AI chatbot by {DEVELOPER_INFO.name}. Chat, get coding tips, generate images & files.</p>
+              <p>A companion for the heavy days, built by {DEVELOPER_INFO.name}. Heard first, then gently guided.</p>
             </div>
           </div>
         )}

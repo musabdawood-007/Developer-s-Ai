@@ -253,7 +253,7 @@ const LANG_TO_EXT: Record<string, string> = {
 function CodeDownloadButton({ code, language }: { code: string; language: string }) {
   const handleDownload = () => {
     const ext = LANG_TO_EXT[language.toLowerCase()] || "txt";
-    const filename = `developers-ai-code.${ext}`;
+    const filename = `pulse-response.${ext}`;
     const blob = new Blob([code], { type: "text/plain;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");

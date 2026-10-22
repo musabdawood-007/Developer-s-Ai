@@ -1,140 +1,120 @@
 /**
- * Privacy Policy & Terms of Use for Developer's Ai
+ * Privacy Policy & Terms of Use for PULSE
  * ----------------------------------------------
- * Written in a friendly, productive tone. Used by the PrivacyTerms dialog
- * and (optionally) any footer/about pages.
+ * Written for a public emotional-support product (PRD §6).
+ * Used by the PrivacyTerms dialog and the /privacy and /terms pages.
  */
 
 export const PRIVACY_POLICY = `## Privacy Policy
 
-Welcome to **Developer's Ai** — a friendly chatbot built by Musab Dawood. Your privacy matters to me, so this policy explains exactly what I collect, why I collect it, and what I do (and don't do) with it. Please read it carefully; by using the chatbot you agree to the practices described below.
+Welcome to **PULSE** — "Your Emotional Compass. Steady Mind. Clear Path." PULSE is an AI support companion, not a therapist. Because people share personal things here, this policy explains exactly what is collected, why, and what is (and is not) done with it. By using PULSE you agree to the practices below.
 
-### 1. What I Collect
+### 1. What PULSE Collects
 
-When you use Developer's Ai, I collect the following information:
+- **Account (optional)** — if you create a saved account: your name, email, and a hashed password (never stored in plain text).
+- **Anonymous guest sessions** — if you chat without signing up, PULSE creates an ephemeral guest profile tied only to a random identifier.
+- **Usage metadata** — daily message counts used to enforce the free-tier limit (~10 messages/day).
+- **Feedback signals** — the thumbs-up / thumbs-down you tap after a reply.
 
-- **Your name** — the name you type in the welcome screen so the bot can greet you personally.
-- **Your email** — used for account creation and OTP verification only.
-- **Your chat messages** — both what you type to the bot and the replies the bot generates back to you. These are stored locally in your browser.
-- **Basic usage metadata** — the timestamps of your visits and the number of messages you send.
+### 2. Your Conversations
 
-I do **not** store your chat messages on any server. All conversations remain in your browser's \`localStorage\` only.
+Your messages are kept in your browser's \`localStorage\` for continuity between visits. They are **not** stored in PULSE's database. However, to generate a reply, each message you send is transmitted to PULSE's third-party AI provider (the underlying large language model service). That provider processes your message to produce a response under its own data terms. **Do not share information you are not comfortable sending to an AI provider.** No raw conversation logs are retained on PULSE servers.
 
-### 2. Why I Collect It
+### 3. Why PULSE Collects It
 
-I use the information above for three clear purposes:
+- **Personalisation** — remembering your name and the context of recent exchanges so PULSE doesn't ask twice.
+- **Abuse prevention & rate limiting** — daily counts prevent spam and DDoS.
+- **Product improvement** — anonymous feedback ratings help tune the empathy engine.
 
-- **Personalisation** — your name lets the bot greet you ("Hey Sara!") instead of "Hey there".
-- **Quality improvement** — reviewing chat transcripts helps me understand which tips are useful, spot common questions, and make the bot smarter over time.
-- **Abuse prevention** — having a record of conversations helps me identify and respond to spam, abuse, or harmful behaviour.
+PULSE never sells, rents, or shares your data with advertisers or data brokers.
 
-I never sell, rent, or share your data with third parties for marketing purposes.
+### 4. What PULSE Doesn't Do
 
-### 3. How I Store It
-
-Your name and chats are stored in a private database accessible only to the developer (Musab Dawood). The data is kept for as long as the chatbot is operational. If you would like your data deleted, simply ask the bot to share the developer's contact info and send an email — I will remove your record within 7 days.
-
-### 4. What I Don't Do
-
-To keep things crystal clear, here is what I will **never** do with your information:
-
-- Sell it to advertisers or data brokers.
-- Use it to train external AI models.
-- Share it publicly or with other visitors.
-- Email you unless you explicitly ask to be contacted.
-- Track you across other websites.
+- Doesn't read your browser-stored chat history (it never leaves your device).
+- Doesn't sell or publicise anything you share.
+- Doesn't track you across other websites.
+- Doesn't email you unless you contacted the developer first.
 
 ### 5. Your Rights
 
-You have the right to:
-
-- **Know what's stored** — ask the bot "show my chats" or contact the developer.
-- **Be forgotten** — request deletion of your name and chat history at any time.
-- **Use a fake name** — you are not required to use your real name. A nickname works perfectly fine.
-- **Stop using the service** — just close the tab. No consequences, no follow-up.
+- **Anonymous use** — chat as a guest without ever giving an email.
+- **Be forgotten** — delete your account, or just clear your browser data to erase all locally stored history.
+- **Use a nickname** — your real name is never required.
 
 ### 6. Children's Privacy
 
-Developer's Ai is a general-purpose developer assistant and is not directed at children under 13. I do not knowingly collect data from anyone under 13. If you believe a child has provided their name, please contact the developer so the data can be removed.
+PULSE requires users to confirm they are **over 18 years old**. PULSE is not directed at children and does not knowingly collect data from anyone under 18. If you believe a minor has supported an account, contact the developer so it can be removed.
 
-### 7. Changes to This Policy
+### 7. Crisis Situations
 
-If this policy ever changes, the updated version will be posted here with a new "last updated" date. Continued use of the chatbot after a change means you accept the new policy.
+PULSE is not an emergency service. If you are in crisis, contact local emergency services or a crisis hotline. PULSE's crisis detection exists solely to point you toward real human help.
 
-### 8. Contact
+### 8. Changes to This Policy
 
-Have questions about your privacy? Reach out to the developer — just ask the bot "tell me about your developer" and you'll get the contact details.`;
+Updated versions will be posted on this page with a new "last updated" date. Continued use after a change means you accept the new policy.
+
+### 9. Contact
+
+Questions? Email the developer, Musab Dawood: musabdaud007@gmail.com`;
 
 export const TERMS_OF_USE = `## Terms of Use
 
-These Terms of Use govern your access to and use of **Developer's Ai**, a chatbot created by Musab Dawood. By starting a conversation, you agree to the following terms — please read them carefully.
+These Terms govern your access to and use of **PULSE**, an AI emotional-support companion created by Musab Dawood. By starting a conversation, you agree to the following.
 
-### 1. Acceptance of Terms
+### 1. PULSE Is an AI, Not a Human
 
-By using Developer's Ai, you confirm that you have read, understood, and agree to be bound by these Terms and the Privacy Policy. If you do not agree, please close the page and do not use the chatbot.
+PULSE is an artificial intelligence. It is **not** a human, not a therapist, not a doctor, and not a crisis counselor. It does not provide medical, psychological, or psychiatric care. Never rely on PULSE as a substitute for professional mental health treatment.
 
-### 2. Description of the Service
+### 2. No Liability for Decisions
 
-Developer's Ai is a free, friendly chatbot that offers:
+PULSE may suggest small actions or perspectives, but you remain solely responsible for any decisions you make based on its guidance. To the maximum extent permitted by law, Musab Dawood is not liable for outcomes arising from your use of PULSE's responses.
 
-- Casual conversation on a wide range of topics.
-- Practical development and coding tips.
-- On-demand generation of downloadable Markdown files (such as README templates, documentation pages, or cheat sheets).
+### 3. Age Requirement
 
-The service is provided "as is" for educational and productivity purposes.
+You confirm you are over 18 years old. Accounts and sessions belonging to minors are subject to deletion.
 
-### 3. Acceptable Use
+### 4. Acceptable Use
 
-When using Developer's Ai, you agree **not** to:
+You agree **not** to:
 
 - Submit illegal, harmful, threatening, abusive, harassing, defamatory, or otherwise objectionable content.
-- Attempt to extract, reverse-engineer, or compromise the underlying system, database, or admin portal.
-- Use the chatbot to generate malware, phishing templates, or any content intended to harm others.
-- Spam the chatbot with automated requests, scripts, or bots.
-- Impersonate the developer or claim ownership of the chatbot.
+- Attempt to extract, reverse-engineer, or compromise the underlying system or database.
+- Use PULSE to generate content intended to harm yourself or others.
+- Spam PULSE with automated requests, scripts, or bots.
+- Impersonate the developer or claim ownership of PULSE.
 
-I reserve the right to delete any chat history that violates these rules and to block repeat offenders from using the service.
+Keyword-based moderation filters run on the input side before messages reach the AI provider. Access may be restricted for violations.
 
-### 4. Content Ownership
+### 5. Description of the Service
 
-- **What you type** remains yours. You retain full ownership of your input.
-- **What the bot generates** is provided for your personal use. You may use generated code, Markdown, or tips in your own projects (personal or commercial) without attribution — though a friendly shout-out to Musab Dawood is always appreciated. 😊
-- The chatbot's branding, name, and underlying code belong to Musab Dawood.
+- **Free tier** — anonymous chat, limited daily messages (~10/day), the standard empathy engine.
+- **Pro tier (planned)** — saved chat history with cloud sync, longer "Deep Dive" sessions, custom personas, and exportable journal summaries.
 
-### 5. AI Limitations
+### 6. Third-Party Processing
 
-Developer's Ai is powered by an AI language model. Please be aware that:
+Messages are processed by PULSE's third-party large language model provider to generate replies. That provider's own terms and data practices apply to the processing.
 
-- Responses may occasionally be inaccurate, outdated, or incomplete.
-- The bot does not have access to real-time information unless explicitly stated.
-- Code snippets should be reviewed and tested before being used in production.
-- The bot cannot perform actions on your behalf (no file writes, no API calls, no purchases).
+### 7. Content Ownership
 
-Always verify critical information from authoritative sources before relying on it.
+- What you type remains yours.
+- PULSE's branding, name, and underlying code belong to Musab Dawood.
+- Responses are provided for your personal use.
 
-### 6. Disclaimer of Warranties
+### 8. AI Limitations
 
-The service is provided "AS IS" and "AS AVAILABLE", without warranties of any kind — express or implied. I do not guarantee that the chatbot will be uninterrupted, error-free, or fit for any particular purpose. Use it at your own risk.
-
-### 7. Limitation of Liability
-
-To the maximum extent permitted by law, Musab Dawood shall not be liable for any direct, indirect, incidental, special, or consequential damages arising from your use of (or inability to use) Developer's Ai — including but not limited to data loss, lost profits, or business interruption.
-
-### 8. Third-Party Links
-
-The bot may occasionally mention or link to third-party websites, libraries, or tools. I am not responsible for the content, privacy practices, or accuracy of those external resources.
+Responses may be inaccurate, incomplete, or miss emotional nuance. PULSE may misunderstand you. If something it says makes you feel worse, stop and reach out to a real person you trust or a professional.
 
 ### 9. Termination
 
-You may stop using Developer's Ai at any time, for any reason. I also reserve the right to restrict or terminate access for anyone who violates these Terms or behaves in a way I consider harmful to the service or its users.
+You may stop using PULSE at any time. Access may be restricted for anyone who violates these Terms.
 
 ### 10. Changes to These Terms
 
-I may update these Terms from time to time. The most current version will always be available here, with an updated "last updated" date. Continued use after changes constitutes acceptance of the revised Terms.
+The most current version is always available here with an updated "last updated" date. Continued use after changes constitutes acceptance.
 
 ### 11. Contact
 
-Questions about these Terms? Ask the bot for the developer's contact information and reach out — I'm happy to clarify anything.
+Questions? Email the developer, Musab Dawood: musabdaud007@gmail.com
 
 ---
 

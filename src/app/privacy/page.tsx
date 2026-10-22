@@ -10,7 +10,7 @@ export default function PrivacyPage() {
           <section>
             <h2 className="mb-2 text-base font-semibold text-foreground">1. Introduction</h2>
             <p>
-              Developer&apos;s Ai (&quot;we&quot;, &quot;our&quot;, or &quot;us&quot;) respects your privacy. This Privacy Policy explains how we collect, use, and protect your information when you use our service available at{" "}
+              PULSE (&quot;we&quot;, &quot;our&quot;, or &quot;us&quot;) respects your privacy. This Privacy Policy explains how we collect, use, and protect your information when you use our service available at{" "}
               <a href="https://developer-space-ai.vercel.app" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 text-foreground hover:text-foreground">
                 developer-space-ai.vercel.app
               </a>.
@@ -21,8 +21,8 @@ export default function PrivacyPage() {
             <h2 className="mb-2 text-base font-semibold text-foreground">2. Information We Collect</h2>
             <div className="space-y-2">
               <p><span className="font-medium text-foreground">Account Information:</span> When you create an account, we collect your name, email address, and a hashed version of your password. We do not store your plain-text password.</p>
-              <p><span className="font-medium text-foreground">Chat Data:</span> Your chat messages, conversations, images, and sessions are stored locally in your browser using localStorage. We do not transmit, store, or have access to your chat content on our servers.</p>
-              <p><span className="font-medium text-foreground">Usage Data:</span> We may collect anonymous usage analytics (page views, feature usage) to improve the service. This data cannot be linked to your personal identity.</p>
+              <p><span className="font-medium text-foreground">Chat Data:</span> Your conversations are stored locally in your browser using localStorage — we cannot read, transmit, or recover them. However, to generate a reply, each message you send is transmitted to our AI provider for processing. Do not share information you are not comfortable sending to an AI provider.</p>
+              <p><span className="font-medium text-foreground">Usage Data:</span> Daily message counts (used to enforce the free-tier limit), anonymous thumbs-up/down feedback, and basic usage metadata. This data cannot be linked to the content of your conversations.</p>
             </div>
           </section>
 
@@ -72,9 +72,9 @@ export default function PrivacyPage() {
           </section>
 
           <section>
-            <h2 className="mb-2 text-base font-semibold text-foreground">8. Children&apos;s Privacy</h2>
+            <h2 className="mb-2 text-base font-semibold text-foreground">8. Age Requirement</h2>
             <p>
-              The Service is not intended for children under 13 years of age. We do not knowingly collect personal information from children under 13. If you are a parent or guardian and believe your child has provided us with personal information, please contact us.
+              PULSE requires users to confirm they are over 18 years old. The Service is not directed at children under 18 and is not structured to comply with children&apos;s-data regulations (COPPA/GDPR-K). If you believe a minor has used the Service, please contact us so the account can be removed.
             </p>
           </section>
 
@@ -97,7 +97,7 @@ export default function PrivacyPage() {
         </div>
 
         <div className="mt-12 border-t border-border pt-6 text-center text-xs text-muted-foreground">
-          <p>&copy; {new Date().getFullYear()} Developer&apos;s Ai. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} PULSE. All rights reserved.</p>
         </div>
       </div>
     </div>

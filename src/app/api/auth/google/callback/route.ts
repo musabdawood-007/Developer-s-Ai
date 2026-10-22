@@ -61,7 +61,7 @@ export async function GET(req: NextRequest) {
     }
 
     const res = NextResponse.redirect(`${baseUrl}?google_login=1`);
-    res.cookies.set("devai_session", visitor.id, {
+    res.cookies.set("pulse_session", visitor.id, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",

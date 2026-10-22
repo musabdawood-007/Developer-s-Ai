@@ -15,17 +15,17 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Developer's Ai — Chat & Coding Tips by Musab Dawood",
+  title: "PULSE — Your Emotional Compass. Steady Mind. Clear Path.",
   description:
-    "Developer's Ai is a friendly chatbot built by Musab Dawood. Have a casual chat, get practical coding tips, or generate downloadable Markdown files on the fly.",
+    "PULSE is an AI companion for when you feel stuck, overwhelmed, or alone. Get immediate empathy, feel heard, and take one tiny step forward — no sign-up wall.",
   keywords: [
-    "Developer's Ai",
-    "Musab Dawood",
-    "chatbot",
-    "coding tips",
-    "markdown generator",
-    "developer assistant",
-    "Next.js chatbot",
+    "PULSE",
+    "emotional support AI",
+    "burnout",
+    "stress relief",
+    "motivation",
+    "mental clarity",
+    "AI companion",
   ],
   authors: [{ name: "Musab Dawood" }],
   manifest: "/manifest.json",
@@ -36,26 +36,26 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "Developer's Ai",
+    title: "PULSE",
   },
   openGraph: {
-    title: "Developer's Ai — Chat & Coding Tips",
+    title: "PULSE — Your Emotional Compass",
     description:
-      "A friendly chatbot by Musab Dawood. Chat casually, get coding tips, or generate Markdown files.",
+      "Feeling heavy? Let's lighten the load together. PULSE listens first, then guides gently.",
     url: "https://musab-007.netlify.app",
-    siteName: "Developer's Ai",
+    siteName: "PULSE",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Developer's Ai",
+    title: "PULSE",
     description:
-      "A friendly chatbot by Musab Dawood. Chat casually, get coding tips, or generate Markdown files.",
+      "Your Emotional Compass. Steady Mind. Clear Path.",
   },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#c41e3a",
+  themeColor: "#1a1b26",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,

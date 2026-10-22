@@ -1,11 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
-import { Trash2, Download, User, Copy, Check, RotateCcw, Bot } from "lucide-react";
+import { Trash2, User, Copy, Check, RotateCcw, Heart, ThumbsUp, ThumbsDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Markdown } from "./markdown";
-import { watermarkImage } from "@/lib/watermark";
 
 export type ChatRole = "user" | "assistant";
 
@@ -13,12 +12,8 @@ export interface Message {
   id: string;
   role: ChatRole;
   content: string;
-  asMarkdownFile?: boolean;
   createdAt: number;
-  images?: string[];
-  generatedImage?: string;
-  generatedImagePrompt?: string;
-  imageProgress?: number;
+  feedback?: "up" | "down";
 }
 
 interface ChatMessageProps {
@@ -27,19 +22,28 @@ interface ChatMessageProps {
   isThinking?: boolean;
   onHide?: (id: string) => void | Promise<void>;
   onRetry?: (id: string) => void;
+  onFeedback?: (id: string, rating: "up" | "down") => void;
 }
 
+/**
+ * Assistant message row. After every finished reply, a subtle
+ * thumbs up / down feedback prompt is shown (PRD §7 feedback loop).
+ * The visible "typing…" indicator tells the user PULSE is processing.
+ */
 export function ChatMessage({
   message,
   isStreaming,
   isThinking,
   onHide,
   onRetry,
+  onFeedback,
 }: ChatMessageProps) {
   const isUser = message.role === "user";
   const isEmpty = !isUser && message.content.trim().length === 0;
   const [hiding, setHiding] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [feedback, setFeedback] = useState<"up" | "down" | null>(message.feedback ?? null);
+  const [feedbackNote, setFeedbackNote] = useState(false);
   const canHide = typeof onHide === "function" && !isStreaming;
 
   const handleHide = async () => {
@@ -58,6 +62,13 @@ export function ChatMessage({
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const handleFeedback = (rating: "up" | "down") => {
+    setFeedback(rating);
+    setFeedbackNote(true);
+    onFeedback?.(message.id, rating);
+    setTimeout(() => setFeedbackNote(false), 2500);
+  };
+
   if (isUser) {
     return (
       <motion.div
@@ -69,18 +80,6 @@ export function ChatMessage({
         <div className="w-full max-w-3xl mx-auto px-4 flex justify-end">
           <div className="flex items-start gap-2.5 max-w-[80%]">
             <div className="flex-1">
-              {message.images && message.images.length > 0 && (
-                <div className="mb-2 flex flex-wrap gap-2 justify-end">
-                  {message.images.map((img, idx) => (
-                    <img
-                      key={idx}
-                      src={img}
-                      alt={`Attachment ${idx + 1}`}
-                      className="max-h-40 max-w-[200px] rounded-lg object-cover"
-                    />
-                  ))}
-                </div>
-              )}
               <div className="rounded-2xl rounded-tr-md bg-muted px-4 py-2.5">
                 <p className="text-sm leading-relaxed text-foreground whitespace-pre-wrap break-words">
                   {message.content}
@@ -106,24 +105,16 @@ export function ChatMessage({
       <div className="w-full max-w-3xl mx-auto px-4">
         <div className="flex items-start gap-3">
           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground mt-0.5">
-            <Bot className="h-4 w-4" />
+            <Heart className="h-4 w-4" />
           </div>
           <div className="flex-1 min-w-0">
             {isEmpty && isThinking ? (
-              <ThinkingDots />
-            ) : message.imageProgress !== undefined && message.imageProgress < 100 ? (
-              <ImageProgressBar progress={message.imageProgress} content={message.content} />
-            ) : message.generatedImage ? (
-              <GeneratedImageDisplay
-                src={message.generatedImage}
-                prompt={message.generatedImagePrompt}
-                caption={message.content}
-              />
+              <TypingIndicator />
             ) : (
               <div className="text-sm leading-relaxed text-foreground">
                 <Markdown
                   content={message.content}
-                  asMarkdownFile={message.asMarkdownFile}
+                  asMarkdownFile={false}
                 />
               </div>
             )}
@@ -131,7 +122,36 @@ export function ChatMessage({
               <span className="inline-block ml-0.5 h-4 w-0.5 animate-pulse bg-foreground align-middle rounded-full" />
             )}
             {!isStreaming && !isEmpty && message.content.trim().length > 0 && (
-              <div className="mt-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className="mt-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 hover:opacity-100 focus-within:opacity-100 sm:opacity-60 transition-opacity">
+                {/* Feedback loop: "Was this helpful?" (PRD §7) */}
+                {feedbackNote ? (
+                  <span className="text-[11px] text-muted-foreground px-1">Thank you — noted.</span>
+                ) : feedback === null ? (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => handleFeedback("up")}
+                      className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                      title="This helped"
+                      aria-label="Helpful"
+                    >
+                      <ThumbsUp className="h-3.5 w-3.5" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleFeedback("down")}
+                      className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                      title="This didn't land"
+                      aria-label="Not helpful"
+                    >
+                      <ThumbsDown className="h-3.5 w-3.5" />
+                    </button>
+                  </>
+                ) : (
+                  <span className="flex h-7 w-7 items-center justify-center rounded-md text-foreground/70">
+                    {feedback === "up" ? <ThumbsUp className="h-3.5 w-3.5" /> : <ThumbsDown className="h-3.5 w-3.5" />}
+                  </span>
+                )}
                 <button
                   type="button"
                   onClick={handleCopy}
@@ -146,7 +166,7 @@ export function ChatMessage({
                     type="button"
                     onClick={() => onRetry(message.id)}
                     className="flex h-7 items-center gap-1.5 rounded-md px-2 text-[11px] text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                    title="Retry"
+                    title="Try a different angle"
                   >
                     <RotateCcw className="h-3.5 w-3.5" />
                     Retry
@@ -173,119 +193,19 @@ export function ChatMessage({
   );
 }
 
-function ThinkingDots() {
+/**
+ * Visible "typing..." indicator (PRD §7 trust signal) — the user
+ * always knows PULSE is present and processing.
+ */
+function TypingIndicator() {
   return (
-    <div className="flex items-center gap-3 py-2">
-      <div className="relative flex h-6 w-6 items-center justify-center">
-        <div className="absolute inset-0 rounded-full border-2 border-muted-foreground/20 border-t-foreground animate-spin" />
-        <div className="h-1.5 w-1.5 rounded-full bg-foreground animate-pulse" />
-      </div>
-      <span className="text-sm text-muted-foreground">Thinking…</span>
-    </div>
-  );
-}
-
-function ImageProgressBar({ progress, content }: { progress: number; content?: string }) {
-  return (
-    <div className="space-y-3">
-      {content && (
-        <p className="text-sm leading-relaxed break-words">{content}</p>
-      )}
-      <div className="space-y-2">
-        <div className="flex items-center justify-between text-xs">
-          <span className="text-foreground font-medium">Generating image…</span>
-          <span className="text-muted-foreground font-mono">{progress}%</span>
-        </div>
-        <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
-          <div
-            className="h-full rounded-full bg-foreground transition-all duration-500 ease-out"
-            style={{ width: `${progress}%` }}
-          />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function GeneratedImageDisplay({
-  src,
-  prompt,
-  caption,
-}: {
-  src: string;
-  prompt?: string;
-  caption?: string;
-}) {
-  const [watermarkedSrc, setWatermarkedSrc] = useState<string | null>(null);
-  const [processing, setProcessing] = useState(true);
-
-  useEffect(() => {
-    let cancelled = false;
-    setProcessing(true);
-
-    watermarkImage(src)
-      .then((watermarked) => {
-        if (!cancelled) {
-          setWatermarkedSrc(watermarked);
-          setProcessing(false);
-        }
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setWatermarkedSrc(src);
-          setProcessing(false);
-        }
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [src]);
-
-  const downloadImage = () => {
-    const a = document.createElement("a");
-    a.href = watermarkedSrc || src;
-    a.download = `developers-ai-${Date.now()}.png`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-  };
-
-  return (
-    <div className="space-y-2">
-      {caption && (
-        <p className="text-sm leading-relaxed break-words">{caption}</p>
-      )}
-      <div className="relative group/img rounded-xl overflow-hidden border border-border">
-        {processing ? (
-          <div className="flex aspect-square items-center justify-center bg-muted/30">
-            <div className="flex flex-col items-center gap-2 text-muted-foreground">
-              <div className="h-8 w-8 animate-spin rounded-full border-2 border-muted-foreground/30 border-t-foreground" />
-              <span className="text-xs">Applying watermark…</span>
-            </div>
-          </div>
-        ) : (
-          <img
-            src={watermarkedSrc || src}
-            alt={prompt || "Generated image"}
-            className="w-full h-auto block"
-          />
-        )}
-        <button
-          type="button"
-          onClick={downloadImage}
-          disabled={processing}
-          className="absolute top-2 right-2 flex h-8 w-8 items-center justify-center rounded-lg bg-background/80 backdrop-blur-sm text-foreground opacity-0 group-hover/img:opacity-100 transition-opacity hover:bg-background disabled:opacity-0"
-          aria-label="Download image"
-          title="Download this image (with watermark)"
-        >
-          <Download className="h-4 w-4" />
-        </button>
-      </div>
-      {prompt && (
-        <p className="text-[11px] text-muted-foreground italic">
-          Prompt: &ldquo;{prompt}&rdquo;
-        </p>
-      )}
+    <div className="flex items-center gap-3 py-2" aria-label="PULSE is typing">
+      <span className="flex items-center gap-1">
+        <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground/70 [animation-delay:0ms]" />
+        <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground/70 [animation-delay:150ms]" />
+        <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground/70 [animation-delay:300ms]" />
+      </span>
+      <span className="text-sm text-muted-foreground">Typing…</span>
     </div>
   );
 }

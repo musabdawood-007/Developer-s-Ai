@@ -1,14 +1,14 @@
 /**
- * Available AI models for Developer's Ai.
+ * Available AI conversation modes for PULSE.
  *
- * All models currently have unlimited usage.
- * Pro is now unlocked and accessible to all users.
+ * Free tier: PULSE Listener — 10 messages/day (PRD rate limit).
+ * Pro tier:  PULSE Pro — unlimited-ish, deeper context (future).
  *
  * The chat API will automatically FALL BACK to the next model in the
  * `fallbacks` array if the primary model fails (timeout, rate limit, etc).
  *
- * NOTE: Real model names (Mistral, Claude) are kept INTERNAL only —
- * users only see "Developer's V1", "Developer's V2", "Developer's Pro".
+ * NOTE: Real model names are kept INTERNAL only — users only see
+ * "PULSE Listener" and "PULSE Deep Session".
  */
 
 export type ModelTier = "free" | "pro";
@@ -28,8 +28,6 @@ export interface ModelInfo {
   dailyLimit: number;
   /** Tier — free or pro */
   tier: ModelTier;
-  /** Vision support */
-  vision: boolean;
   /** Badge emoji for UI */
   badge: string;
   /** Order in the selector */
@@ -38,23 +36,35 @@ export interface ModelInfo {
   fallbacks?: string[];
 }
 
+export const FREE_DAILY_LIMIT = 10;
+
 export const MODELS: ModelInfo[] = [
   {
-    id: "v1",
-    label: "Developer's Fast Model",
-    tagline: "More models coming soon!",
+    id: "pulse-listener",
+    label: "PULSE Listener",
+    tagline: "Gentle. Present. Hears you out.",
     apiModel: "agnes-2.5-flash",
-    provider: "Developer's AI",
-    dailyLimit: 0,
+    provider: "PULSE",
+    dailyLimit: FREE_DAILY_LIMIT,
     tier: "free",
-    vision: true,
-    badge: "⚡",
+    badge: "💛",
     order: 1,
     fallbacks: ["laguna-s-2.1"],
   },
+  {
+    id: "pulse-deep",
+    label: "PULSE Deep Session",
+    tagline: "Longer, deeper dives. Coming with Pro.",
+    apiModel: "laguna-s-2.1",
+    provider: "PULSE",
+    dailyLimit: 0,
+    tier: "pro",
+    badge: "🌊",
+    order: 2,
+  },
 ];
 
-export const DEFAULT_MODEL_ID = "v1";
+export const DEFAULT_MODEL_ID = "pulse-listener";
 
 export function getModel(id: string | undefined): ModelInfo | undefined {
   if (!id) return undefined;
@@ -71,4 +81,4 @@ export function getModelChain(modelId: string): string[] {
   return [model.apiModel, ...(model.fallbacks || [])];
 }
 
-export const MODEL_STORAGE_KEY = "devai:model";
+export const MODEL_STORAGE_KEY = "pulse:model";

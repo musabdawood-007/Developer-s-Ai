@@ -30,17 +30,17 @@ export async function sendOtpEmail(
     };
   }
 
-  const fromName = process.env.EMAIL_FROM_NAME || "Developer's Ai";
-  const fromAddress = process.env.EMAIL_FROM_ADDRESS || "developer.bot.ai@gmail.com";
+  const fromName = process.env.EMAIL_FROM_NAME || "PULSE";
+  const fromAddress = process.env.EMAIL_FROM_ADDRESS || "musabdaud007@gmail.com";
 
   const html = `
     <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; background: #0a0a1a; padding: 32px; border-radius: 16px; border: 1px solid #1a3a2a;">
       <div style="text-align: center; margin-bottom: 24px;">
-        <h1 style="color: #10b981; font-size: 24px; margin: 0;">Developer's Ai</h1>
+        <h1 style="color: #10b981; font-size: 24px; margin: 0;">PULSE</h1>
         <p style="color: #64748b; font-size: 12px; margin-top: 4px;">Verification Code</p>
       </div>
       <p style="color: #e2e8f0; font-size: 14px; line-height: 1.6;">
-        Hi there! You're verifying your account on Developer's Ai.
+        Hi there! You're verifying your account on PULSE.
       </p>
       <p style="color: #e2e8f0; font-size: 14px; line-height: 1.6;">
         Use the following code to continue:
@@ -55,7 +55,7 @@ export async function sendOtpEmail(
       </p>
       <hr style="border: none; border-top: 1px solid #1a3a2a; margin: 24px 0;">
       <p style="color: #64748b; font-size: 11px; text-align: center;">
-        Developer's Ai · Built by Musab Dawood
+        PULSE · Built by Musab Dawood
       </p>
     </div>
   `;
@@ -65,14 +65,14 @@ export async function sendOtpEmail(
       from: `"${fromName}" <${fromAddress}>`,
       to: toEmail,
       replyTo: fromAddress,
-      subject: `Your Developer's Ai verification code: ${otp}`,
+      subject: `Your PULSE verification code: ${otp}`,
       html,
-      text: `Developer's Ai\n\nYour verification code is: ${otp}\n\nThis code is valid for 10 minutes.\n\nIf you did not request this, you can safely ignore this email.\n\n— Developer's Ai (Built by Musab Dawood)`,
+      text: `PULSE\n\nYour verification code is: ${otp}\n\nThis code is valid for 10 minutes.\n\nIf you did not request this, you can safely ignore this email.\n\n— PULSE (Built by Musab Dawood)`,
       headers: {
         "X-Priority": "1",
         "X-MSMail-Priority": "High",
         "Importance": "high",
-        "X-Mailer": "Developer's Ai Mailer",
+        "X-Mailer": "PULSE Mailer",
         "X-Auto-Response-Suppress": "All",
         "List-Unsubscribe": `<mailto:${fromAddress}?subject=unsubscribe>`,
       },

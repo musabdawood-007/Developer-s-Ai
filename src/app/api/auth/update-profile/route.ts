@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Visitor ID required." }, { status: 400 });
     }
 
-    const sessionVisitorId = req.cookies.get("devai_session")?.value;
+    const sessionVisitorId = req.cookies.get("pulse_session")?.value;
     if (sessionVisitorId && sessionVisitorId !== visitorId) {
       return NextResponse.json({ error: "Unauthorized." }, { status: 403 });
     }

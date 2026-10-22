@@ -10,50 +10,52 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// --- Developer's Ai: visitor + chat logging ---
+// --- PULSE: visitor + chat logging ---
 
 model Visitor {
-  id              String    @id @map("_id") @default(cuid())
-  email           String    @unique
+  id              String        @id @map("_id") @default(cuid())
+  email           String        @unique
   name            String
   password        String?
   profilePicture  String?
-  sessionId       String    @unique
-  isPro           Boolean   @default(false)
+  sessionId       String        @unique
+  isGuest         Boolean       @default(false)
+  isPro           Boolean       @default(false)
   proExpiresAt    DateTime?
-  createdAt       DateTime  @default(now())
-  lastSeen        DateTime  @updatedAt
+  createdAt       DateTime      @default(now())
+  lastSeen        DateTime      @updatedAt
   chats           ChatLog[]
   sessions        ChatSession[]
   modelUsages     ModelUsage[]
+  feedback        Feedback[]
 
   @@map("visitors")
 }
 
 model ChatSession {
-  id          String    @id @map("_id") @default(cuid())
-  visitorId   String
-  visitor     Visitor   @relation(fields: [visitorId], references: [id], onDelete: Cascade)
-  title       String    @default("New Chat")
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  chats       ChatLog[]
+  id        String    @id @map("_id") @default(cuid())
+  visitorId String
+  visitor   Visitor   @relation(fields: [visitorId], references: [id], onDelete: Cascade)
+  title     String    @default("New Chat")
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  chats     ChatLog[]
 
   @@map("chat_sessions")
 }
 
 model ChatLog {
-  id            String    @id @map("_id") @default(cuid())
-  visitorId     String
-  visitor       Visitor  @relation(fields: [visitorId], references: [id], onDelete: Cascade)
-  sessionId     String?
-  session       ChatSession? @relation(fields: [sessionId], references: [id], onDelete: Cascade)
-  role          String
-  content       String
-  modelId       String?
-  createdAt     DateTime  @default(now())
-  deletedAt     DateTime?
-  userHiddenAt  DateTime?
+  id           String       @id @map("_id") @default(cuid())
+  visitorId    String
+  visitor      Visitor      @relation(fields: [visitorId], references: [id], onDelete: Cascade)
+  sessionId    String?
+  session      ChatSession? @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  role         String
+  content      String
+  modelId      String?
+  createdAt    DateTime     @default(now())
+  deletedAt    DateTime?
+  userHiddenAt DateTime?
 
   @@index([visitorId])
   @@index([sessionId])
@@ -63,18 +65,34 @@ model ChatLog {
 // Tracks daily message usage per visitor per model.
 // One row per (visitor, model, day). Reset daily by checking `date`.
 model ModelUsage {
-  id          String   @id @map("_id") @default(cuid())
-  visitorId   String
-  visitor     Visitor  @relation(fields: [visitorId], references: [id], onDelete: Cascade)
-  modelId     String   // e.g. "v1", "v2", "pro"
-  date        String   // YYYY-MM-DD (UTC) — daily bucket
-  count       Int      @default(0)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        String   @id @map("_id") @default(cuid())
+  visitorId String
+  visitor   Visitor  @relation(fields: [visitorId], references: [id], onDelete: Cascade)
+  modelId   String   // e.g. "pulse-listener", "pulse-deep"
+  date      String   // YYYY-MM-DD (UTC) — daily bucket
+  count     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([visitorId, modelId, date])
   @@index([visitorId, date])
   @@map("model_usages")
+}
+
+// Feedback loop: thumbs up/down after every PULSE reply.
+// Used later to fine-tune prompts (PRD §7).
+model Feedback {
+  id        String   @id @map("_id") @default(cuid())
+  visitorId String
+  visitor   Visitor  @relation(fields: [visitorId], references: [id], onDelete: Cascade)
+  modelId   String?
+  rating    String   // "up" | "down"
+  comment   String?
+  createdAt DateTime @default(now())
+
+  @@index([modelId])
+  @@index([rating])
+  @@map("feedback")
 }
 
 model OtpToken {

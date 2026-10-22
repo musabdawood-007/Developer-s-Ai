@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Visitor ID required." }, { status: 400 });
     }
 
-    const sessionVisitorId = req.cookies.get("devai_session")?.value;
+    const sessionVisitorId = req.cookies.get("pulse_session")?.value;
     if (sessionVisitorId && sessionVisitorId !== visitorId) {
       return NextResponse.json({ error: "Unauthorized." }, { status: 403 });
     }
@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
     await db.visitor.delete({ where: { id: visitorId } });
 
     const res = NextResponse.json({ ok: true });
-    res.cookies.delete("devai_session");
+    res.cookies.delete("pulse_session");
     return res;
   } catch (err) {
     console.error("[delete-account] error:", err);
