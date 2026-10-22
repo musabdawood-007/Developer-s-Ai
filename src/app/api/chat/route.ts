@@ -18,7 +18,6 @@ interface ChatRequestBody {
   messages: ChatMessage[];
   visitorName?: string;
   modelId?: string;
-  sessionId?: string;
 }
 
 async function enforceDailyLimit(
@@ -57,40 +56,6 @@ async function recordUsage(visitorId: string, modelId: string) {
     .catch(() => {});
 }
 
-async function getOrCreateSession(visitorId: string, sessionId?: string) {
-  if (sessionId) {
-    const existing = await db.chatSession.findUnique({
-      where: { id: sessionId },
-      select: { id: true, visitorId: true },
-    });
-    if (existing && existing.visitorId === visitorId) return existing.id;
-  }
-  const session = await db.chatSession.create({
-    data: { visitorId, title: "New Chat" },
-    select: { id: true },
-  });
-  return session.id;
-}
-
-async function saveMessage(
-  visitorId: string,
-  sessionId: string,
-  role: "user" | "assistant",
-  content: string,
-  modelId?: string
-) {
-  await db.chatLog.create({
-    data: { visitorId, sessionId, role, content, modelId: role === "assistant" ? modelId : null },
-  });
-}
-
-async function updateSessionTitle(sessionId: string, firstUserMessage: string) {
-  const title = firstUserMessage.slice(0, 50).trim();
-  await db.chatSession
-    .update({ where: { id: sessionId }, data: { title: title || "New Chat", updatedAt: new Date() } })
-    .catch(() => {});
-}
-
 export async function POST(req: NextRequest) {
   const sessionVisitorId = await getSessionVisitorId(req);
   if (!sessionVisitorId) {
@@ -120,7 +85,6 @@ export async function POST(req: NextRequest) {
 
   const systemPrompt = buildSystemPrompt(body.visitorName?.trim() || undefined);
 
-  // Reduced from 10 to 6 for faster response
   const history = body.messages
     .filter((m) => typeof m?.content === "string" && m.content.trim().length > 0)
     .slice(-6);
@@ -130,17 +94,9 @@ export async function POST(req: NextRequest) {
 
   const inCrisis = CRISIS_KEYWORDS.some((k) => lastUserText.includes(k));
 
-  // Quick session creation (non-blocking for stream start)
-  const sessionId = await getOrCreateSession(sessionVisitorId, body.sessionId);
-
-  const lastUserMessage = lastUserMsg?.content || "";
-
-  // Fire-and-forget DB operations - don't await
-  saveMessage(sessionVisitorId, sessionId, "user", lastUserMessage).catch(() => {});
-  if (!inCrisis) updateSessionTitle(sessionId, lastUserMessage).catch(() => {});
-  recordUsage(sessionVisitorId, modelId).catch(() => {});
-
   const encoder = new TextEncoder();
+
+  await recordUsage(sessionVisitorId, modelId);
 
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
@@ -152,7 +108,6 @@ export async function POST(req: NextRequest) {
 
       let fullReply = "";
 
-      // Immediate "started" signal so UI shows typing indicator instantly
       send({ started: true });
 
       try {
@@ -164,19 +119,13 @@ export async function POST(req: NextRequest) {
             { role: "system", content: systemPrompt },
             ...history,
           ];
-          // Stream tokens as they arrive from LLM
           for await (const token of streamChatCompletion(messagesForModel, getModelChain(modelId))) {
             fullReply += token;
             send({ token });
           }
         }
 
-        // Fire-and-forget: save assistant reply
-        if (fullReply) {
-          saveMessage(sessionVisitorId, sessionId, "assistant", fullReply, modelId).catch(() => {});
-        }
-
-        send({ done: true, sessionId });
+        send({ done: true });
       } catch (err) {
         if (err instanceof Error && err.name === "AbortError") {
           send({ done: true });

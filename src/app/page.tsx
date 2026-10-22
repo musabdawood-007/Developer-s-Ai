@@ -34,6 +34,7 @@ import { WelcomeScreen } from "@/components/chat/welcome-screen";
 
 import {
   BOT_NAME,
+  buildWelcomeMessage,
   DISCLAIMER_FOOTER,
 } from "@/lib/chat-config";
 import { DEFAULT_MODEL_ID } from "@/lib/models";
@@ -45,14 +46,12 @@ interface SessionInfo {
   title: string;
   updatedAt: string;
   preview?: string;
-  _count?: { chats: number };
 }
 
 interface VisitorCtx {
   name: string;
   visitorId: string;
   email?: string;
-  isGuest?: boolean;
 }
 
 const VISITOR_STORAGE_KEY = "pulse:auth";
@@ -90,7 +89,7 @@ export default function Home() {
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const abortRef = useRef<AbortController | null>(null);
-  const isSendingRef = useRef(false);
+  const syncingFromSandbox = useRef(false);
   const { toast } = useToast();
 
   const [isPro, setIsPro] = useState(false);
@@ -130,7 +129,6 @@ export default function Home() {
             name: parsed.name,
             visitorId: parsed.visitorId,
             email: parsed.email,
-            isGuest: parsed.isGuest,
           });
         }
       }
@@ -188,7 +186,7 @@ export default function Home() {
     if (params.get("google_login") === "1") {
       fetch("/api/auth/me").then((r) => r.json()).then((data) => {
         if (data.visitorId && data.name) {
-          const authData = { name: data.name, visitorId: data.visitorId, email: data.email, isGuest: false };
+          const authData = { name: data.name, visitorId: data.visitorId, email: data.email };
           localStorage.setItem(VISITOR_STORAGE_KEY, JSON.stringify(authData));
           setVisitor(authData);
           try { sessionStorage.setItem("pulse:just-logged-in", "1"); } catch {}
@@ -198,98 +196,169 @@ export default function Home() {
     }
   }, []);
 
-  const fetchSessions = useCallback(async () => {
+  useEffect(() => {
     if (!visitor) return;
+    const storageKey = `pulse:chat-sessions:${visitor.visitorId}`;
     try {
-      const res = await fetch(`/api/sessions?visitorId=${visitor.visitorId}`);
-      if (res.ok) {
-        const data = await res.json();
-        setSessions(data.sessions || []);
-      }
-    } catch {}
-  }, [visitor]);
-
-  const fetchMessages = useCallback(async (sessionId: string) => {
-    if (!visitor) return;
-    try {
-      const res = await fetch(`/api/sessions/${sessionId}?visitorId=${visitor.visitorId}`);
-      if (res.ok) {
-        const data = await res.json();
-        if (data.messages) {
-          setMessages(data.messages.map((m: any) => ({
-            id: m.id,
-            role: m.role,
-            content: m.content,
-            createdAt: new Date(m.createdAt).getTime(),
-          })));
+      const saved = localStorage.getItem(storageKey);
+      if (saved) {
+        const parsed = JSON.parse(saved) as { sessions: SessionInfo[]; currentSessionId: string; messages: Record<string, Message[]> };
+        if (parsed.sessions?.length > 0) {
+          const sessionsWithPreview = parsed.sessions.map((s) => {
+            const msgs = parsed.messages?.[s.id];
+            const lastMsg = msgs?.filter((m) => m.role === "user").pop();
+            return { ...s, preview: lastMsg?.content?.slice(0, 50) || "" };
+          });
+          setSessions(sessionsWithPreview);
+          setCurrentSessionId(parsed.currentSessionId || parsed.sessions[0].id);
+          const msgs = parsed.messages?.[parsed.currentSessionId || parsed.sessions[0].id];
+          if (msgs && msgs.length > 0) {
+            setMessages(msgs);
+          } else {
+            setMessages([{ id: "welcome", role: "assistant", content: buildWelcomeMessage(visitor.name), createdAt: Date.now() }]);
+          }
+          return;
         }
-      }
-    } catch {}
-  }, [visitor]);
+      } catch {}
+      createNewSession();
+    }, [visitor]);
 
   useEffect(() => {
-    if (currentSessionId) {
-      fetchMessages(currentSessionId);
-    }
-  }, [currentSessionId, fetchMessages]);
-
-  useEffect(() => {
-    if (visitor) {
-      fetchSessions();
-    }
-  }, [visitor, fetchSessions]);
-
-  const incrementGuestMsgCount = useCallback(() => {
-    if (!visitor?.isGuest) return;
-    const newCount = guestMsgCount + 1;
-    setGuestMsgCount(newCount);
-    try {
-      localStorage.setItem(`${GUEST_MSG_COUNT_KEY}:${visitor.visitorId}`, String(newCount));
-    } catch {}
-    if (newCount >= 5) {
-      setShowLoginPrompt(true);
-    }
-  }, [guestMsgCount, visitor]);
-
-  const createNewSession = useCallback(async () => {
-    if (!visitor) return;
-    try {
-      const res = await fetch("/api/sessions", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ visitorId: visitor.visitorId }),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setCurrentSessionId(data.session.id);
-        fetchMessages(data.session.id);
-        fetchSessions();
-      }
-    } catch {}
-  }, [visitor, fetchSessions, fetchMessages]);
-
-  const switchSession = useCallback((sessionId: string) => {
-    setCurrentSessionId(sessionId);
-    fetchMessages(sessionId);
-    setSidebarOpen(false);
-  }, [fetchMessages]);
-
-  const deleteSession = useCallback(async (sessionId: string) => {
-    if (!visitor) return;
-    try {
-      await fetch(`/api/sessions/${sessionId}`, { method: "DELETE" });
-      setSessions((prev) => prev.filter((s) => s.id !== sessionId));
-      if (sessionId === currentSessionId) {
-        const remaining = sessions.filter((s) => s.id !== sessionId);
-        if (remaining.length > 0) {
-          switchSession(remaining[0].id);
+    const handleSessionsChanged = () => {
+      if (!visitor) return;
+      syncingFromSandbox.current = true;
+      const storageKey = `pulse:chat-sessions:${visitor.visitorId}`;
+      try {
+        const saved = localStorage.getItem(storageKey);
+        if (saved) {
+          const parsed = JSON.parse(saved) as { sessions: SessionInfo[]; currentSessionId: string; messages: Record<string, Message[]> };
+          if (parsed.sessions) {
+            const sessionsWithPreview = parsed.sessions.map((s) => {
+              const msgs = parsed.messages?.[s.id];
+              const lastMsg = msgs?.filter((m) => m.role === "user").pop();
+              return { ...s, preview: lastMsg?.content?.slice(0, 50) || "" };
+            });
+            setSessions(sessionsWithPreview);
+            if (parsed.currentSessionId && parsed.currentSessionId !== currentSessionId) {
+              setCurrentSessionId(parsed.currentSessionId);
+              const msgs = parsed.messages?.[parsed.currentSessionId];
+              if (msgs && msgs.length > 0) {
+                setMessages(msgs);
+              }
+            } else if (!parsed.sessions.find((s) => s.id === currentSessionId)) {
+              if (parsed.sessions.length > 0) {
+                setCurrentSessionId(parsed.sessions[0].id);
+                const msgs = parsed.messages?.[parsed.sessions[0].id];
+                setMessages(msgs && msgs.length > 0 ? msgs : [{ id: "welcome", role: "assistant", content: buildWelcomeMessage(visitor.name), createdAt: Date.now() }]);
+              } else {
+                createNewSession();
+              }
+            }
+          }
         } else {
+          setSessions([]);
           createNewSession();
         }
-      }
-      toast({ title: "Space deleted." });
+      } catch {}
+      setTimeout(() => { syncingFromSandbox.current = false; }, 100);
+    };
+    window.addEventListener("pulse:sessions-changed", handleSessionsChanged);
+    return () => window.removeEventListener("pulse:sessions-changed", handleSessionsChanged);
+  }, [visitor, currentSessionId]);
+
+  const saveToLocalStorage = useCallback(() => {
+    if (!visitor || !currentSessionId || syncingFromSandbox.current) return;
+    const storageKey = `pulse:chat-sessions:${visitor.visitorId}`;
+    try {
+      let allMessages: Record<string, Message[]> = {};
+      try {
+        const existing = localStorage.getItem(storageKey);
+        if (existing) {
+          const parsed = JSON.parse(existing) as { messages?: Record<string, Message[]> };
+          if (parsed.messages) allMessages = { ...parsed.messages };
+        }
+      } catch {}
+
+      allMessages[currentSessionId] = messages.filter(m => m.id !== "welcome");
+
+      const sessionsWithPreview = sessions.map((s) => {
+        const msgs = allMessages[s.id];
+        const lastMsg = msgs?.filter((m) => m.role === "user").pop();
+        return { ...s, preview: lastMsg?.content?.slice(0, 50) || s.preview || "" };
+      });
+
+      const data = { sessions: sessionsWithPreview, currentSessionId, messages: allMessages };
+      localStorage.setItem(storageKey, JSON.stringify(data));
     } catch {}
-  }, [visitor, currentSessionId, sessions, createNewSession, switchSession]);
+  }, [visitor, sessions, currentSessionId, messages]);
+
+  useEffect(() => { saveToLocalStorage(); }, [saveToLocalStorage]);
+
+  const createNewSession = () => {
+    if (!visitor) return;
+    const newSession: SessionInfo = {
+      id: uid(),
+      title: `Feeling heavy?`,
+      updatedAt: new Date().toISOString(),
+      preview: "",
+    };
+    setSessions((prev) => [newSession, ...prev]);
+    setCurrentSessionId(newSession.id);
+    setMessages([
+      {
+        id: "welcome",
+        role: "assistant",
+        content: buildWelcomeMessage(visitor.name),
+        createdAt: Date.now(),
+      },
+    ]);
+    setSidebarOpen(false);
+  };
+
+  const switchSession = (sessionId: string) => {
+    setCurrentSessionId(sessionId);
+    const storageKey = `pulse:chat-sessions:${visitor?.visitorId}`;
+    try {
+      const saved = localStorage.getItem(storageKey);
+      if (saved) {
+        const parsed = JSON.parse(saved) as { messages: Record<string, Message[]> };
+        const msgs = parsed.messages?.[sessionId];
+        if (msgs && msgs.length > 0) {
+          setMessages(msgs);
+        } else {
+          setMessages([{ id: "welcome", role: "assistant", content: buildWelcomeMessage(visitor?.name || "Friend"), createdAt: Date.now() }]);
+        }
+      }
+    } catch {
+      setMessages([{ id: "welcome", role: "assistant", content: buildWelcomeMessage(visitor?.name || "Friend"), createdAt: Date.now() }]);
+    }
+    setSidebarOpen(false);
+  };
+
+  const refreshSessions = useCallback(() => {
+    if (!visitor) return;
+    const storageKey = `pulse:chat-sessions:${visitor.visitorId}`;
+    try {
+      const saved = localStorage.getItem(storageKey);
+      if (saved) {
+        const parsed = JSON.parse(saved) as { sessions: SessionInfo[] };
+        setSessions(parsed.sessions || []);
+      }
+    } catch {}
+  }, [visitor]);
+
+  const deleteSession = (sessionId: string) => {
+    setSessions((prev) => prev.filter((s) => s.id !== sessionId));
+    if (sessionId === currentSessionId) {
+      const remaining = sessions.filter((s) => s.id !== sessionId);
+      if (remaining.length > 0) {
+        switchSession(remaining[0].id);
+      } else {
+        createNewSession();
+      }
+    }
+    toast({ title: "Space deleted." });
+  };
 
   useEffect(() => {
     const el = scrollRef.current;
@@ -320,16 +389,8 @@ export default function Home() {
 
   const send = useCallback(
     async (rawText?: string) => {
-      if (isSendingRef.current) return;
       const text = (rawText ?? input).trim();
       if (!text || loading) return;
-
-      isSendingRef.current = true;
-
-      if (!currentSessionId) {
-        await createNewSession();
-        if (!currentSessionId) return;
-      }
 
       const userMsg: Message = {
         id: uid(),
@@ -366,7 +427,6 @@ export default function Home() {
             messages: history.map((m) => ({ role: m.role, content: m.content })),
             visitorName: visitor?.name,
             modelId: DEFAULT_MODEL_ID,
-            sessionId: currentSessionId,
           }),
         });
 
@@ -399,7 +459,7 @@ export default function Home() {
 
             try {
               const json = JSON.parse(payload) as
-                | { token?: string; done?: boolean; error?: string; started?: boolean; sessionId?: string };
+                | { token?: string; done?: boolean; error?: string; started?: boolean };
 
               if (json.error) {
                 throw new Error(json.error);
@@ -417,9 +477,6 @@ export default function Home() {
                   )
                 );
               }
-              if (json.done && json.sessionId) {
-                setCurrentSessionId(json.sessionId);
-              }
             } catch {
             }
           }
@@ -435,9 +492,6 @@ export default function Home() {
               : m
           )
         );
-
-        incrementGuestMsgCount();
-        fetchSessions();
       } catch (e) {
         if (e instanceof DOMException && e.name === "AbortError") {
           setMessages((prev) =>
@@ -471,11 +525,10 @@ export default function Home() {
         setStreaming(false);
         setThinking(false);
         abortRef.current = null;
-        isSendingRef.current = false;
         void refreshUsage();
       }
     },
-    [input, loading, messages, toast, visitor, currentSessionId, refreshUsage, createNewSession, fetchSessions, incrementGuestMsgCount]
+    [input, loading, messages, toast, visitor, refreshUsage]
   );
 
   const stopGeneration = useCallback(() => {
@@ -483,18 +536,26 @@ export default function Home() {
   }, []);
 
   const onKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === "Enter" && !e.shiftKey && !isSendingRef.current) {
+    if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       void send();
     }
   };
 
+  const clearChat = () => {
+    createNewSession();
+  };
+
   const signOut = async () => {
     try {
-      await fetch("/api/auth/signout", { method: "POST", credentials: "include" });
+      await fetch("/api/auth/signout", {
+        method: "POST",
+        credentials: "include",
+      });
     } catch {
     }
     try {
+      if (visitor) localStorage.removeItem(`pulse:chat-sessions:${visitor.visitorId}`);
       localStorage.removeItem(VISITOR_STORAGE_KEY);
     } catch {
     }
@@ -557,30 +618,6 @@ export default function Home() {
 
   return (
     <div className="flex h-[100dvh] overflow-hidden bg-background text-foreground">
-      {showLoginPrompt && visitor?.isGuest && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" onClick={() => setShowLoginPrompt(false)}>
-          <div className="w-full max-w-md rounded-2xl border border-border bg-card p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
-            <div className="text-center">
-              <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-muted">
-                <Heart className="h-7 w-7 text-foreground" />
-              </div>
-              <h2 className="text-lg font-bold">Continue your conversation</h2>
-              <p className="mt-2 text-sm text-muted-foreground">
-                You&apos;ve used your 5 free anonymous messages. Create an account to save your chat history and keep talking.
-              </p>
-              <div className="mt-5 flex gap-2">
-                <Button type="button" variant="outline" className="flex-1" onClick={() => setShowLoginPrompt(false)}>
-                  Later
-                </Button>
-                <Button type="button" className="flex-1 bg-gradient-to-r from-slate-500 to-slate-700 text-white" onClick={() => { setShowLoginPrompt(false); setAccountOpen(true); }}>
-                  Sign up / Log in
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
       {sidebarOpen && (
         <div className="fixed inset-0 z-40 flex lg:hidden">
           <div className="absolute inset-0 bg-black/50" onClick={() => setSidebarOpen(false)} aria-hidden />
@@ -681,7 +718,7 @@ export default function Home() {
         <header className="shrink-0 border-b border-border bg-background/80 backdrop-blur-xl sticky top-0 z-10">
           <div className="flex items-center justify-between gap-2 px-3 py-2 sm:px-4">
             <div className="flex items-center gap-2">
-              <button type="button" onClick={() => { setSidebarOpen(true); fetchSessions(); }} className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground lg:hidden" aria-label="Open sidebar">
+              <button type="button" onClick={() => { setSidebarOpen(true); refreshSessions(); }} className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground lg:hidden" aria-label="Open sidebar">
                 <Menu className="h-5 w-5" />
               </button>
               <button type="button" onClick={() => createNewSession()} className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground" aria-label="New space" title="New space (Ctrl+K)">
