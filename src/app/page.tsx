@@ -1,6 +1,11 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
+
+interface BeforeInstallPromptEvent extends Event {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
+}
 import {
   Send,
   Trash2,
@@ -11,6 +16,7 @@ import {
   MessageCircle,
   Menu,
   UserCircle,
+  Sparkle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -66,7 +72,7 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [streaming, setStreaming] = useState(false);
   const [thinking, setThinking] = useState(false);
-  const [installPromptEvent, setInstallPromptEvent] = useState<any>(null);
+  const [installPromptEvent, setInstallPromptEvent] = useState<BeforeInstallPromptEvent | null>(null);
   const [showInstallToast, setShowInstallToast] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
   const [sessions, setSessions] = useState<SessionInfo[]>([]);
@@ -125,12 +131,12 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    const handler = (e: Event) => {
+    const handler = (e: BeforeInstallPromptEvent) => {
       e.preventDefault();
       setInstallPromptEvent(e);
     };
-    window.addEventListener("beforeinstallprompt", handler);
-    return () => window.removeEventListener("beforeinstallprompt", handler);
+    window.addEventListener("beforeinstallprompt", handler as EventListener);
+    return () => window.removeEventListener("beforeinstallprompt", handler as EventListener);
   }, []);
 
   useEffect(() => {

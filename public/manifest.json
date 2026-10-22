@@ -1,15 +1,15 @@
 {
   "name": "PULSE",
-  "short_name": "Dev's Ai",
-  "description": "A friendly chatbot by Musab Dawood — chat, get coding tips, generate images & Markdown files.",
+  "short_name": "PULSE",
+  "description": "Your Emotional Compass. Steady Mind. Clear Path. AI support for when you feel stuck, overwhelmed, or alone.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "display_override": ["standalone", "minimal-ui", "browser"],
   "orientation": "portrait",
-  "background_color": "#0d0505",
-  "theme_color": "#c41e3a",
-  "categories": ["productivity", "developer", "utilities"],
+  "background_color": "#1a1b26",
+  "theme_color": "#1a1b26",
+  "categories": ["health", "lifestyle", "productivity"],
   "icons": [
     {
       "src": "/icon-192.png",
@@ -32,13 +32,8 @@
   ],
   "shortcuts": [
     {
-      "name": "New Chat",
-      "url": "/?action=new-chat",
-      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
-    },
-    {
-      "name": "Generate Image",
-      "url": "/?action=generate-image",
+      "name": "New Space",
+      "url": "/?action=new-space",
       "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
     }
   ]
