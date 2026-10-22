@@ -30,8 +30,8 @@ export const metadata: Metadata = {
   authors: [{ name: "Musab Dawood" }],
   manifest: "/manifest.json",
   icons: {
-    icon: "/icon.svg",
-    apple: "/apple-touch-icon.png",
+    icon: "/pulse-logo.png",
+    apple: "/pulse-logo.png",
   },
   appleWebApp: {
     capable: true,

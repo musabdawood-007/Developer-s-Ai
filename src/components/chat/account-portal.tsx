@@ -604,7 +604,7 @@ export function AccountPortal({
         {tab === "about" && (
           <div className="p-4 space-y-4">
             <div className="flex flex-col items-center text-center py-2">
-              <img src="/custom-logo.png" alt={BOT_NAME} className="h-16 w-16 rounded-2xl object-cover mb-3" />
+              <img src="/pulse-logo.png" alt={BOT_NAME} className="h-16 w-16 rounded-2xl object-cover mb-3" />
               <h3 className="text-lg font-bold text-foreground">{BOT_NAME}</h3>
               <p className="text-xs text-muted-foreground">Version 2.0.1</p>
             </div>

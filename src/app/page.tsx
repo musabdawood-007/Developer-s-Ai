@@ -638,7 +638,7 @@ export default function Home() {
           <div className="relative flex h-full w-72 flex-col bg-background border-r border-border">
             <div className="flex items-center justify-between border-b border-border bg-background/80 backdrop-blur-xl px-4 py-3">
               <div className="flex items-center gap-2">
-                <img src="/custom-logo.png" alt="PULSE" className="h-8 w-8 rounded-lg object-cover" />
+                <img src="/pulse-logo.png" alt="PULSE" className="h-8 w-8 rounded-lg object-cover" />
                 <span className="text-sm font-semibold">PULSE</span>
               </div>
               <button type="button" onClick={() => setSidebarOpen(false)} className="flex h-7 w-7 items-center justify-center rounded text-muted-foreground hover:bg-muted hover:text-foreground" aria-label="Close sidebar">
@@ -687,7 +687,7 @@ export default function Home() {
 
       <aside className="hidden lg:flex lg:w-72 lg:shrink-0 lg:flex-col border-r border-border bg-background">
         <div className="flex items-center gap-2 border-b border-border bg-background/80 backdrop-blur-xl px-4 py-3">
-          <img src="/custom-logo.png" alt="PULSE" className="h-8 w-8 rounded-lg object-cover" />
+          <img src="/pulse-logo.png" alt="PULSE" className="h-8 w-8 rounded-lg object-cover" />
           <span className="text-sm font-semibold">PULSE</span>
         </div>
         <div className="p-3 space-y-1">
@@ -759,7 +759,7 @@ export default function Home() {
                 <div className="absolute inset-0 -m-1.5 rounded-2xl bg-muted/30 blur-lg" />
                 {/* Red pulse ring on load */}
                 <span className="absolute -inset-1.5 rounded-2xl border-2 border-red-500/60 animate-pulse-ring-load opacity-0" />
-                <img src="/custom-logo.png" alt="PULSE" className="relative h-16 w-16 rounded-xl shadow-lg object-contain" />
+                <img src="/pulse-logo.png" alt="PULSE" className="relative h-16 w-16 rounded-xl shadow-lg object-contain" />
               </div>
 
               {/* Value prop (PRD §2: the First 30 Seconds) */}

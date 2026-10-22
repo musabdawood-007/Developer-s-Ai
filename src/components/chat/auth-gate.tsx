@@ -197,7 +197,7 @@ export function AuthGate({ onReady }: AuthGateProps) {
     <div className="flex min-h-dvh flex-col bg-background">
       <header className="flex items-center justify-between px-6 py-4">
         <div className="flex items-center gap-2">
-          <img src="/custom-logo.png" alt="PULSE" className="h-8 w-8 rounded-lg object-cover" />
+          <img src="/pulse-logo.png" alt="PULSE" className="h-8 w-8 rounded-lg object-cover" />
           <span className="text-sm font-semibold">{BOT_NAME}</span>
         </div>
       </header>

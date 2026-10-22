@@ -11,7 +11,7 @@
 export const PULSE_INFO = {
   product: "PULSE",
   tagline: "Your Emotional Compass. Steady Mind. Clear Path.",
-  supportEmail: "musabdaud007@gmail.com",
+  supportEmail: "pulse.bot.ai@gmail.com",
   website: "https://musab-007.netlify.app",
 } as const;
 

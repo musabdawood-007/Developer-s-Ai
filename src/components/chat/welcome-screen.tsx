@@ -54,7 +54,7 @@ export function WelcomeScreen({ onEnter }: WelcomeScreenProps) {
           <div className="relative">
             <div className="absolute inset-0 -m-2 rounded-3xl bg-muted/40 blur-xl" />
             <img
-              src="/custom-logo.png"
+              src="/pulse-logo.png"
               alt="PULSE"
               className="relative h-20 w-20 rounded-2xl shadow-2xl object-contain"
             />
