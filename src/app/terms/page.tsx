@@ -11,8 +11,8 @@ export default function TermsPage() {
             <h2 className="mb-2 text-base font-semibold text-foreground">1. Acceptance of Terms</h2>
             <p>
               By accessing or using PULSE, available at{" "}
-              <a href="https://developer-space-ai.vercel.app" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 text-foreground hover:text-foreground">
-                developer-space-ai.vercel.app
+              <a href="https://pulse-bot-ai.vercel.app" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 text-foreground hover:text-foreground">
+                pulse-bot-ai.vercel.app
               </a>{" "}
               (&quot;the Service&quot;), you agree to be bound by these Terms and Conditions. If you do not agree, do not use the Service.
             </p>

@@ -11,8 +11,8 @@ export default function PrivacyPage() {
             <h2 className="mb-2 text-base font-semibold text-foreground">1. Introduction</h2>
             <p>
               PULSE (&quot;we&quot;, &quot;our&quot;, or &quot;us&quot;) respects your privacy. This Privacy Policy explains how we collect, use, and protect your information when you use our service available at{" "}
-              <a href="https://developer-space-ai.vercel.app" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 text-foreground hover:text-foreground">
-                developer-space-ai.vercel.app
+              <a href="https://pulse-bot-ai.vercel.app" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 text-foreground hover:text-foreground">
+                pulse-bot-ai.vercel.app
               </a>.
             </p>
           </section>
