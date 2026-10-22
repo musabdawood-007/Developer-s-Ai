@@ -6,6 +6,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,6 +29,7 @@ import {
   MessageSquare,
   Moon,
   Sun,
+  Trash2,
 } from "lucide-react";
 import { DEVELOPER_INFO, BOT_NAME } from "@/lib/chat-config";
 import { cn } from "@/lib/utils";
@@ -147,6 +149,8 @@ export function AccountPortal({
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v) setTab("menu"); onOpenChange(v); }}>
       <DialogContent className="max-w-md p-0 overflow-hidden gap-0">
+        <DialogTitle className="sr-only">Account Settings</DialogTitle>
+        <DialogDescription className="sr-only">Manage your PULSE account, profile, and settings</DialogDescription>
         <div className="flex items-center justify-between border-b border-border bg-card px-4 py-3">
           <div className="flex items-center gap-2">
             {tab !== "menu" && (
