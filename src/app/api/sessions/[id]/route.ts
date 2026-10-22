@@ -5,6 +5,57 @@ import { getSessionVisitorId } from "@/lib/auth";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+export async function GET(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const sessionVisitorId = await getSessionVisitorId(req);
+  if (!sessionVisitorId) {
+    return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
+  }
+
+  try {
+    const { id } = await params;
+    const visitorId = req.nextUrl.searchParams.get("visitorId");
+
+    if (!visitorId || visitorId !== sessionVisitorId) {
+      return NextResponse.json({ error: "Missing or invalid visitorId" }, { status: 400 });
+    }
+    if (!id) {
+      return NextResponse.json({ error: "Missing session id." }, { status: 400 });
+    }
+
+    const session = await db.chatSession.findUnique({
+      where: { id },
+      select: { id: true, visitorId: true },
+    });
+
+    if (!session || session.visitorId !== sessionVisitorId) {
+      return NextResponse.json({ error: "Not found." }, { status: 404 });
+    }
+
+    const messages = await db.chatLog.findMany({
+      where: {
+        sessionId: id,
+        deletedAt: null,
+        userHiddenAt: null,
+      },
+      orderBy: { createdAt: "asc" },
+      select: {
+        id: true,
+        role: true,
+        content: true,
+        createdAt: true,
+      },
+    });
+
+    return NextResponse.json({ messages });
+  } catch (err) {
+    console.error("[sessions/[id]] get error:", err);
+    return NextResponse.json({ error: "Failed to fetch messages." }, { status: 500 });
+  }
+}
+
 export async function DELETE(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }

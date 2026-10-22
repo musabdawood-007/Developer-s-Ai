@@ -18,6 +18,7 @@ interface ChatRequestBody {
   messages: ChatMessage[];
   visitorName?: string;
   modelId?: string;
+  sessionId?: string;
 }
 
 /**
@@ -31,7 +32,6 @@ async function enforceDailyLimit(
   const model = getModel(modelId);
   if (!model) return { allowed: false };
   if (model.tier === "pro") {
-    // Pro gating: only active Pro subscribers may use it.
     const visitor = await db.visitor.findUnique({
       where: { id: visitorId },
       select: { isPro: true, proExpiresAt: true },
@@ -61,6 +61,49 @@ async function recordUsage(visitorId: string, modelId: string) {
       update: { count: { increment: 1 } },
     })
     .catch(() => {});
+}
+
+async function getOrCreateSession(visitorId: string, sessionId?: string) {
+  if (sessionId) {
+    const existing = await db.chatSession.findUnique({
+      where: { id: sessionId },
+      select: { id: true, visitorId: true },
+    });
+    if (existing && existing.visitorId === visitorId) {
+      return existing.id;
+    }
+  }
+  const session = await db.chatSession.create({
+    data: { visitorId, title: "New Chat" },
+    select: { id: true },
+  });
+  return session.id;
+}
+
+async function saveMessage(
+  visitorId: string,
+  sessionId: string,
+  role: "user" | "assistant",
+  content: string,
+  modelId?: string
+) {
+  await db.chatLog.create({
+    data: {
+      visitorId,
+      sessionId,
+      role,
+      content,
+      modelId: role === "assistant" ? modelId : null,
+    },
+  });
+}
+
+async function updateSessionTitle(sessionId: string, firstUserMessage: string) {
+  const title = firstUserMessage.slice(0, 50).trim();
+  await db.chatSession.update({
+    where: { id: sessionId },
+    data: { title: title || "New Chat", updatedAt: new Date() },
+  }).catch(() => {});
 }
 
 export async function POST(req: NextRequest) {
@@ -105,9 +148,16 @@ export async function POST(req: NextRequest) {
   const lastUserMsg = [...body.messages].reverse().find((m) => m.role === "user");
   const lastUserText = (lastUserMsg?.content || "").toLowerCase();
 
-  // Content moderation / crisis guard (PRD §6): catch crisis language
-  // before it reaches the model and respond with care immediately.
   const inCrisis = CRISIS_KEYWORDS.some((k) => lastUserText.includes(k));
+
+  const sessionId = await getOrCreateSession(sessionVisitorId, body.sessionId);
+
+  const lastUserMessage = lastUserMsg?.content || "";
+  await saveMessage(sessionVisitorId, sessionId, "user", lastUserMessage);
+
+  if (!inCrisis) {
+    await updateSessionTitle(sessionId, lastUserMessage);
+  }
 
   const encoder = new TextEncoder();
 
@@ -140,7 +190,9 @@ export async function POST(req: NextRequest) {
           }
         }
 
-        send({ done: true });
+        await saveMessage(sessionVisitorId, sessionId, "assistant", fullReply, modelId);
+
+        send({ done: true, sessionId });
       } catch (err) {
         if (err instanceof Error && err.name === "AbortError") {
           try {

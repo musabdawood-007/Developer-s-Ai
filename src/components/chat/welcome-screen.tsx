@@ -141,7 +141,7 @@ export function WelcomeScreen({ onEnter }: WelcomeScreenProps) {
         {phase >= 3 && (
           <p className="mt-4 text-[11px] text-muted-foreground/60 flex items-center gap-1.5">
             <ShieldCheck className="h-3 w-3" />
-            Your Emotional Compass. Steady Mind. Clear Path. &middot; Nothing is stored on our servers.
+            Your Emotional Compass. Steady Mind. Clear Path. &middot; Conversations saved for continuity.
           </p>
         )}
       </div>

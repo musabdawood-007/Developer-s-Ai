@@ -2,8 +2,7 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Trash2, User, Copy, Check, RotateCcw, Heart, ThumbsUp, ThumbsDown } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { User, Copy, Check, RotateCcw, Heart, ThumbsUp, ThumbsDown } from "lucide-react";
 import { Markdown } from "./markdown";
 
 export type ChatRole = "user" | "assistant";
@@ -20,7 +19,6 @@ interface ChatMessageProps {
   message: Message;
   isStreaming?: boolean;
   isThinking?: boolean;
-  onHide?: (id: string) => void | Promise<void>;
   onRetry?: (id: string) => void;
   onFeedback?: (id: string, rating: "up" | "down") => void;
 }
@@ -34,27 +32,14 @@ export function ChatMessage({
   message,
   isStreaming,
   isThinking,
-  onHide,
   onRetry,
   onFeedback,
 }: ChatMessageProps) {
   const isUser = message.role === "user";
   const isEmpty = !isUser && message.content.trim().length === 0;
-  const [hiding, setHiding] = useState(false);
   const [copied, setCopied] = useState(false);
   const [feedback, setFeedback] = useState<"up" | "down" | null>(message.feedback ?? null);
   const [feedbackNote, setFeedbackNote] = useState(false);
-  const canHide = typeof onHide === "function" && !isStreaming;
-
-  const handleHide = async () => {
-    if (!onHide || hiding) return;
-    setHiding(true);
-    try {
-      await onHide(message.id);
-    } finally {
-      setHiding(false);
-    }
-  };
 
   const handleCopy = () => {
     navigator.clipboard.writeText(message.content);
@@ -170,18 +155,6 @@ export function ChatMessage({
                   >
                     <RotateCcw className="h-3.5 w-3.5" />
                     Retry
-                  </button>
-                )}
-                {canHide && (
-                  <button
-                    type="button"
-                    onClick={handleHide}
-                    disabled={hiding}
-                    className="flex h-7 items-center gap-1.5 rounded-md px-2 text-[11px] text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                    title="Delete"
-                  >
-                    <Trash2 className={cn("h-3.5 w-3.5", hiding && "animate-pulse")} />
-                    Delete
                   </button>
                 )}
               </div>

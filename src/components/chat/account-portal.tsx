@@ -22,12 +22,10 @@ import {
   ChevronRight,
   X,
   Info,
-  Trash2,
-  MessageSquare,
   Database,
-  Clock,
   FileText,
   ExternalLink,
+  MessageSquare,
   Moon,
   Sun,
 } from "lucide-react";
@@ -45,15 +43,7 @@ interface AccountPortalProps {
   onAccountDeleted: () => void;
 }
 
-type Tab = "menu" | "profile" | "settings" | "about" | "sandbox" | "contact";
-
-interface StoredChat {
-  sessionId: string;
-  title: string;
-  messageCount: number;
-  lastActive: string;
-  messages: { role: string; content: string; createdAt: number }[];
-}
+type Tab = "menu" | "profile" | "settings" | "about" | "contact";
 
 export function AccountPortal({
   open,
@@ -71,11 +61,6 @@ export function AccountPortal({
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const [theme, setTheme] = useState<"dark" | "light">("dark");
-  const [sandboxData, setSandboxData] = useState<StoredChat[]>([]);
-  const [selectedChat, setSelectedChat] = useState<StoredChat | null>(null);
-  const [renamingId, setRenamingId] = useState<string | null>(null);
-  const [renameValue, setRenameValue] = useState("");
   const fileRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
@@ -129,75 +114,8 @@ export function AccountPortal({
     }
   };
 
-  const loadSandboxData = () => {
-    if (!visitor) return;
-    const storageKey = `pulse:chat-sessions:${visitor.visitorId}`;
-    try {
-      const saved = localStorage.getItem(storageKey);
-      if (saved) {
-        const parsed = JSON.parse(saved) as {
-          sessions: { id: string; title: string; updatedAt: string }[];
-          messages: Record<string, { role: string; content: string; createdAt: number }[]>;
-        };
-        const chats: StoredChat[] = (parsed.sessions || []).map((s) => ({
-          sessionId: s.id,
-          title: s.title,
-          messageCount: parsed.messages?.[s.id]?.length || 0,
-          lastActive: s.updatedAt,
-          messages: parsed.messages?.[s.id] || [],
-        }));
-        setSandboxData(chats);
-      }
-    } catch {}
-  };
-
-  const clearAllChats = () => {
-    if (!visitor) return;
-    if (!confirm("Delete ALL chats? This cannot be undone.")) return;
-    localStorage.removeItem(`pulse:chat-sessions:${visitor.visitorId}`);
-    window.dispatchEvent(new Event("pulse:sessions-changed"));
-    setSandboxData([]);
-    setSelectedChat(null);
-  };
-
-  const deleteSingleChat = (sessionId: string) => {
-    if (!visitor) return;
-    const storageKey = `pulse:chat-sessions:${visitor.visitorId}`;
-    try {
-      const saved = localStorage.getItem(storageKey);
-      if (saved) {
-        const parsed = JSON.parse(saved) as { sessions: { id: string }[]; messages: Record<string, unknown> };
-        parsed.sessions = parsed.sessions.filter((s) => s.id !== sessionId);
-        delete parsed.messages[sessionId];
-        localStorage.setItem(storageKey, JSON.stringify(parsed));
-        window.dispatchEvent(new Event("pulse:sessions-changed"));
-        loadSandboxData();
-        setSelectedChat(null);
-      }
-    } catch {}
-  };
-
-  const renameChat = (sessionId: string, newTitle: string) => {
-    if (!visitor || !newTitle.trim()) return;
-    const storageKey = `pulse:chat-sessions:${visitor.visitorId}`;
-    try {
-      const saved = localStorage.getItem(storageKey);
-      if (saved) {
-        const parsed = JSON.parse(saved) as { sessions: { id: string; title: string }[]; messages: Record<string, unknown> };
-        const session = parsed.sessions.find((s) => s.id === sessionId);
-        if (session) session.title = newTitle.trim();
-        localStorage.setItem(storageKey, JSON.stringify(parsed));
-        window.dispatchEvent(new Event("pulse:sessions-changed"));
-        loadSandboxData();
-        setRenamingId(null);
-        setSelectedChat((prev) => prev && prev.sessionId === sessionId ? { ...prev, title: newTitle.trim() } : prev);
-      }
-    } catch {}
-  };
-
   const closeAll = () => {
     setTab("menu");
-    setSelectedChat(null);
     onOpenChange(false);
   };
 
@@ -215,7 +133,6 @@ export function AccountPortal({
       if (!res.ok) throw new Error(data?.error || "Failed to delete account");
       try {
         localStorage.removeItem("pulse:auth");
-        localStorage.removeItem(`pulse:chat-sessions:${visitor.visitorId}`);
         localStorage.removeItem(`pulse:profile-pic:${visitor.visitorId}`);
       } catch {}
       onAccountDeleted();
@@ -227,20 +144,6 @@ export function AccountPortal({
     }
   };
 
-  const storageUsed = (() => {
-    if (!visitor) return "0 KB";
-    try {
-      const data = localStorage.getItem(`pulse:chat-sessions:${visitor.visitorId}`);
-      if (!data) return "0 KB";
-      const bytes = new Blob([data]).size;
-      if (bytes < 1024) return `${bytes} B`;
-      if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-      return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-    } catch {
-      return "0 KB";
-    }
-  })();
-
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v) setTab("menu"); onOpenChange(v); }}>
       <DialogContent className="max-w-md p-0 overflow-hidden gap-0">
@@ -249,14 +152,14 @@ export function AccountPortal({
             {tab !== "menu" && (
               <button
                 type="button"
-                onClick={() => { setTab("menu"); setSelectedChat(null); }}
+                onClick={() => { setTab("menu"); }}
                 className="text-muted-foreground hover:text-foreground"
               >
                 <ChevronRight className="h-4 w-4 rotate-180" />
               </button>
             )}
             <h2 className="text-sm font-bold">
-              {tab === "menu" ? "Account" : tab === "profile" ? "Edit Profile" : tab === "settings" ? "Settings" : tab === "about" ? "About" : tab === "sandbox" ? "Sandbox" : "Contact"}
+              {tab === "menu" ? "Account" : tab === "profile" ? "Edit Profile" : tab === "settings" ? "Settings" : tab === "about" ? "About" : "Contact"}
             </h2>
           </div>
           <button type="button" onClick={closeAll} className="text-muted-foreground hover:text-foreground">
@@ -296,7 +199,6 @@ export function AccountPortal({
               <p className="mb-1.5 px-1 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Account</p>
               <div className="space-y-0.5">
                 <MenuItem icon={<User className="h-4 w-4" />} label="Edit Profile" onClick={() => setTab("profile")} />
-                <MenuItem icon={<Database className="h-4 w-4" />} label="Sandbox" badge={`${sandboxData.length} chats`} onClick={() => { loadSandboxData(); setTab("sandbox"); }} />
                 <MenuItem icon={<Settings className="h-4 w-4" />} label="Settings" onClick={() => setTab("settings")} />
               </div>
             </div>
@@ -373,15 +275,6 @@ export function AccountPortal({
               </div>
             </div>
 
-            <div>
-              <label className="mb-1 block text-xs font-medium text-muted-foreground">Storage Used</label>
-              <div className="flex items-center gap-2 rounded-lg bg-muted/50 border-0 px-3 py-2.5">
-                <Database className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm">{storageUsed}</span>
-                <span className="text-xs text-muted-foreground">(localStorage)</span>
-              </div>
-            </div>
-
             <Button
               type="button"
               onClick={saveProfile}
@@ -400,12 +293,15 @@ export function AccountPortal({
               <div className="rounded-lg border border-border bg-muted/20 p-3">
                 <p className="text-xs font-semibold text-foreground mb-1">Account</p>
                 <p className="text-xs text-muted-foreground">Name: {visitor?.name}</p>
-                <p className="text-xs text-muted-foreground">Storage: {storageUsed} (localStorage)</p>
+                <p className="text-xs text-muted-foreground">Email: {visitor?.email || "Not set"}</p>
               </div>
 
               <div className="rounded-lg border border-border bg-muted/20 p-3">
                 <p className="text-xs font-semibold text-foreground mb-1">Data & Privacy</p>
-                <p className="text-xs text-muted-foreground mb-2">All chat data is stored locally in your browser. We have no access to your conversations.</p>
+                <p className="text-xs text-muted-foreground mb-2">
+                  Your conversations are stored on our servers for continuity across devices.
+                  Each message is sent to our AI provider to generate a reply. We never sell your data.
+                </p>
                 <div className="flex gap-2">
                   <a href="/terms" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 rounded-md bg-muted px-2 py-1 text-[10px] font-medium text-foreground hover:bg-muted/80">
                     <FileText className="h-3 w-3" /> Terms
@@ -443,164 +339,6 @@ export function AccountPortal({
           </div>
         )}
 
-        {tab === "sandbox" && (
-          <div className="p-4 space-y-4">
-            {!selectedChat ? (
-              <>
-                <div className="rounded-lg border border-border bg-muted/20 p-3">
-                  <p className="text-xs text-muted-foreground">
-                    All your chats are stored locally in your browser using localStorage. No data is sent to any server.
-                  </p>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <p className="text-xs font-semibold text-foreground">{sandboxData.length} chat(s) found</p>
-                  {sandboxData.length > 0 && (
-                    <button
-                      type="button"
-                      onClick={clearAllChats}
-                      className="text-[10px] text-destructive hover:text-foreground"
-                    >
-                      Clear All
-                    </button>
-                  )}
-                </div>
-
-                {sandboxData.length === 0 ? (
-                  <div className="flex flex-col items-center py-8 text-center">
-                    <Database className="mb-2 h-8 w-8 text-muted-foreground" />
-                    <p className="text-xs text-muted-foreground">No chats saved yet.</p>
-                  </div>
-                ) : (
-                  <div className="space-y-2 max-h-80 overflow-y-auto">
-                    {sandboxData.map((chat) => (
-                      <div
-                        key={chat.sessionId}
-                        className="rounded-lg border border-border bg-muted/10 p-3 transition-colors hover:bg-muted/30"
-                      >
-                        {renamingId === chat.sessionId ? (
-                          <div className="flex items-center gap-2">
-                            <Input
-                              value={renameValue}
-                              onChange={(e) => setRenameValue(e.target.value)}
-                              className="h-7 text-xs bg-muted/50 border-0"
-                              autoFocus
-                              onKeyDown={(e) => {
-                                if (e.key === "Enter") renameChat(chat.sessionId, renameValue);
-                                if (e.key === "Escape") setRenamingId(null);
-                              }}
-                            />
-                            <button
-                              type="button"
-                              onClick={() => renameChat(chat.sessionId, renameValue)}
-                              className="h-7 px-2 rounded-md bg-foreground text-background text-[10px] font-medium hover:bg-foreground/90"
-                            >
-                              Save
-                            </button>
-                          </div>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={() => setSelectedChat(chat)}
-                            className="flex w-full items-start gap-3 text-left"
-                          >
-                            <MessageSquare className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
-                            <div className="min-w-0 flex-1">
-                              <p className="truncate text-xs font-medium text-foreground">{chat.title}</p>
-                              <div className="mt-1 flex items-center gap-2 text-[10px] text-muted-foreground">
-                                <span>{chat.messageCount} messages</span>
-                                <span>·</span>
-                                <Clock className="h-2.5 w-2.5" />
-                                <span>{new Date(chat.lastActive).toLocaleDateString()}</span>
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <button
-                                type="button"
-                                onClick={(e) => { e.stopPropagation(); setRenamingId(chat.sessionId); setRenameValue(chat.title); }}
-                                className="h-6 px-1.5 rounded text-[10px] text-muted-foreground hover:text-foreground hover:bg-muted"
-                              >
-                                Rename
-                              </button>
-                              <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
-                            </div>
-                          </button>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </>
-            ) : (
-              <>
-                <div className="flex items-center justify-between">
-                  <div className="min-w-0 flex-1">
-                    {renamingId === selectedChat.sessionId ? (
-                      <div className="flex items-center gap-2">
-                        <Input
-                          value={renameValue}
-                          onChange={(e) => setRenameValue(e.target.value)}
-                          className="h-7 text-sm bg-muted/50 border-0"
-                          autoFocus
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") renameChat(selectedChat.sessionId, renameValue);
-                            if (e.key === "Escape") setRenamingId(null);
-                          }}
-                        />
-                        <button
-                          type="button"
-                          onClick={() => renameChat(selectedChat.sessionId, renameValue)}
-                          className="h-7 px-2 rounded-md bg-foreground text-background text-[10px] font-medium hover:bg-foreground/90"
-                        >
-                          Save
-                        </button>
-                      </div>
-                    ) : (
-                      <>
-                        <p className="truncate text-sm font-semibold text-foreground">{selectedChat.title}</p>
-                        <p className="text-[10px] text-muted-foreground">{selectedChat.messageCount} messages</p>
-                      </>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {renamingId !== selectedChat.sessionId && (
-                      <button
-                        type="button"
-                        onClick={() => { setRenamingId(selectedChat.sessionId); setRenameValue(selectedChat.title); }}
-                        className="flex h-7 items-center gap-1 rounded-md bg-muted px-2 text-[10px] font-medium text-foreground hover:bg-muted/80"
-                      >
-                        Rename
-                      </button>
-                    )}
-                    <button
-                      type="button"
-                      onClick={() => deleteSingleChat(selectedChat.sessionId)}
-                      className="flex h-7 items-center gap-1 rounded-md bg-destructive/20 px-2 text-[10px] font-medium text-foreground hover:bg-destructive/30"
-                    >
-                      <Trash2 className="h-3 w-3" /> Delete
-                    </button>
-                  </div>
-                </div>
-
-                <div className="space-y-2 max-h-80 overflow-y-auto rounded-lg border border-border bg-muted/10 p-3">
-                  {selectedChat.messages.length === 0 ? (
-                    <p className="text-xs text-muted-foreground text-center py-4">No messages in this chat.</p>
-                  ) : (
-                    selectedChat.messages.map((msg, idx) => (
-                      <div key={idx} className={cn("rounded-lg px-3 py-2 text-xs", msg.role === "user" ? "bg-muted ml-8" : "bg-muted/30 mr-8")}>
-                        <p className={cn("text-[10px] font-medium mb-1", msg.role === "user" ? "text-foreground" : "text-muted-foreground")}>
-                          {msg.role === "user" ? "You" : "Assistant"}
-                        </p>
-                        <p className="text-foreground whitespace-pre-wrap break-words">{msg.content.slice(0, 200)}{msg.content.length > 200 ? "…" : ""}</p>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </>
-            )}
-          </div>
-        )}
-
         {tab === "about" && (
           <div className="p-4 space-y-4">
             <div className="flex flex-col items-center text-center py-2">
@@ -635,7 +373,7 @@ export function AccountPortal({
               <div className="rounded-lg border border-border bg-muted/20 p-3">
                 <p className="text-xs font-semibold text-foreground mb-1">Data Policy</p>
                 <p className="text-xs text-muted-foreground">
-                  Your conversations are stored locally in your browser — we never see or store them. Each message is sent to our AI provider to generate a reply. Only your account info (name, email) lives on our servers.
+                  Your conversations are stored on our servers for continuity across devices. Each message is sent to our AI provider to generate a reply. Only your account info (name, email) lives on our servers.
                 </p>
                 <p className="text-xs text-muted-foreground mt-2">
                   PULSE is an AI support tool. It does not replace professional mental health care.

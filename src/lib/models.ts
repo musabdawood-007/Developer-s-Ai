@@ -80,5 +80,3 @@ export function getModelChain(modelId: string): string[] {
   if (!model) return [process.env.LLM_MODEL || "mistral-medium-3-5"];
   return [model.apiModel, ...(model.fallbacks || [])];
 }
-
-export const MODEL_STORAGE_KEY = "pulse:model";

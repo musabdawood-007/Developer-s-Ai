@@ -17,6 +17,10 @@ import {
   Menu,
   UserCircle,
   Sparkle,
+  Sunrise,
+  Wind,
+  Zap,
+  Moon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -42,21 +46,23 @@ interface SessionInfo {
   title: string;
   updatedAt: string;
   preview?: string;
+  _count?: { chats: number };
 }
 
 interface VisitorCtx {
   name: string;
   visitorId: string;
   email?: string;
+  isGuest?: boolean;
 }
 
 const VISITOR_STORAGE_KEY = "pulse:auth";
+const GUEST_MSG_COUNT_KEY = "pulse:guest-msg-count";
 
 function uid() {
   return Math.random().toString(36).slice(2) + Date.now().toString(36);
 }
 
-/* Emotional-first suggestions (PRD §2: the "First 30 Seconds" experience) */
 const SUGGESTIONS = [
   "I'm stressed",
   "I'm burned out",
@@ -78,18 +84,19 @@ export default function Home() {
   const [sessions, setSessions] = useState<SessionInfo[]>([]);
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
 
   const [privacyOpen, setPrivacyOpen] = useState(false);
   const [visitor, setVisitor] = useState<VisitorCtx | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const abortRef = useRef<AbortController | null>(null);
-  const syncingFromSandbox = useRef(false);
   const { toast } = useToast();
 
   const [isPro, setIsPro] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [showWelcome, setShowWelcome] = useState(true);
+  const [guestMsgCount, setGuestMsgCount] = useState(0);
 
   useEffect(() => {
     const nav = performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming | undefined;
@@ -123,12 +130,21 @@ export default function Home() {
             name: parsed.name,
             visitorId: parsed.visitorId,
             email: parsed.email,
+            isGuest: parsed.isGuest,
           });
         }
       }
     } catch {
     }
   }, []);
+
+  useEffect(() => {
+    if (!visitor) return;
+    try {
+      const count = localStorage.getItem(`${GUEST_MSG_COUNT_KEY}:${visitor.visitorId}`);
+      if (count) setGuestMsgCount(parseInt(count, 10) || 0);
+    } catch {}
+  }, [visitor]);
 
   useEffect(() => {
     const handler = (e: BeforeInstallPromptEvent) => {
@@ -156,7 +172,6 @@ export default function Home() {
       setTimeout(() => setShowInstallToast(false), 5000);
       return;
     }
-
     installPromptEvent.prompt();
     const choice = await installPromptEvent.userChoice;
     if (choice.outcome === "accepted") {
@@ -173,7 +188,7 @@ export default function Home() {
     if (params.get("google_login") === "1") {
       fetch("/api/auth/me").then((r) => r.json()).then((data) => {
         if (data.visitorId && data.name) {
-          const authData = { name: data.name, visitorId: data.visitorId, email: data.email };
+          const authData = { name: data.name, visitorId: data.visitorId, email: data.email, isGuest: false };
           localStorage.setItem(VISITOR_STORAGE_KEY, JSON.stringify(authData));
           setVisitor(authData);
           try { sessionStorage.setItem("pulse:just-logged-in", "1"); } catch {}
@@ -183,201 +198,98 @@ export default function Home() {
     }
   }, []);
 
-  useEffect(() => {
-    if (visitor) return;
-    try {
-      const cached = localStorage.getItem(VISITOR_STORAGE_KEY);
-      if (cached) {
-        const parsed = JSON.parse(cached) as Partial<VisitorCtx>;
-        if (parsed?.name && parsed?.visitorId) {
-          setVisitor({
-            name: parsed.name,
-            visitorId: parsed.visitorId,
-            email: parsed.email,
-          });
-        }
-      }
-    } catch {}
-  }, [visitor]);
-
-  useEffect(() => {
+  const fetchSessions = useCallback(async () => {
     if (!visitor) return;
-    const storageKey = `pulse:chat-sessions:${visitor.visitorId}`;
     try {
-      const saved = localStorage.getItem(storageKey);
-      if (saved) {
-        const parsed = JSON.parse(saved) as { sessions: SessionInfo[]; currentSessionId: string; messages: Record<string, Message[]> };
-        if (parsed.sessions?.length > 0) {
-          const sessionsWithPreview = parsed.sessions.map((s) => {
-            const msgs = parsed.messages?.[s.id];
-            const lastMsg = msgs?.filter((m) => m.role === "user").pop();
-            return { ...s, preview: lastMsg?.content?.slice(0, 50) || "" };
-          });
-          setSessions(sessionsWithPreview);
-          setCurrentSessionId(parsed.currentSessionId || parsed.sessions[0].id);
-          const msgs = parsed.messages?.[parsed.currentSessionId || parsed.sessions[0].id];
-          if (msgs && msgs.length > 0) {
-            setMessages(msgs);
-          } else {
-            setMessages([{ id: "welcome", role: "assistant", content: buildWelcomeMessage(visitor.name), createdAt: Date.now() }]);
-          }
-          return;
+      const res = await fetch(`/api/sessions?visitorId=${visitor.visitorId}`);
+      if (res.ok) {
+        const data = await res.json();
+        setSessions(data.sessions || []);
+      }
+    } catch {}
+  }, [visitor]);
+
+  const fetchMessages = useCallback(async (sessionId: string) => {
+    if (!visitor) return;
+    try {
+      const res = await fetch(`/api/sessions/${sessionId}?visitorId=${visitor.visitorId}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.messages) {
+          setMessages(data.messages.map((m: any) => ({
+            id: m.id,
+            role: m.role,
+            content: m.content,
+            createdAt: new Date(m.createdAt).getTime(),
+          })));
         }
       }
     } catch {}
-    createNewSession();
   }, [visitor]);
 
   useEffect(() => {
-    const handleSessionsChanged = () => {
-      if (!visitor) return;
-      syncingFromSandbox.current = true;
-      const storageKey = `pulse:chat-sessions:${visitor.visitorId}`;
-      try {
-        const saved = localStorage.getItem(storageKey);
-        if (saved) {
-          const parsed = JSON.parse(saved) as { sessions: SessionInfo[]; currentSessionId: string; messages: Record<string, Message[]> };
-          if (parsed.sessions) {
-            const sessionsWithPreview = parsed.sessions.map((s) => {
-              const msgs = parsed.messages?.[s.id];
-              const lastMsg = msgs?.filter((m) => m.role === "user").pop();
-              return { ...s, preview: lastMsg?.content?.slice(0, 50) || "" };
-            });
-            setSessions(sessionsWithPreview);
-            if (parsed.currentSessionId && parsed.currentSessionId !== currentSessionId) {
-              setCurrentSessionId(parsed.currentSessionId);
-              const msgs = parsed.messages?.[parsed.currentSessionId];
-              if (msgs && msgs.length > 0) {
-                setMessages(msgs);
-              }
-            } else if (!parsed.sessions.find((s) => s.id === currentSessionId)) {
-              if (parsed.sessions.length > 0) {
-                setCurrentSessionId(parsed.sessions[0].id);
-                const msgs = parsed.messages?.[parsed.sessions[0].id];
-                setMessages(msgs && msgs.length > 0 ? msgs : [{ id: "welcome", role: "assistant", content: buildWelcomeMessage(visitor.name), createdAt: Date.now() }]);
-              } else {
-                createNewSession();
-              }
-            }
-          }
+    if (currentSessionId) {
+      fetchMessages(currentSessionId);
+    }
+  }, [currentSessionId, fetchMessages]);
+
+  useEffect(() => {
+    if (visitor) {
+      fetchSessions();
+    }
+  }, [visitor, fetchSessions]);
+
+  const incrementGuestMsgCount = useCallback(() => {
+    if (!visitor?.isGuest) return;
+    const newCount = guestMsgCount + 1;
+    setGuestMsgCount(newCount);
+    try {
+      localStorage.setItem(`${GUEST_MSG_COUNT_KEY}:${visitor.visitorId}`, String(newCount));
+    } catch {}
+    if (newCount >= 5) {
+      setShowLoginPrompt(true);
+    }
+  }, [guestMsgCount, visitor]);
+
+  const createNewSession = useCallback(async () => {
+    if (!visitor) return;
+    try {
+      const res = await fetch("/api/sessions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ visitorId: visitor.visitorId }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setCurrentSessionId(data.session.id);
+        setMessages([{ id: "welcome", role: "assistant", content: buildWelcomeMessage(visitor.name), createdAt: Date.now() }]);
+        fetchSessions();
+      }
+    } catch {}
+  }, [visitor, fetchSessions]);
+
+  const switchSession = useCallback((sessionId: string) => {
+    setCurrentSessionId(sessionId);
+    fetchMessages(sessionId);
+    setSidebarOpen(false);
+  }, [fetchMessages]);
+
+  const deleteSession = useCallback(async (sessionId: string) => {
+    if (!visitor) return;
+    try {
+      await fetch(`/api/sessions/${sessionId}`, { method: "DELETE" });
+      setSessions((prev) => prev.filter((s) => s.id !== sessionId));
+      if (sessionId === currentSessionId) {
+        const remaining = sessions.filter((s) => s.id !== sessionId);
+        if (remaining.length > 0) {
+          switchSession(remaining[0].id);
         } else {
-          setSessions([]);
           createNewSession();
         }
-      } catch {}
-      setTimeout(() => { syncingFromSandbox.current = false; }, 100);
-    };
-    window.addEventListener("pulse:sessions-changed", handleSessionsChanged);
-    return () => window.removeEventListener("pulse:sessions-changed", handleSessionsChanged);
-  }, [visitor, currentSessionId]);
-
-  const saveToLocalStorage = useCallback(() => {
-    if (!visitor || !currentSessionId || syncingFromSandbox.current) return;
-    const storageKey = `pulse:chat-sessions:${visitor.visitorId}`;
-    try {
-      let allMessages: Record<string, Message[]> = {};
-      try {
-        const existing = localStorage.getItem(storageKey);
-        if (existing) {
-          const parsed = JSON.parse(existing) as { messages?: Record<string, Message[]> };
-          if (parsed.messages) allMessages = { ...parsed.messages };
-        }
-      } catch {}
-
-      allMessages[currentSessionId] = messages.filter(m => m.id !== "welcome");
-
-      const sessionsWithPreview = sessions.map((s) => {
-        const msgs = allMessages[s.id];
-        const lastMsg = msgs?.filter((m) => m.role === "user").pop();
-        return { ...s, preview: lastMsg?.content?.slice(0, 50) || s.preview || "" };
-      });
-
-      const data = { sessions: sessionsWithPreview, currentSessionId, messages: allMessages };
-      try {
-        const existing = localStorage.getItem(storageKey);
-        const existingPreview = existing ? JSON.stringify(existing).length : 0;
-        if (existingPreview > 4_500_000) {
-          // History cap for free tier: drop oldest sessions beyond ~4.5MB.
-          const parsed = JSON.parse(existing!) as { sessions: SessionInfo[] };
-          const kept = parsed.sessions.slice(0, Math.max(5, parsed.sessions.length - 3));
-          const keepIds = new Set(kept.map(s => s.id));
-          allMessages = Object.fromEntries(Object.entries(allMessages).filter(([k]) => keepIds.has(k) || k === currentSessionId));
-        }
-      } catch {}
-
-      const sessionsToSave = sessionsWithPreview.filter(s => allMessages[s.id] !== undefined || s.id === currentSessionId);
-      const dataToSave = { sessions: sessionsToSave.length > 0 ? sessionsToSave : sessionsWithPreview, currentSessionId, messages: allMessages };
-      localStorage.setItem(storageKey, JSON.stringify(dataToSave));
+      }
+      toast({ title: "Space deleted." });
     } catch {}
-  }, [visitor, sessions, currentSessionId, messages]);
-
-  useEffect(() => { saveToLocalStorage(); }, [saveToLocalStorage]);
-
-  const createNewSession = () => {
-    if (!visitor) return;
-    const newSession: SessionInfo = {
-      id: uid(),
-      title: `Feeling heavy?`,
-      updatedAt: new Date().toISOString(),
-      preview: "",
-    };
-    setSessions((prev) => [newSession, ...prev]);
-    setCurrentSessionId(newSession.id);
-    setMessages([
-      {
-        id: "welcome",
-        role: "assistant",
-        content: buildWelcomeMessage(visitor.name),
-        createdAt: Date.now(),
-      },
-    ]);
-    setSidebarOpen(false);
-  };
-
-  const switchSession = (sessionId: string) => {
-    setCurrentSessionId(sessionId);
-    const storageKey = `pulse:chat-sessions:${visitor?.visitorId}`;
-    try {
-      const saved = localStorage.getItem(storageKey);
-      if (saved) {
-        const parsed = JSON.parse(saved) as { messages: Record<string, Message[]> };
-        const msgs = parsed.messages?.[sessionId];
-        if (msgs && msgs.length > 0) {
-          setMessages(msgs);
-        } else {
-          setMessages([{ id: "welcome", role: "assistant", content: buildWelcomeMessage(visitor?.name || "Friend"), createdAt: Date.now() }]);
-        }
-      }
-    } catch {
-      setMessages([{ id: "welcome", role: "assistant", content: buildWelcomeMessage(visitor?.name || "Friend"), createdAt: Date.now() }]);
-    }
-    setSidebarOpen(false);
-  };
-
-  const refreshSessions = useCallback(() => {
-    if (!visitor) return;
-    const storageKey = `pulse:chat-sessions:${visitor.visitorId}`;
-    try {
-      const saved = localStorage.getItem(storageKey);
-      if (saved) {
-        const parsed = JSON.parse(saved) as { sessions: SessionInfo[] };
-        setSessions(parsed.sessions || []);
-      }
-    } catch {}
-  }, [visitor]);
-
-  const deleteSession = (sessionId: string) => {
-    setSessions((prev) => prev.filter((s) => s.id !== sessionId));
-    if (sessionId === currentSessionId) {
-      const remaining = sessions.filter((s) => s.id !== sessionId);
-      if (remaining.length > 0) {
-        switchSession(remaining[0].id);
-      } else {
-        createNewSession();
-      }
-    }
-    toast({ title: "Space deleted." });
-  };
+  }, [visitor, currentSessionId, sessions, createNewSession, switchSession]);
 
   useEffect(() => {
     const el = scrollRef.current;
@@ -410,6 +322,11 @@ export default function Home() {
     async (rawText?: string) => {
       const text = (rawText ?? input).trim();
       if (!text || loading) return;
+
+      if (!currentSessionId) {
+        await createNewSession();
+        if (!currentSessionId) return;
+      }
 
       const userMsg: Message = {
         id: uid(),
@@ -446,6 +363,7 @@ export default function Home() {
             messages: history.map((m) => ({ role: m.role, content: m.content })),
             visitorName: visitor?.name,
             modelId: DEFAULT_MODEL_ID,
+            sessionId: currentSessionId,
           }),
         });
 
@@ -478,7 +396,7 @@ export default function Home() {
 
             try {
               const json = JSON.parse(payload) as
-                | { token?: string; done?: boolean; error?: string; started?: boolean };
+                | { token?: string; done?: boolean; error?: string; started?: boolean; sessionId?: string };
 
               if (json.error) {
                 throw new Error(json.error);
@@ -496,6 +414,9 @@ export default function Home() {
                   )
                 );
               }
+              if (json.done && json.sessionId) {
+                setCurrentSessionId(json.sessionId);
+              }
             } catch {
             }
           }
@@ -511,6 +432,9 @@ export default function Home() {
               : m
           )
         );
+
+        incrementGuestMsgCount();
+        fetchSessions();
       } catch (e) {
         if (e instanceof DOMException && e.name === "AbortError") {
           setMessages((prev) =>
@@ -547,7 +471,7 @@ export default function Home() {
         void refreshUsage();
       }
     },
-    [input, loading, messages, toast, visitor, refreshUsage]
+    [input, loading, messages, toast, visitor, currentSessionId, refreshUsage, createNewSession, fetchSessions, incrementGuestMsgCount]
   );
 
   const stopGeneration = useCallback(() => {
@@ -561,20 +485,12 @@ export default function Home() {
     }
   };
 
-  const clearChat = () => {
-    createNewSession();
-  };
-
   const signOut = async () => {
     try {
-      await fetch("/api/auth/signout", {
-        method: "POST",
-        credentials: "include",
-      });
+      await fetch("/api/auth/signout", { method: "POST", credentials: "include" });
     } catch {
     }
     try {
-      if (visitor) localStorage.removeItem(`pulse:chat-sessions:${visitor.visitorId}`);
       localStorage.removeItem(VISITOR_STORAGE_KEY);
     } catch {
     }
@@ -626,12 +542,41 @@ export default function Home() {
         ) : (
           DISCLAIMER_FOOTER
         )}
+        {visitor.isGuest && guestMsgCount > 0 && (
+          <span className="ml-2 text-[10px] text-muted-foreground/60">
+            {guestMsgCount}/5 messages — sign in to continue
+          </span>
+        )}
       </p>
     </div>
   );
 
   return (
     <div className="flex h-[100dvh] overflow-hidden bg-background text-foreground">
+      {showLoginPrompt && visitor?.isGuest && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" onClick={() => setShowLoginPrompt(false)}>
+          <div className="w-full max-w-md rounded-2xl border border-border bg-card p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="text-center">
+              <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-muted">
+                <Heart className="h-7 w-7 text-foreground" />
+              </div>
+              <h2 className="text-lg font-bold">Continue your conversation</h2>
+              <p className="mt-2 text-sm text-muted-foreground">
+                You&apos;ve used your 5 free anonymous messages. Create an account to save your chat history and keep talking.
+              </p>
+              <div className="mt-5 flex gap-2">
+                <Button type="button" variant="outline" className="flex-1" onClick={() => setShowLoginPrompt(false)}>
+                  Later
+                </Button>
+                <Button type="button" className="flex-1 bg-gradient-to-r from-slate-500 to-slate-700 text-white" onClick={() => { setShowLoginPrompt(false); setAccountOpen(true); }}>
+                  Sign up / Log in
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {sidebarOpen && (
         <div className="fixed inset-0 z-40 flex lg:hidden">
           <div className="absolute inset-0 bg-black/50" onClick={() => setSidebarOpen(false)} aria-hidden />
@@ -732,7 +677,7 @@ export default function Home() {
         <header className="shrink-0 border-b border-border bg-background/80 backdrop-blur-xl sticky top-0 z-10">
           <div className="flex items-center justify-between gap-2 px-3 py-2 sm:px-4">
             <div className="flex items-center gap-2">
-              <button type="button" onClick={() => { setSidebarOpen(true); refreshSessions(); }} className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground lg:hidden" aria-label="Open sidebar">
+              <button type="button" onClick={() => { setSidebarOpen(true); fetchSessions(); }} className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground lg:hidden" aria-label="Open sidebar">
                 <Menu className="h-5 w-5" />
               </button>
               <button type="button" onClick={() => createNewSession()} className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground" aria-label="New space" title="New space (Ctrl+K)">
@@ -815,7 +760,7 @@ export default function Home() {
                     </div>
                     <div>
                       <p className="text-sm font-medium text-foreground">Stays private</p>
-                      <p className="text-[11px] text-muted-foreground">History lives in your browser</p>
+                      <p className="text-[11px] text-muted-foreground">Conversations saved for continuity</p>
                     </div>
                   </div>
                 </div>
@@ -825,7 +770,7 @@ export default function Home() {
           ) : (
             <div className="mx-auto max-w-3xl pb-4">
               {messages.map((m) => (
-                <ChatMessage key={m.id} message={m} isStreaming={streaming && m.id === messages[messages.length - 1]?.id && m.role === "assistant"} isThinking={thinking && m.id === messages[messages.length - 1]?.id && m.role === "assistant"} onHide={m.id === "welcome" ? undefined : (id) => setMessages((prev) => prev.filter(x => x.id !== id))} onFeedback={postFeedback} />
+                <ChatMessage key={m.id} message={m} isStreaming={streaming && m.id === messages[messages.length - 1]?.id && m.role === "assistant"} isThinking={thinking && m.id === messages[messages.length - 1]?.id && m.role === "assistant"} onFeedback={postFeedback} />
               ))}
               {loading && messages[messages.length - 1]?.role !== "assistant" && (
                 <div className="flex w-full py-4">
@@ -931,9 +876,9 @@ export default function Home() {
               </p>
               <p className="text-muted-foreground">To install the app:</p>
               <ul className="mt-1 space-y-0.5 text-muted-foreground">
-                <li>• Chrome: tap the ⋮ menu → &quot;Install app&quot;</li>
-                <li>• Safari: tap Share → &quot;Add to Home Screen&quot;</li>
-                <li>• Edge: tap ⋮ → &quot;Add to phone&quot;</li>
+                <li>• Chrome: tap the ⋮ menu → "Install app"</li>
+                <li>• Safari: tap Share → "Add to Home Screen"</li>
+                <li>• Edge: tap ⋮ → "Add to phone"</li>
               </ul>
             </div>
             <button
