@@ -21,10 +21,6 @@ interface ChatRequestBody {
   sessionId?: string;
 }
 
-/**
- * Enforce the free-tier daily message limit (PRD §4: ~10 msgs/day).
- * Pro tier conversations are unlimited while the subscription is active.
- */
 async function enforceDailyLimit(
   visitorId: string,
   modelId: string
@@ -44,9 +40,7 @@ async function enforceDailyLimit(
 
   const today = new Date().toISOString().slice(0, 10);
   const usage = await db.modelUsage.findUnique({
-    where: {
-      visitorId_modelId_date: { visitorId, modelId, date: today },
-    },
+    where: { visitorId_modelId_date: { visitorId, modelId, date: today } },
   });
   const used = usage?.count ?? 0;
   return { allowed: used < model.dailyLimit, used, remaining: Math.max(0, model.dailyLimit - used) };
@@ -69,9 +63,7 @@ async function getOrCreateSession(visitorId: string, sessionId?: string) {
       where: { id: sessionId },
       select: { id: true, visitorId: true },
     });
-    if (existing && existing.visitorId === visitorId) {
-      return existing.id;
-    }
+    if (existing && existing.visitorId === visitorId) return existing.id;
   }
   const session = await db.chatSession.create({
     data: { visitorId, title: "New Chat" },
@@ -88,22 +80,15 @@ async function saveMessage(
   modelId?: string
 ) {
   await db.chatLog.create({
-    data: {
-      visitorId,
-      sessionId,
-      role,
-      content,
-      modelId: role === "assistant" ? modelId : null,
-    },
+    data: { visitorId, sessionId, role, content, modelId: role === "assistant" ? modelId : null },
   });
 }
 
 async function updateSessionTitle(sessionId: string, firstUserMessage: string) {
   const title = firstUserMessage.slice(0, 50).trim();
-  await db.chatSession.update({
-    where: { id: sessionId },
-    data: { title: title || "New Chat", updatedAt: new Date() },
-  }).catch(() => {});
+  await db.chatSession
+    .update({ where: { id: sessionId }, data: { title: title || "New Chat", updatedAt: new Date() } })
+    .catch(() => {});
 }
 
 export async function POST(req: NextRequest) {
@@ -120,10 +105,7 @@ export async function POST(req: NextRequest) {
   }
 
   if (!body?.messages || !Array.isArray(body.messages)) {
-    return NextResponse.json(
-      { error: "Missing 'messages' array in request body." },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: "Missing 'messages' array in request body." }, { status: 400 });
   }
 
   const modelId = body.modelId && getModel(body.modelId) ? body.modelId : DEFAULT_MODEL_ID;
@@ -131,37 +113,34 @@ export async function POST(req: NextRequest) {
   const limitCheck = await enforceDailyLimit(sessionVisitorId, modelId);
   if (!limitCheck.allowed) {
     return NextResponse.json(
-      {
-        error: "You've reached today's limit on this conversation mode.",
-        lockedReason: "daily-limit",
-      },
+      { error: "You've reached today's limit on this conversation mode.", lockedReason: "daily-limit" },
       { status: 403 }
     );
   }
 
   const systemPrompt = buildSystemPrompt(body.visitorName?.trim() || undefined);
 
+  // Reduced from 10 to 6 for faster response
   const history = body.messages
     .filter((m) => typeof m?.content === "string" && m.content.trim().length > 0)
-    .slice(-10);
+    .slice(-6);
 
   const lastUserMsg = [...body.messages].reverse().find((m) => m.role === "user");
   const lastUserText = (lastUserMsg?.content || "").toLowerCase();
 
   const inCrisis = CRISIS_KEYWORDS.some((k) => lastUserText.includes(k));
 
+  // Quick session creation (non-blocking for stream start)
   const sessionId = await getOrCreateSession(sessionVisitorId, body.sessionId);
 
   const lastUserMessage = lastUserMsg?.content || "";
-  await saveMessage(sessionVisitorId, sessionId, "user", lastUserMessage);
 
-  if (!inCrisis) {
-    await updateSessionTitle(sessionId, lastUserMessage);
-  }
+  // Fire-and-forget DB operations - don't await
+  saveMessage(sessionVisitorId, sessionId, "user", lastUserMessage).catch(() => {});
+  if (!inCrisis) updateSessionTitle(sessionId, lastUserMessage).catch(() => {});
+  recordUsage(sessionVisitorId, modelId).catch(() => {});
 
   const encoder = new TextEncoder();
-
-  await recordUsage(sessionVisitorId, modelId);
 
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
@@ -173,6 +152,7 @@ export async function POST(req: NextRequest) {
 
       let fullReply = "";
 
+      // Immediate "started" signal so UI shows typing indicator instantly
       send({ started: true });
 
       try {
@@ -184,32 +164,30 @@ export async function POST(req: NextRequest) {
             { role: "system", content: systemPrompt },
             ...history,
           ];
+          // Stream tokens as they arrive from LLM
           for await (const token of streamChatCompletion(messagesForModel, getModelChain(modelId))) {
             fullReply += token;
             send({ token });
           }
         }
 
-        await saveMessage(sessionVisitorId, sessionId, "assistant", fullReply, modelId);
+        // Fire-and-forget: save assistant reply
+        if (fullReply) {
+          saveMessage(sessionVisitorId, sessionId, "assistant", fullReply, modelId).catch(() => {});
+        }
 
         send({ done: true, sessionId });
       } catch (err) {
         if (err instanceof Error && err.name === "AbortError") {
-          try {
-            send({ done: true });
-          } catch {}
+          send({ done: true });
         } else {
           console.error("[chat/stream] error:", err);
           const message = err instanceof Error ? err.message : "Unknown error";
-          try {
-            send({ error: message });
-            send({ done: true });
-          } catch {}
+          send({ error: message });
+          send({ done: true });
         }
       } finally {
-        try {
-          controller.close();
-        } catch {}
+        try { controller.close(); } catch {}
       }
     },
   });

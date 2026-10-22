@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getSessionVisitorId } from "@/lib/auth";
+import { buildWelcomeMessage } from "@/lib/chat-config";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -54,9 +55,25 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Missing or invalid visitorId" }, { status: 400 });
     }
 
+    const visitor = await db.visitor.findUnique({
+      where: { id: visitorId },
+      select: { name: true },
+    });
+
     const session = await db.chatSession.create({
       data: { visitorId, title: "New Chat" },
       select: { id: true, title: true, createdAt: true },
+    });
+
+    // Save welcome message to DB so it appears in history
+    const welcomeMsg = buildWelcomeMessage(visitor?.name);
+    await db.chatLog.create({
+      data: {
+        visitorId,
+        sessionId: session.id,
+        role: "assistant",
+        content: welcomeMsg,
+      },
     });
 
     return NextResponse.json({ session });

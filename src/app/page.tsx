@@ -34,7 +34,6 @@ import { WelcomeScreen } from "@/components/chat/welcome-screen";
 
 import {
   BOT_NAME,
-  buildWelcomeMessage,
   DISCLAIMER_FOOTER,
 } from "@/lib/chat-config";
 import { DEFAULT_MODEL_ID } from "@/lib/models";
@@ -262,11 +261,11 @@ export default function Home() {
       if (res.ok) {
         const data = await res.json();
         setCurrentSessionId(data.session.id);
-        setMessages([{ id: "welcome", role: "assistant", content: buildWelcomeMessage(visitor.name), createdAt: Date.now() }]);
+        fetchMessages(data.session.id);
         fetchSessions();
       }
     } catch {}
-  }, [visitor, fetchSessions]);
+  }, [visitor, fetchSessions, fetchMessages]);
 
   const switchSession = useCallback((sessionId: string) => {
     setCurrentSessionId(sessionId);
