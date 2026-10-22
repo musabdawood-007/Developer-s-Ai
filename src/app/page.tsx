@@ -90,6 +90,7 @@ export default function Home() {
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const abortRef = useRef<AbortController | null>(null);
+  const isSendingRef = useRef(false);
   const { toast } = useToast();
 
   const [isPro, setIsPro] = useState(false);
@@ -319,8 +320,11 @@ export default function Home() {
 
   const send = useCallback(
     async (rawText?: string) => {
+      if (isSendingRef.current) return;
       const text = (rawText ?? input).trim();
       if (!text || loading) return;
+
+      isSendingRef.current = true;
 
       if (!currentSessionId) {
         await createNewSession();
@@ -467,6 +471,7 @@ export default function Home() {
         setStreaming(false);
         setThinking(false);
         abortRef.current = null;
+        isSendingRef.current = false;
         void refreshUsage();
       }
     },
@@ -478,7 +483,7 @@ export default function Home() {
   }, []);
 
   const onKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === "Enter" && !e.shiftKey) {
+    if (e.key === "Enter" && !e.shiftKey && !isSendingRef.current) {
       e.preventDefault();
       void send();
     }
