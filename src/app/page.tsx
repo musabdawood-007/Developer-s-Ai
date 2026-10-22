@@ -219,7 +219,7 @@ export default function Home() {
           }
           return;
         }
-      } catch { /* empty */ }
+      } catch (_e) { }
       createNewSession();
     }, [visitor]);
 
