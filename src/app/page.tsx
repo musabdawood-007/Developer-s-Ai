@@ -751,6 +751,8 @@ export default function Home() {
               {/* Logo */}
               <div className="relative mb-6">
                 <div className="absolute inset-0 -m-1.5 rounded-2xl bg-muted/30 blur-lg" />
+                {/* Red pulse ring on load */}
+                <span className="absolute -inset-1.5 rounded-2xl border-2 border-red-500/60 animate-pulse-ring-load opacity-0" />
                 <img src="/custom-logo.png" alt="PULSE" className="relative h-16 w-16 rounded-xl shadow-lg object-contain" />
               </div>
 
