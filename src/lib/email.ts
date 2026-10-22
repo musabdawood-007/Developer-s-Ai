@@ -31,7 +31,7 @@ export async function sendOtpEmail(
   }
 
   const fromName = process.env.EMAIL_FROM_NAME || "PULSE";
-  const fromAddress = process.env.EMAIL_FROM_ADDRESS || "musabdaud007@gmail.com";
+  const fromAddress = process.env.EMAIL_FROM_ADDRESS || "pulse.bot.ai@gmail.com";
 
   const html = `
     <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; background: #0a0a1a; padding: 32px; border-radius: 16px; border: 1px solid #1a3a2a;">

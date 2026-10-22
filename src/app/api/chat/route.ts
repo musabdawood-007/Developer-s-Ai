@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { buildSystemPrompt, CRISIS_KEYWORDS, CRISIS_RESPONSE } from "@/lib/chat-config";
 import { getModel, DEFAULT_MODEL_ID, getModelChain } from "@/lib/models";
-import { validateSession } from "@/lib/auth";
+import { getSessionVisitorId } from "@/lib/auth";
 import { streamChatCompletion } from "@/lib/zai-client";
 
 export const runtime = "nodejs";
@@ -64,7 +64,7 @@ async function recordUsage(visitorId: string, modelId: string) {
 }
 
 export async function POST(req: NextRequest) {
-  const sessionVisitorId = await validateSession(req);
+  const sessionVisitorId = await getSessionVisitorId(req);
   if (!sessionVisitorId) {
     return NextResponse.json({ error: "Unauthorized. Please sign in or continue as a guest." }, { status: 401 });
   }

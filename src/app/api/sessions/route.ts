@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { validateSession } from "@/lib/auth";
+import { getSessionVisitorId } from "@/lib/auth";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -10,7 +10,7 @@ interface Body {
 }
 
 export async function GET(req: NextRequest) {
-  const sessionVisitorId = await validateSession(req);
+  const sessionVisitorId = await getSessionVisitorId(req);
   if (!sessionVisitorId) {
     return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
   }
@@ -42,7 +42,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const sessionVisitorId = await validateSession(req);
+  const sessionVisitorId = await getSessionVisitorId(req);
   if (!sessionVisitorId) {
     return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
   }

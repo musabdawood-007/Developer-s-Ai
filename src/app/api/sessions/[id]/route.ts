@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { validateSession } from "@/lib/auth";
+import { getSessionVisitorId } from "@/lib/auth";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -9,7 +9,7 @@ export async function DELETE(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const sessionVisitorId = await validateSession(req);
+  const sessionVisitorId = await getSessionVisitorId(req);
   if (!sessionVisitorId) {
     return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
   }

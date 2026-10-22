@@ -823,10 +823,11 @@ export default function Home() {
                 <div className="flex w-full py-4">
                   <div className="w-full max-w-3xl mx-auto px-4">
                     <div className="flex items-center gap-3">
-                      <span className="flex items-center gap-1">
-                        <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground/70 [animation-delay:0ms]" />
-                        <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground/70 [animation-delay:150ms]" />
-                        <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground/70 [animation-delay:300ms]" />
+                      <span className="relative flex items-center gap-1">
+                        <span className="absolute inset-0 animate-pulse-ring rounded-full bg-primary/40" />
+                        <span className="relative h-2 w-2 animate-pulse-dot rounded-full bg-primary" />
+                        <span className="relative h-2 w-2 animate-pulse-dot rounded-full bg-primary [animation-delay:150ms]" />
+                        <span className="relative h-2 w-2 animate-pulse-dot rounded-full bg-primary [animation-delay:300ms]" />
                       </span>
                       <span className="text-sm text-muted-foreground">Typing…</span>
                     </div>

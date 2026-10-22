@@ -196,14 +196,17 @@ export function ChatMessage({
 /**
  * Visible "typing..." indicator (PRD §7 trust signal) — the user
  * always knows PULSE is present and processing.
+ * Uses a subtle pulse-ring animation that echoes the PULSE brand.
  */
 function TypingIndicator() {
   return (
     <div className="flex items-center gap-3 py-2" aria-label="PULSE is typing">
-      <span className="flex items-center gap-1">
-        <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground/70 [animation-delay:0ms]" />
-        <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground/70 [animation-delay:150ms]" />
-        <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground/70 [animation-delay:300ms]" />
+      <span className="relative flex items-center gap-1">
+        {/* Pulse ring animation */}
+        <span className="absolute inset-0 animate-pulse-ring rounded-full bg-primary/40" />
+        <span className="relative h-2 w-2 animate-pulse-dot rounded-full bg-primary" />
+        <span className="relative h-2 w-2 animate-pulse-dot rounded-full bg-primary [animation-delay:150ms]" />
+        <span className="relative h-2 w-2 animate-pulse-dot rounded-full bg-primary [animation-delay:300ms]" />
       </span>
       <span className="text-sm text-muted-foreground">Typing…</span>
     </div>
