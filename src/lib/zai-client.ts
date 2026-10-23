@@ -28,6 +28,23 @@ function getGroqClient(): Groq {
   return groqClient;
 }
 
+function toTextContent(content: unknown): string {
+  if (typeof content === "string") return content;
+  if (Array.isArray(content)) {
+    const text = content
+      .map((p) => (typeof p === "object" && p !== null ? (p as any).text ?? "" : ""))
+      .filter((t) => t.trim().length > 0)
+      .join("\n")
+      .trim();
+    return text;
+  }
+  return "";
+}
+
+function sanitizeMessages(msgs: ChatMessage[]): ChatMessage[] {
+  return msgs.map((m) => ({ ...m, content: toTextContent(m.content as unknown) }));
+}
+
 /**
  * Stream chat completion using Groq SDK.
  * Uses openai/gpt-oss-120b — fast, free, good quality on Groq.
@@ -44,7 +61,7 @@ export async function* streamChatCompletion(
 
     const stream = await groq.chat.completions.create({
       model,
-      messages: messages as any,
+      messages: sanitizeMessages(messages),
       temperature: 0.7,
       max_completion_tokens: 2048,
       top_p: 1,
@@ -80,7 +97,7 @@ export async function createChatCompletion(
 
   const completion = await groq.chat.completions.create({
     model: "openai/gpt-oss-120b",
-    messages: messages as any,
+    messages: sanitizeMessages(messages),
     temperature: 0.7,
     max_completion_tokens: 2048,
     top_p: 1,
